@@ -87,6 +87,36 @@ reading.
 Both were then re-broken and both fired, and went quiet when the defect was
 removed. Both directions, which is the only proof worth having.
 
+## Two numbers that used to be assertions
+
+**The sample rate.** The band edges are in hertz and turning hertz into bins
+needs a rate. Taking it from a configuration file and never checking it makes
+every edge an assertion. The bench rule was learned on a polled bus, where the
+record is indexed by the poll rather than by the sensor sample and the two
+clocks are unrelated, and it says one timing of the capture retires the
+assumption the whole analysis rests on.
+
+This lab is on the better side of that problem by design, because the probe
+samples on the sensor's clock and reads out in bursts, so the record really is
+indexed by sensor sample. What remained was whether the configured rate is the
+claimed one, and the probe already stamps what answers it. `benchkit.timing`
+compares the two and refuses when they disagree beyond a tolerance the lab book
+carries. The span covers one block fewer than were read, because both stamps
+mark the first sample of their own block, and getting that wrong overstates the
+rate by a block, which at sixteen blocks is six per cent and would pass a loose
+tolerance.
+
+**The scale.** A count is not a measurement until something fixes counts per g.
+`benchkit.invariants` reads the static level of a resting capture and refuses a
+level outside the one g gravity allows on one axis.
+
+Its reach was measured rather than assumed, and the measurement changed the
+claim. The module first said it validated the register map, the byte order, the
+sign convention and the full-scale setting, which is what the three-axis
+magnitude does. The one-axis form does not: a byte swap took an honest +0.984 g
+to -0.416 g and both sit inside the bound. So it is a floor, it says so, and a
+test asserts the limitation so that it cannot quietly stop being true.
+
 ## What this cannot tell you
 
 Nothing here is a measurement of hardware. The stimuli are three signals chosen

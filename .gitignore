@@ -29,8 +29,11 @@ __pycache__/
 # source. Regenerate a synthetic one with: python -m p04 synth
 *.npz
 book.json
+axis.json
 labbook*.json
 
 # What a local run of the checks workflow leaves behind
 touch.txt
 speech.txt
+honest.npz
+skewed.npz

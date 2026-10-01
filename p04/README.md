@@ -50,6 +50,30 @@ only on where the block boundary fell. Take the worst of several blocks rather
 than the mean, and overlap blocks if a single tap has to be caught.
 
 Both are tests, not comments, so they cannot quietly stop being true.
+
+## Two numbers that arrive from paperwork, and are now checked
+
+A band edge in hertz needs a sample rate and a count needs a scale. Both used to
+be taken on trust, and a wrong one produces a confident answer with no symptom.
+
+**The rate is now measured, not asserted.** Each block carries the timestamp the
+probe stamps it with, and the observed rate is compared with the one in the lab
+book. A probe configured to a different output data rate than the paperwork
+claims is refused with both numbers named, because every band edge in hertz
+would be wrong by that ratio and nothing in a spectrum would show it. A capture
+with no clock says so rather than passing quietly.
+
+**A resting probe is checked against gravity.** `validate` reads the static
+level of an idle capture in g and refuses a level outside the one g that gravity
+allows on one axis, which catches a full-scale setting that disagrees with the
+lab book.
+
+That second check has a limit, and the limit is recorded rather than implied. It
+is a bound, not the equality the bench rule asks for. A byte swap turns an honest
++0.98 g into -0.42 g on this generator and both sit inside the bound, so the
+check stays silent on a stream it ought to refuse. Only the three-axis magnitude
+pins byte order. A test asserts that limitation, so when the stream carries three
+axes the test fails and says which stronger form to put in.
 [`docs/DESIGN.md`](docs/DESIGN.md) carries the reasoning and the ownership
 table.
 

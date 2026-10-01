@@ -41,31 +41,42 @@ def read_capture(path: str | Path) -> tuple[Iterator[Block], dict]:
         seq = z["seq"]
         vib = z["vib"]
         mic = z["mic"]
+        # Captures written before the probe stamped anything carry no clock.
+        stamps = z["t_us"] if "t_us" in z else None
         meta = json.loads(str(z["meta"])) if "meta" in z else {}
     if not (len(seq) == len(vib) == len(mic)):
         raise ValueError(f"{path}: seq, vib and mic differ in length")
+    if stamps is not None and len(stamps) != len(seq):
+        raise ValueError(f"{path}: t_us has {len(stamps)} entries for {len(seq)} blocks")
 
     def gen() -> Iterator[Block]:
         for i in range(len(seq)):
-            yield Block(int(seq[i]), vib[i], mic[i])
+            t = int(stamps[i]) if stamps is not None else None
+            yield Block(int(seq[i]), vib[i], mic[i], t)
 
     return gen(), meta
 
 
 def write_capture(path: str | Path, blocks: Iterable[Block], meta: dict | None = None) -> int:
     """Write blocks to a capture. Returns how many were written."""
-    seq, vib, mic = [], [], []
+    seq, vib, mic, stamps = [], [], [], []
     for b in blocks:
         seq.append(b.seq)
         vib.append(np.asarray(b.vib, dtype=np.int16))
         mic.append(np.asarray(b.mic, dtype=np.int16))
+        stamps.append(b.t_us)
     if not seq:
         raise ValueError("refusing to write an empty capture")
     payload = dict(meta or {})
     payload.setdefault("capture_version", CAPTURE_VERSION)
-    np.savez_compressed(Path(path), seq=np.asarray(seq, dtype=np.int64),
-                        vib=np.stack(vib), mic=np.stack(mic),
-                        meta=np.asarray(json.dumps(payload)))
+    arrays = dict(seq=np.asarray(seq, dtype=np.int64),
+                  vib=np.stack(vib), mic=np.stack(mic),
+                  meta=np.asarray(json.dumps(payload)))
+    # All or nothing: a half-stamped capture would give a rate measured over an
+    # unknown subset, which is worse than no rate because it looks like one.
+    if all(t is not None for t in stamps):
+        arrays["t_us"] = np.asarray(stamps, dtype=np.int64)
+    np.savez_compressed(Path(path), **arrays)
     return len(seq)
 
 

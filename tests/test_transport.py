@@ -81,7 +81,7 @@ class BaselineRefusal(unittest.TestCase):
     def test_a_baseline_is_a_mean_not_a_first_sample(self):
         """Dividing later work by one noisy block puts that noise in every ratio."""
         blocks = list(stream("idle", 12, BLOCK, RATE, seed=3))
-        mean, count, t = measure_baseline(iter(blocks))
+        mean, count, t, _timing = measure_baseline(iter(blocks))
         self.assertEqual(count, 12)
         self.assertTrue(t.clean)
         from benchkit.analysis import band_energy

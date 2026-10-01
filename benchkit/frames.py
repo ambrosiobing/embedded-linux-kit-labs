@@ -26,6 +26,12 @@ class Block:
     seq: int
     vib: np.ndarray
     mic: np.ndarray
+    # Microseconds on the probe's own monotonic clock, marking the first sample
+    # of this block. Optional because a capture written before the firmware was
+    # known carries none, and because the text protocol may not expose one until
+    # the flashed firmware is read. Where it is present it is what turns the
+    # claimed sample rate from an assertion into a measurement.
+    t_us: int | None = None
 
     def __post_init__(self) -> None:
         if len(self.vib) != len(self.mic):

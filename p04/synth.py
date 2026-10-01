@@ -35,10 +35,26 @@ def _clip16(x: np.ndarray) -> np.ndarray:
     return np.clip(np.rint(x), -FULL_SCALE, FULL_SCALE).astype(np.int16)
 
 
+# A probe at rest sees gravity projected onto the axis it is mounted along.
+# The default is a probe lying with its sensitive axis near vertical, which is
+# the ordinary case on a bench and gives the static invariant something real to
+# check. In counts per g the synthetic scale is a round number, declared beside
+# the stimuli so a lab book built from them is self consistent.
+COUNTS_PER_G = 2048.0
+G_PER_COUNT = 1.0 / COUNTS_PER_G
+
+
 def idle(n: int, rng: np.random.Generator, vib_level: float = 0.004,
-         mic_level: float = 0.004) -> tuple[np.ndarray, np.ndarray]:
-    """A quiet machine: broadband noise on both channels and nothing else."""
-    return _noise(rng, n, vib_level), _noise(rng, n, mic_level)
+         mic_level: float = 0.004, tilt_g: float = 0.98
+         ) -> tuple[np.ndarray, np.ndarray]:
+    """A quiet machine: broadband noise, and gravity on the vibration axis.
+
+    The static component is what makes the one-axis invariant testable. It sits
+    at zero hertz, far below any band this lab measures, so it changes no band
+    energy and disturbs no earlier result.
+    """
+    vib = _noise(rng, n, vib_level) + tilt_g * COUNTS_PER_G
+    return vib, _noise(rng, n, mic_level)
 
 
 def case_touch(n: int, rng: np.random.Generator, sample_rate_hz: float,
@@ -91,15 +107,27 @@ STIMULI = {"idle": idle, "touch": case_touch, "speech": speech}
 
 def stream(kind: str, blocks: int, block_len: int = 2048,
            sample_rate_hz: float = 26667.0, seed: int = 0,
-           first_seq: int = 1, drop: tuple[int, ...] = ()) -> Iterator[Block]:
+           first_seq: int = 1, drop: tuple[int, ...] = (),
+           stamp: bool = True, true_rate_hz: float | None = None) -> Iterator[Block]:
     """A run of blocks of one kind.
 
     `drop` names sequence numbers to omit, which is how the transport tests
     produce a stream with holes in it without needing a loose cable.
+
+    `true_rate_hz` is the rate the timestamps are generated at, as distinct from
+    `sample_rate_hz`, which is the rate a lab book would claim. Setting them
+    apart is how a probe configured to one output data rate while the paperwork
+    says another is reproduced, which is the fault the rate check exists for and
+    which no amount of looking at a spectrum would reveal.
+
+    `stamp` off produces a capture with no clock at all, which is what a probe
+    whose firmware does not expose one looks like.
     """
     if kind not in STIMULI:
         raise ValueError(f"unknown stimulus {kind!r}; try one of {sorted(STIMULI)}")
     rng = np.random.default_rng(seed)
+    actual = true_rate_hz if true_rate_hz is not None else sample_rate_hz
+    block_us = block_len / actual * 1e6
     for i in range(blocks):
         seq = first_seq + i
         if seq in drop:
@@ -108,4 +136,5 @@ def stream(kind: str, blocks: int, block_len: int = 2048,
             vib, mic = idle(block_len, rng)
         else:
             vib, mic = STIMULI[kind](block_len, rng, sample_rate_hz)
-        yield Block(seq, _clip16(vib), _clip16(mic))
+        t_us = int(round(i * block_us)) if stamp else None
+        yield Block(seq, _clip16(vib), _clip16(mic), t_us)

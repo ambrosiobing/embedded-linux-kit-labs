@@ -34,6 +34,11 @@ class LabBook:
     sample_rate_hz: float | None = None
     band_low_hz: float | None = None
     band_high_hz: float | None = None
+    # Counts per g, from the full-scale setting actually programmed. Without it
+    # the static level stays in counts and the gravity invariant cannot run.
+    g_per_count: float | None = None
+    # How far the observed sample rate may sit from the claimed one.
+    rate_tolerance: float = 0.02
     source: str = ""
     captured: str = field(default_factory=lambda: datetime.now(timezone.utc)
                           .strftime("%A %d %B %Y, %H:%M UTC"))

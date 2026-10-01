@@ -66,7 +66,8 @@ jobs:
           python - <<'PY'
           import importlib, sys
           for name in ("benchkit.analysis", "benchkit.frames", "benchkit.sources",
-                       "benchkit.labbook", "p04.synth", "p04.pipeline"):
+                       "benchkit.labbook", "benchkit.timing",
+                       "benchkit.invariants", "p04.synth", "p04.pipeline"):
               importlib.import_module(name)
           if "serial" in sys.modules:
               raise SystemExit("pyserial was imported at module level; the live "
@@ -95,10 +96,25 @@ jobs:
           fi
           echo "the orthogonality demonstration holds and a holed stream is refused"
 
+      - name: A frequency axis that is wrong is refused, not reported
+        run: |
+          set -e
+          python -m p04 synth --kind idle --blocks 10 --out honest.npz
+          python -m p04 baseline --source honest.npz --out axis.json \
+              --mounting "continuous integration" \
+              --warn 1.5 --fault 3.0 --band-low 2000 --band-high 6000
+          python -m p04 validate --source honest.npz --book axis.json
+          python -m p04 synth --kind idle --blocks 10 --true-rate 30000 --out skewed.npz
+          if python -m p04 analyse --source skewed.npz --book axis.json; then
+            echo "a probe running 12 per cent off its claimed rate was reported on"
+            exit 1
+          fi
+          echo "the rate check and the resting invariant both hold"
+
       - name: No built artefacts committed
         run: |
           set -e
-          if git ls-files | grep -E '\.(pdf|html|aux|log|toc|out|npz)$|^book\.json$'; then
+          if git ls-files | grep -E '\.(pdf|html|aux|log|toc|out|npz)$|^(book|axis)\.json$'; then
             echo "built artefacts must not be committed; they are rebuilt from source"
             exit 1
           fi

@@ -19,8 +19,10 @@ from pathlib import Path
 
 from benchkit.labbook import LabBook
 from .pipeline import measure_baseline, run_with
+from benchkit.frames import Transport
+from benchkit.invariants import check_at_rest
 from benchkit.sources import read_capture, read_serial, write_capture
-from .synth import stream
+from .synth import G_PER_COUNT, stream
 
 DEFAULT_RATE = 26667.0        # IIS3DWB output data rate, confirm against the firmware
 DEFAULT_BLOCK = 2048          # the chapter's block length
@@ -28,10 +30,14 @@ DEFAULT_BLOCK = 2048          # the chapter's block length
 
 def cmd_synth(a) -> int:
     drop = tuple(int(s) for s in a.drop.split(",") if s.strip()) if a.drop else ()
-    blocks = stream(a.kind, a.blocks, a.block_len, a.rate, a.seed, drop=drop)
+    blocks = stream(a.kind, a.blocks, a.block_len, a.rate, a.seed, drop=drop,
+                    stamp=not a.no_stamp, true_rate_hz=a.true_rate)
     meta = {"kind": a.kind, "block_len": a.block_len, "sample_rate_hz": a.rate,
             "seed": a.seed, "synthetic": True,
+            "g_per_count": G_PER_COUNT,
             "warning": "synthetic stimulus, not a measurement of any hardware"}
+    if a.true_rate is not None:
+        meta["true_rate_hz"] = a.true_rate
     n = write_capture(a.out, blocks, meta)
     print(f"wrote {n} blocks of {a.kind} to {a.out}")
     if drop:
@@ -42,14 +48,23 @@ def cmd_synth(a) -> int:
 def cmd_baseline(a) -> int:
     blocks, meta = read_capture(a.source)
     rate = a.rate if a.rate is not None else meta.get("sample_rate_hz")
-    mean, count, transport = measure_baseline(blocks, rate, a.band_low, a.band_high)
+    mean, count, transport, timing = measure_baseline(blocks, rate, a.band_low, a.band_high)
     print(f"transport: {transport.summary()}")
     if not transport.clean:
         print("refusing to take a baseline from a stream with holes in it.")
         return 1
+    if timing is not None:
+        ok, why = timing.check(rate, a.rate_tolerance)
+        print(f"rate: {why}")
+        if not ok:
+            print("refusing to write a lab book whose band edges would be wrong.")
+            return 1
     book = LabBook(baseline=mean, warn=a.warn, fault=a.fault, mounting=a.mounting,
                    block_len=int(meta.get("block_len", DEFAULT_BLOCK)),
                    sample_rate_hz=rate, band_low_hz=a.band_low, band_high_hz=a.band_high,
+                   g_per_count=a.g_per_count if a.g_per_count is not None
+                   else meta.get("g_per_count"),
+                   rate_tolerance=a.rate_tolerance,
                    source=str(a.source), note=a.note)
     book.save(a.out)
     print(f"baseline {mean:.1f} over {count} blocks, written to {a.out}")
@@ -66,8 +81,15 @@ def _analyse(a, label: str) -> int:
     blocks, _ = read_capture(a.source)
     result = run_with(blocks, book)
     print(f"transport: {result.transport.summary()}")
+    rate_ok = True
+    if result.timing is not None:
+        rate_ok, why = result.timing.check(book.sample_rate_hz, book.rate_tolerance)
+        print(f"rate: {why}")
     if not result.transport.clean:
         print("the spectrum below was computed over a stream with holes in it")
+    if not rate_ok:
+        print("refusing to report a band energy against a frequency axis that is wrong.")
+        return 1
     worst = result.worst()
     print(f"{label}: {worst}, mean ratio {result.mean_ratio():.2f}, "
           f"mean microphone RMS {result.mean_mic_rms():.1f}")
@@ -113,6 +135,26 @@ def cmd_transport(a) -> int:
     return 0 if t.clean else 1
 
 
+def cmd_validate(a) -> int:
+    """Ask physics whether the counts are being read as the data sheet describes.
+
+    Separate from analyse on purpose. A spectrum can look entirely reasonable
+    while the full-scale setting or the byte order is wrong, because a swapped
+    sample is still a number. This is the question a plot cannot answer.
+    """
+    book = LabBook.load(a.book)
+    blocks, _ = read_capture(a.source)
+    vib = []
+    transport = Transport()
+    for b in blocks:
+        transport.observe(b.seq)
+        vib.append(b.vib)
+    print(f"transport: {transport.summary()}")
+    check = check_at_rest(vib, book.g_per_count)
+    print(f"at rest: {check.reason}")
+    return 0 if check.ok else 1
+
+
 def cmd_live(a) -> int:
     book = LabBook.load(a.book)
     blocks = read_serial(a.port, a.baud, book.block_len)
@@ -133,6 +175,12 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--rate", type=float, default=DEFAULT_RATE)
     s.add_argument("--seed", type=int, default=0)
     s.add_argument("--drop", default="", help="sequence numbers to omit, comma separated")
+    s.add_argument("--no-stamp", action="store_true", dest="no_stamp",
+                   help="write a capture with no clock, as a probe whose firmware "
+                        "exposes none would produce")
+    s.add_argument("--true-rate", type=float, default=None, dest="true_rate",
+                   help="the rate the timestamps really advance at, when it is to "
+                        "differ from the rate a lab book would claim")
     s.add_argument("--out", required=True)
     s.set_defaults(func=cmd_synth)
 
@@ -144,6 +192,11 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--rate", type=float, default=None)
     b.add_argument("--band-low", type=float, default=None, dest="band_low")
     b.add_argument("--band-high", type=float, default=None, dest="band_high")
+    b.add_argument("--g-per-count", type=float, default=None, dest="g_per_count",
+                   help="counts per g from the full-scale setting actually programmed; "
+                        "without it the gravity invariant cannot run")
+    b.add_argument("--rate-tolerance", type=float, default=0.02, dest="rate_tolerance",
+                   help="how far the observed rate may sit from the claimed one")
     b.add_argument("--note", default="")
     b.add_argument("--out", required=True)
     b.set_defaults(func=cmd_baseline)
@@ -154,6 +207,11 @@ def main(argv: list[str] | None = None) -> int:
         c.add_argument("--source", required=True)
         c.add_argument("--book", required=True)
         c.set_defaults(func=fn)
+
+    v = sub.add_parser("validate", help="the gravity invariant over a capture at rest")
+    v.add_argument("--source", required=True)
+    v.add_argument("--book", required=True)
+    v.set_defaults(func=cmd_validate)
 
     t = sub.add_parser("transport", help="sequence numbers only, no spectrum")
     t.add_argument("--source", required=True)

@@ -15,6 +15,7 @@ from typing import Iterable
 from benchkit.analysis import Thresholds, band_energy, classify, rms
 from benchkit.frames import Block, Transport
 from benchkit.labbook import LabBook
+from benchkit.timing import Timing
 
 
 @dataclass
@@ -30,10 +31,16 @@ class Reading:
 
 @dataclass
 class Result:
-    """What a whole run produced, signal and transport kept apart."""
+    """What a whole run produced, with the three questions kept apart.
+
+    What the signal did, whether the stream arrived whole, and whether the rate
+    the band edges were computed from is the rate the data came at. They fail
+    for different reasons and a reader has to be able to tell which failed.
+    """
 
     readings: list[Reading] = field(default_factory=list)
     transport: Transport = field(default_factory=Transport)
+    timing: Timing | None = None
 
     @property
     def states(self) -> list[str]:
@@ -57,6 +64,9 @@ def run(blocks: Iterable[Block], thresholds: Thresholds,
     result = Result()
     for b in blocks:
         result.transport.observe(b.seq)
+        if result.timing is None:
+            result.timing = Timing(block_len=len(b))
+        result.timing.observe(b.t_us)
         energy = band_energy(b.vib, sample_rate_hz, band_low_hz, band_high_hz)
         state, ratio = classify(energy, thresholds)
         result.readings.append(Reading(b.seq, state, ratio, energy, rms(b.mic)))
@@ -71,7 +81,8 @@ def run_with(blocks: Iterable[Block], book: LabBook) -> Result:
 
 def measure_baseline(blocks: Iterable[Block], sample_rate_hz: float | None = None,
                      band_low_hz: float | None = None,
-                     band_high_hz: float | None = None) -> tuple[float, int, Transport]:
+                     band_high_hz: float | None = None
+                     ) -> tuple[float, int, Transport, Timing | None]:
     """Mean band energy over an idle run, with the transport that produced it.
 
     Returns the mean rather than the first block's energy. One block of an idle
@@ -79,11 +90,15 @@ def measure_baseline(blocks: Iterable[Block], sample_rate_hz: float | None = Non
     one sample of noise puts that noise in every ratio the lab ever reports.
     """
     transport = Transport()
+    timing = None
     total, count = 0.0, 0
     for b in blocks:
         transport.observe(b.seq)
+        if timing is None:
+            timing = Timing(block_len=len(b))
+        timing.observe(b.t_us)
         total += band_energy(b.vib, sample_rate_hz, band_low_hz, band_high_hz)
         count += 1
     if not count:
         raise SystemExit("no blocks: cannot measure a baseline from an empty stream")
-    return total / count, count, transport
+    return total / count, count, transport, timing
