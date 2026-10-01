@@ -40,7 +40,7 @@ jobs:
           done
           test -f sections/front.tex
           test -f sections/appendix.tex
-          test -f figures/front_path.tex
+          test -f figures/front_map.tex
           exit $fail
 
       - name: The Markdown edition is in step with the source
