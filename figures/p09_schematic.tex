@@ -1,0 +1,53 @@
+\begin{circuitikz}[scale=0.9, every node/.style={transform shape}, font=\sffamily\small]
+% ---------------- NanoPi board block with the 24-pin header
+\draw[rounded corners=2pt, fill=hwcol] (0,1.6) rectangle (3.8,6.4);
+\node[font=\sffamily\bfseries\small] at (1.9,6.0) {NanoPi NEO Air};
+\node[font=\sffamily\scriptsize] at (1.9,5.6) {24-pin header, 3.3 V logic};
+\foreach \y/\pin/\name in {5.0/1/SYS\_3V3, 4.5/3/I2C0\_SDA, 4.0/5/I2C0\_SCL, 3.5/6/GND, 2.6/2/VDD\_5V}{
+  \draw (3.8,\y) -- (4.4,\y);
+  \node[anchor=east, font=\sffamily\scriptsize] at (3.7,\y) {pin \pin\ \ \name};
+}
+\node[anchor=east, font=\sffamily\scriptsize, text=black!60] at (3.7,2.0) {no 40-pin HAT seats here};
+% ---------------- ADXL345 breakout
+\draw[rounded corners=2pt, fill=usrcol] (7.0,2.5) rectangle (10.4,5.4);
+\node[font=\sffamily\bfseries\small] at (8.7,5.05) {SEN0032};
+\node[font=\sffamily\scriptsize] at (8.7,4.7) {ADXL345, 0x53};
+\node[font=\sffamily\scriptsize, text=black!60] at (8.7,4.45) {SDO open: 0x53};
+\foreach \y/\name in {4.1/VCC, 3.6/SDA, 3.1/SCL, 2.75/GND}{
+  \draw (6.4,\y) -- (7.0,\y);
+  \node[anchor=west, font=\sffamily\scriptsize] at (7.1,\y) {\name};
+}
+% ---------------- routing, 24-pin header to the sensor
+\draw (4.4,5.0) -- (6.4,5.0) -- (6.4,4.1);
+\draw (4.4,4.5) -- (6.1,4.5) -- (6.1,3.6) -- (6.4,3.6);
+\draw (4.4,4.0) -- (5.8,4.0) -- (5.8,3.1) -- (6.4,3.1);
+\draw (4.4,3.5) -- (5.5,3.5) -- (5.5,2.75) -- (6.4,2.75);
+\draw (5.0,3.5) -- (5.0,3.05);
+\node[ground] at (5.0,3.05) {};
+% ---------------- 5 V supply branch, kept well clear of the 3V3 rail
+\draw (4.4,2.6) -- (4.7,2.6) -- (4.7,1.9) -- (5.4,1.9);
+\node[anchor=west, font=\sffamily\scriptsize] at (5.5,1.9) {5 V at 2 A, or the micro-USB socket};
+\node[anchor=west, font=\sffamily\scriptsize, text=red!70!black] at (5.5,1.45)
+  {Do not put 5 V onto SYS\_3V3};
+% ---------------- separate 4-pin debug UART0 header
+\draw[rounded corners=2pt, fill=hwcol] (0,-3.4) rectangle (3.8,-0.4);
+\node[font=\sffamily\bfseries\small] at (1.9,-0.8) {4-pin debug header};
+\node[font=\sffamily\scriptsize, align=center, text width=34mm] at (1.9,-1.35)
+  {UART0, a header of its own,\\not part of the 24-pin row};
+\foreach \y/\name in {-2.2/GND, -2.5/5V, -2.8/TX, -3.1/RX}{
+  \draw (3.8,\y) -- (4.4,\y);
+  \node[anchor=east, font=\sffamily\scriptsize] at (3.7,\y) {\name};
+}
+% ---------------- USB-TTL cable
+\draw[rounded corners=2pt, fill=extcol] (7.0,-3.4) rectangle (10.4,-1.2);
+\node[font=\sffamily\bfseries\small] at (8.7,-1.5) {Renkforce USB-TTL};
+\node[font=\sffamily\scriptsize] at (8.7,-1.85) {3.3 V logic, 115200 8N1};
+\foreach \y/\name in {-2.2/GND, -2.5/5V, -2.8/RXD, -3.1/TXD}{
+  \draw (6.4,\y) -- (7.0,\y);
+  \node[anchor=west, font=\sffamily\scriptsize] at (7.1,\y) {\name};
+  \draw (4.4,\y) -- (6.4,\y);
+}
+\node[align=center, font=\sffamily\scriptsize] at (5.4,-1.75) {TX to RXD\\RX to TXD\\GND common};
+\node[anchor=west, font=\sffamily\scriptsize, text=black!60] at (0.0,-3.9)
+  {The console cable is removed for the acceptance test: the board then runs on Wi-Fi alone};
+\end{circuitikz}

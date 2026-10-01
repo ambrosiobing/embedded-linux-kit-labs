@@ -1,0 +1,246 @@
+\project{09}{NanoPi NEO Air headless hub and honest eMMC logging}{NanoPi NEO Air + SEN0032 ADXL345 + Renkforce USB-TTL}{the only non-Raspberry host and the eMMC wear question}
+
+\begin{unique}
+Owns the only non-Raspberry Linux host and the only onboard eMMC wear discussion. 24-pin I2C0 plus AP6212 Wi-Fi.
+\end{unique}
+
+\begin{blueprint}
+Draft P4 and draft P12 seated 40-pin cellular HATs on this board. They do not fit. Draft P6 framed the ADXL345 at 100 Hz as \emph{vibration logging}; that physics belongs to P04. Here the product is the logger and the filesystem, not the spectrum.
+\end{blueprint}
+
+\subsection*{Intent}
+
+FriendlyElec Ubuntu runs from the onboard eMMC. The ADXL345 hangs on I2C0, and the board publishes over its onboard Wi-Fi with no monitor, no keyboard and no desktop. The Renkforce USB-TTL cable is a bring-up tool, not part of the product: once the board joins an access point, the cable comes off and the board keeps working.
+
+Two things make this lab different from every Raspberry Pi lab in the book. The header is 24 pins, so the I2C bus number is 0 and no 40-pin HAT can seat. And the storage is soldered down, so an append-heavy log is a wear question rather than a card you can swap. The optional F2FS data partition is the one honest use of the draft-P6 idea: a flash-friendly filesystem on space you repartitioned yourself, never on the rootfs you just booted.
+
+The word \emph{honest} in the title is about that second point. A Raspberry Pi lab can be careless with writes because the medium is a card in a slot, and a worn card costs a few minutes and a re-flash. Here the medium is 8 GB of eMMC soldered to the board, and there is no slot. That changes what a reasonable logger looks like: append rather than rewrite, \texttt{fsync} on a timer rather than on every sample, and a filesystem that was designed for flash translation layers rather than for spinning media.
+
+\begin{kit}
+NanoPi NEO Air, SEN0032 ADXL345, Renkforce USB-TTL on UART0, 5 V through the micro-USB socket or through pin 2.
+\end{kit}
+
+\begin{rulebox}{Two numbers that are not the Raspberry Pi numbers}
+The header has 24 pins, not 40. The sensor bus is 0, not 1. Everything else in this lab is the P01 software with one digit changed.
+\end{rulebox}
+
+\subsection*{System architecture}
+
+\diagram{p09_arch}{The headless hub. The console on UART0 is a bring-up path that is removed after Wi-Fi joins; the product path is I2C0 to the publisher to the AP6212 radio. No 40-pin HAT appears anywhere in this figure, because none fits.}
+
+The board carries an Allwinner H3, 512 MB of RAM, 8 GB of eMMC and an AP6212 combo radio. That is the whole system: there is no HAT layer, no USB modem and no display. Everything the lab produces leaves through \texttt{wlan0}, and everything the lab measures arrives through \texttt{i2c-0}.
+
+The number to keep in mind is the bus number. On a Raspberry Pi the sensor bus is \texttt{i2c-1} and the tool is \texttt{i2cdetect -y 1}. On the NEO Air the header bus is I2C0, so it is \texttt{i2cdetect -y 0} and \texttt{smbus.SMBus(0)} in the publisher. The P01 publisher is reused unchanged except for that one digit.
+
+The console deserves its own line in the architecture, because it is the only interface that exists before the network does. A Raspberry Pi can be brought up on HDMI and a keyboard. This board has neither, so \texttt{ttyS0} on the 4-pin debug header is the first and, until \texttt{nmcli} succeeds, the only way in. That is also why the figure shows the console in user space as a getty rather than as part of the product: it is scaffolding, and the acceptance test removes it.
+
+\begin{note}{Which boards are absent from this figure and why}
+There is no HAT layer, because the header is 24 pins. There is no USB modem, because the cellular HATs are 40-pin boards and belong to P01, P02 and P03. There is no display stack, because the lab is headless by definition. What is left is a short path from one sensor to one radio, which is the point of using this board at all.
+\end{note}
+
+\begin{table}[H]\centering\small
+\begin{tabular}{p{44mm}p{26mm}p{74mm}}
+\toprule
+40-pin board in the bin & Seats here? & Where it belongs \\
+\midrule
+SIM7600E-H 4G HAT & No & P01, and the failover pair in P13 \\
+SIM7020E HAT & No & P02, on a Pi 3 \\
+SIM7070G HAT & No & P03, on a Pi 3B+ \\
+MCC 118 & No & P05, on a Pi 4 \\
+JOY-iT RB-Explorer700 & No & P11, on a Pi 3B+ \\
+Waveshare 3.5 inch LCD (A) & No & P06 and P19, on a Pi 3 \\
+\bottomrule
+\end{tabular}
+\caption{The 24-pin rule, written out. No adapter in this kit converts a 40-pin HAT onto this header, and the draft that tried it is corrected at the head of this chapter.}
+\end{table}
+
+\subsection*{Wiring and schematic}
+
+\diagram{p09_schematic}{The 24-pin header drawn honestly: four signals to the accelerometer, and a separate 4-pin debug header for the console. The 5 V pin on the debug header is a supply for the cable side, not a signal, and it never reaches SYS\_3V3.}
+
+\begin{table}[H]\centering\small
+\begin{tabular}{p{40mm}p{28mm}p{22mm}p{58mm}}
+\toprule
+Signal & NEO Air header & Pin & Note \\
+\midrule
+ADXL345 VCC & 24-pin & 1 SYS\_3V3 & Never 5 V \\
+ADXL345 SDA & 24-pin & 3 I2C0\_SDA & Bus 0, not bus 1 \\
+ADXL345 SCL & 24-pin & 5 I2C0\_SCL & Bus 0, not bus 1 \\
+ADXL345 GND & 24-pin & 6 GND & \\
+ADXL345 SDO & & & Left floating, selects 0x53 \\
+Board 5 V supply & 24-pin & 2 VDD\_5V & Or the micro-USB socket, 5 V at 2 A \\
+Console GND & 4-pin debug & GND & Common with the cable \\
+Console 5 V & 4-pin debug & 5 V & Cable side only, confirm on the silkscreen \\
+Console TX & 4-pin debug & TX & To the USB-TTL receive line \\
+Console RX & 4-pin debug & RX & From the USB-TTL transmit line \\
+\bottomrule
+\end{tabular}
+\caption{Wiring. The debug UART0 header is physically separate from the 24-pin header, and the USB-TTL cable must be jumpered for 3.3 V logic.}
+\end{table}
+
+\begin{asciiart}
+NEO Air 24-pin            ADXL345
+1  SYS_3V3 -------------- VCC
+3  I2C0_SDA ------------- SDA
+5  I2C0_SCL ------------- SCL
+6  GND ------------------ GND
+
+UART0 4-pin: GND, 5V, TX, RX --> USB-TTL at 3.3 V logic, 115200 8N1
+Do not put 5 V onto SYS_3V3.
+\end{asciiart}
+
+\subsection*{Bench layout}
+
+\diagram{p09_bench}{Bench layout. The board is small, the cable bundle is not: strain-relieve the USB-TTL cable so a tug on the console does not lift the sensor jumpers off the 24-pin header.}
+
+Power the board with 5 V at 2 A, either through the micro-USB socket or through pin 2. The H3 plus the AP6212 draw more during a Wi-Fi association than a 500 mA port is willing to lend, and an undervoltage event on this board shows up as a failed association rather than a clear message. Keep the ADXL345 jumpers short and keep the console cable on the opposite side of the board.
+
+Two cable bundles leave the board and they should leave in opposite directions. The sensor bundle is four short jumpers on the 24-pin row. The console is one four-way cable on the debug header, and it is the one you will be pulling on during bring-up. If both leave from the same edge, the pull that unplugs the console also lifts a jumper, and the symptom is an accelerometer that vanished for no visible reason.
+
+\subsection*{Software design (UML)}
+
+\diagram{p09_uml}{First login on UART0, the Wi-Fi join, and headless publishing after the console cable is unplugged. The last frame is the lab: no operator, no cable, and the publishes keep arriving.}
+
+The sequence has three phases and only the third one is the product. Phase one is the serial console: the USB-TTL cable is the only way into a board that has no display and no network yet, so the first login happens there at 115200 8N1. Phase two joins the access point with \texttt{nmcli} and confirms the accelerometer on bus 0. Phase three removes the cable. If the board goes quiet when the console leaves, something in phase two was done in a shell session rather than persisted, and that is the failure this lab is designed to expose.
+
+The publisher itself is the P01 loop and carries the same single piece of state, a cool-off timestamp. It is a token bucket in its simplest form: at most one event every two seconds, however long the surface keeps ringing. On this board there is a second reason to keep it, beyond bandwidth. Every publish that also gets appended to the log is a write to soldered flash, so the cool-off is a wear control as well as a rate control.
+
+\subsubsection*{Where the phases stop being reversible}
+
+Phase one can be repeated as often as you like: reconnect the cable, log in again, nothing is lost. Phase two is the one that has to persist, because \texttt{nmcli device wifi connect} writes a NetworkManager connection profile and that profile is what survives the reboot. Phase three is a test, not a step: if it fails, go back to phase two and check that the profile is on disk rather than in the shell you are standing in.
+
+\subsection*{Data flow (ASCII)}
+
+\begin{asciiart}
+  NanoPi NEO Air (Allwinner H3, 512 MB, 8 GB eMMC)
+  +----------------------------------------------+
+  |  i2c-0 -> 0x53 ADXL345                        |
+  |     |                                         |
+  |     v                                         |
+  |  publisher (P01 loop, SMBus(0))               |
+  |     |  magnitude, dead-band, 2 s cool-off     |
+  |     +--> mosquitto_pub --> wlan0 (AP6212) -----------> broker on the LAN
+  |     |                                         |
+  |     +--> optional: append to /data (F2FS)     |
+  |            fsync on a timer, not per sample   |
+  |                                               |
+  |  ttyS0 console on the 4-pin UART0 header      |
+  +------------|---------------------------------+
+               |  115200 8N1, 3.3 V logic
+               v
+        Renkforce USB-TTL ---> operator PC   (bring-up only, unplugged for acceptance)
+\end{asciiart}
+
+\subsection*{Steps}
+
+\begin{steps}
+\item \textbf{Flash FriendlyElec Ubuntu to the eMMC} following the vendor wiki for this board. The first login happens on UART0, because the board has no display output and has not joined a network yet. Open the console at 115200 8N1 with the USB-TTL cable jumpered for 3.3 V logic.
+
+\item \textbf{Install the tools, find the sensor on bus 0, and join the access point.}
+\begin{shellcode}
+sudo apt-get install -y i2c-tools python3-smbus mosquitto-clients
+ls /dev/i2c-*
+sudo i2cdetect -y 0         # expect 53
+nmcli device wifi connect "YOURAP" password "..."
+\end{shellcode}
+The bus argument is 0. A Raspberry Pi command line copied from P01 with \texttt{-y 1} will report an empty bus or no such device, and the sensor is not at fault.
+
+\item \textbf{Reuse the P01 publisher with bus number 0.} The dead-band, the magnitude and the two-second cool-off are unchanged. The only edit is the constructor.
+\begin{pycode}
+import time, math, json, subprocess, smbus
+bus = smbus.SMBus(0)                 # bus 0 on the NEO Air, not bus 1
+A = 0x53
+bus.write_byte_data(A, 0x2D, 0x08)   # measure
+bus.write_byte_data(A, 0x31, 0x0B)   # full-res +/-16g
+
+def g(lo, hi):
+    v = (hi << 8) | lo
+    if v & 0x8000:
+        v -= 65536
+    return v / 256.0
+
+cool = 0
+while True:
+    b = bus.read_i2c_block_data(A, 0x32, 6)
+    ax, ay, az = g(b[0], b[1]), g(b[2], b[3]), g(b[4], b[5])
+    mag = math.sqrt(ax*ax + ay*ay + az*az)
+    if abs(mag - 1.0) > 0.35 and time.time() > cool:
+        payload = json.dumps({"mag": round(mag, 3), "ax": round(ax, 3)})
+        subprocess.run(["mosquitto_pub", "-h", "test.mosquitto.org",
+                        "-t", "lab/p09/shock", "-m", payload], check=False)
+        cool = time.time() + 2
+    time.sleep(0.05)
+\end{pycode}
+
+\item \textbf{Optional F2FS data partition}, only if you are willing to repartition unused eMMC space, and not the rootfs you just booted.
+\begin{shellcode}
+lsblk
+# mkfs.f2fs /dev/mmcblk2pX     # X = unused partition YOU created
+# mount -o discard /data
+# append-only log files, fsync on a timer, not per sample
+\end{shellcode}
+Read \texttt{lsblk} before you type anything with \texttt{mkfs} in it. The commands above are commented for that reason: the target is a partition you created, and if you cannot name it from the \texttt{lsblk} output then you do not have one yet.
+
+\item \textbf{Confirm the Wi-Fi profile survives a reboot} before you trust it. A connection made in a shell session and never written out is the most common reason this lab appears to fail at the last step.
+\begin{shellcode}
+nmcli connection show
+sudo reboot
+# after the board comes back, on the console:
+nmcli device status
+ip -4 addr show wlan0
+\end{shellcode}
+
+\item \textbf{Unplug the console and leave the board alone.} That is the acceptance condition below, and it is also the point of the lab. Confirm from another host on the same network that the publishes are still arriving.
+\begin{shellcode}
+mosquitto_sub -h test.mosquitto.org -t 'lab/p09/#' -v
+free -h
+\end{shellcode}
+\end{steps}
+
+\subsection*{Acceptance test}
+
+\begin{itemize}
+\item With the USB-TTL cable unplugged, the board stays up on Wi-Fi and keeps publishing.
+\item \texttt{free -h} shows about 512 MB of RAM.
+\item No desktop is running.
+\item \texttt{sudo i2cdetect -y 0} shows 53 on bus 0.
+\end{itemize}
+
+\subsection*{Practices}
+
+Supply 5 V at 2 A. The AP6212 shares Wi-Fi and Bluetooth, so a Bluetooth scan and a publish burst contend for the same radio and the symptom is jitter in the publish interval, not an error message. Leave the ESP8266 for P17, which is where the air-gap radio pattern lives. Log with \texttt{fsync} on a timer rather than per sample: this is soldered-down flash, and the wear you spend is not recoverable by swapping a card.
+
+Keep the console cable in the kit box rather than on the board. It is a bring-up tool in this lab and a factory tool in P14, and in both places it is jumpered for 3.3 V logic. A cable left permanently on the debug header invites the exact mistake this lab is meant to rule out, which is a board that only works while someone is watching it.
+
+\subsubsection*{What this lab hands to the rest of the book}
+
+P17 reuses this board with the onboard radio switched off and an ESP8266 speaking AT over UART1, which is a different pattern with the same host. P20 sweeps this board as the fourth host in the fleet, so the hostname you set here is the hostname that appears in \texttt{/var/log/lab-fleet.txt}. Nothing else in the book depends on the NEO Air, and nothing that needs a 40-pin header ever will.
+
+\subsection*{Pitfalls}
+
+\begin{itemize}
+\item \textbf{Reaching for a 40-pin HAT.} The header is 24 pins. The SIM7020, SIM7070, SIM7600, MCC 118, Explorer700 and the 3.5 inch LCD do not seat on this board, and no adapter in the bin makes them seat.
+\item \textbf{Using bus 1.} The symptom is an empty \texttt{i2cdetect} table or a missing device node. The header bus on this board is I2C0.
+\item \textbf{5 V onto SYS\_3V3.} Pin 1 is a 3.3 V rail. The 5 V pin on the debug header belongs to the cable side, and the 5 V pin on the 24-pin header is pin 2.
+\item \textbf{A 500 mA supply.} The association fails or the board resets during the Wi-Fi join, which reads like a driver fault and is not one.
+\item \textbf{Configuring Wi-Fi only inside the console session.} The board then goes quiet the moment the cable comes off, which is exactly the acceptance test failing.
+\item \textbf{Running \texttt{mkfs.f2fs} against the rootfs device.} The board no longer boots and the eMMC image has to be flashed again from the vendor wiki.
+\item \textbf{Calling a 100 Hz accelerometer stream vibration analysis.} The 6 kHz instrument is the IIS3DWB on the STWIN.box in P04. This lab logs events.
+\item \textbf{A USB-TTL cable still jumpered for 5 V from an earlier session.} The board's UART pins are 3.3 V. Check the jumper before the cable touches the debug header, and check it again after P14, where the same cable is used as a factory tool.
+\item \textbf{Writing the log with an \texttt{fsync} on every sample.} It works, it is slow, and it spends flash endurance on a board whose storage cannot be swapped. Batch the writes and sync on a timer.
+\end{itemize}
+
+\subsection*{Sources}
+
+\begin{itemize}
+\item FriendlyElec NanoPi NEO Air wiki, header pinout and eMMC flashing, \url{https://wiki.friendlyelec.com/wiki/index.php/NanoPi_NEO_Air}
+\item Allwinner H3 datasheet, I2C0 and UART0 pin multiplexing
+\item DFRobot SEN0032 ADXL345 product wiki, \url{https://wiki.dfrobot.com/}
+\item Analog Devices ADXL345 data sheet, register map 0x2D, 0x31, 0x32
+\item F2FS documentation in the Linux kernel tree, \url{https://www.kernel.org/doc/html/latest/filesystems/f2fs.html}
+\item NetworkManager \texttt{nmcli} manual page, for a connection that persists across reboots
+\item Broadcom AP6212 combo module notes in the FriendlyElec image, for the shared Wi-Fi and Bluetooth front end
+\item \texttt{i2c-tools} manual pages, \texttt{i2cdetect(8)} and the meaning of the bus argument
+\item Eclipse Mosquitto client documentation, \texttt{mosquitto\_pub} and \texttt{mosquitto\_sub}, \url{https://mosquitto.org/documentation/}
+\item Renkforce USB to TTL cable documentation, for the 3.3 V logic jumper
+\end{itemize}

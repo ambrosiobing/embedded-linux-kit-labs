@@ -1,0 +1,41 @@
+\begin{tikzpicture}[node distance=6mm and 14mm]
+% ---------------- hardware column (right)
+\node[hw, text width=34mm] (wifi) {AP6212\\{\scriptsize Wi-Fi and BT, one antenna}};
+\node[hw, text width=34mm, below=14mm of wifi] (emmc) {8 GB eMMC\\{\scriptsize soldered down}};
+\node[hw, text width=34mm, below=14mm of emmc] (adxl) {ADXL345\\{\scriptsize SEN0032, I2C 0x53}};
+\node[hw, text width=34mm, below=14mm of adxl] (ttl) {4-pin UART0 header\\{\scriptsize Renkforce USB-TTL, 3.3 V}};
+\node[ext, text width=34mm, above=11mm of wifi] (ap) {access point and broker\\{\scriptsize lab/p09/shock}};
+% ---------------- kernel column (middle)
+\node[kern, wide, left=of wifi] (wlan) {wlan0\\{\scriptsize brcmfmac}};
+\node[kern, wide, below=of wlan] (mmc) {mmcblk2\\{\scriptsize rootfs, optional F2FS /data}};
+\node[kern, wide, below=of mmc] (i2c) {i2c-0\\{\scriptsize bus 0, not bus 1}};
+\node[kern, wide, below=of i2c] (tty) {ttyS0\\{\scriptsize serial console, 115200 8N1}};
+% ---------------- user space column (left)
+\node[user, wide, left=of wlan] (pub) {mosquitto\_pub\\{\scriptsize one event, then cool-off}};
+\node[user, wide, left=of mmc] (logger) {append-only logger\\{\scriptsize fsync on a timer}};
+\node[user, wide, left=of i2c] (loop) {publisher loop\\{\scriptsize SMBus(0), dead-band 0.35 g}};
+\node[user, wide, left=of tty] (login) {getty login\\{\scriptsize bring-up only, then removed}};
+% ---------------- bands
+\begin{scope}[on background layer]
+\node[layer, fit=(pub)(logger)(loop)(login), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:user space}] {};
+\node[layer, fit=(wlan)(mmc)(i2c)(tty), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:kernel}] {};
+\node[layer, fit=(wifi)(emmc)(adxl)(ttl), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:hardware, 24-pin board}] {};
+\end{scope}
+% ---------------- links
+\draw[bus] (wlan) -- node[lbl, above, pos=0.3]{SDIO} (wifi);
+\draw[bus] (mmc) -- node[lbl, above, pos=0.3]{MMC} (mmc -| emmc.west);
+\draw[bus] (i2c) -- node[lbl, above, pos=0.3]{I2C0} (i2c -| adxl.west);
+\draw[bus] (tty) -- node[lbl, above, pos=0.3]{UART0} (tty -| ttl.west);
+\draw[flow] (wifi) -- (ap);
+\draw[flow] (pub) -- (wlan);
+\draw[flow] (logger) -- (mmc);
+\draw[flow] (i2c) -- (loop);
+\draw[flow] (tty) -- (login);
+\draw[flow] (loop) -- node[lbl, pos=0.62]{append} (logger);
+\draw[flow] (loop.west) -- ++(-8mm,0) |- node[lbl, left, pos=0.3]{publish} (pub.west);
+\node[umlnote, text width=36mm, below=9mm of login.south west, anchor=north west]
+  {No 40-pin HAT layer exists on this board. The header is 24 pins.};
+\end{tikzpicture}
