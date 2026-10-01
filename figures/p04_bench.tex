@@ -1,0 +1,32 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- the machine under test
+\draw[fill=black!12, draw=linecol, rounded corners=2pt] (-3.6,-2.6) rectangle (0.6,1.2);
+\node[align=center, font=\sffamily\bfseries\small] at (-1.5,0.8) {machine under test};
+\node[align=center, font=\tiny] at (-1.5,-2.2) {or, for the first capture, the desk};
+% the probe, mounted on it
+\node[board, minimum width=26mm, minimum height=14mm, fill=hwcol, text=black] (stw) at (-1.5,-0.6) {};
+\node[font=\sffamily\bfseries\small] at (-1.5,-0.35) {STWIN.box};
+\node[font=\tiny] at (-1.5,-0.85) {IIS3DWB, two mics};
+% ---------------- the Pi 4
+\node[board, minimum width=46mm, minimum height=26mm] (pi) at (5.0,0) {};
+\node[text=white, font=\sffamily\bfseries\small] at (5.0,-0.6) {Raspberry Pi 4};
+\node[pinrow, minimum width=42mm] (hdr) at (5.0,0.95) {};
+\node[anchor=south, font=\tiny, text=red!70!black] at (5.0,1.45) {40-pin header: empty};
+\node[draw=black!70, fill=gray!50, minimum width=5mm, minimum height=3mm] (psu) at (3.2,-1.5) {};
+\node[below=0mm of psu, font=\tiny] {USB-C, 3 A supply};
+% ---------------- the short USB cable
+\draw[usbcable] (-0.2,-0.6) -- (2.2,-0.6);
+\node[anchor=south, font=\tiny] at (1.5,-0.5) {USB-C cable};
+% ---------------- the panel
+\node[draw=linecol, fill=black!80, minimum width=40mm, minimum height=26mm, rounded corners=1mm]
+  (glass) at (10.6,0.2) {};
+\node[text=white, font=\sffamily\bfseries\small] at (10.6,1.0) {DSI touchscreen};
+\node[text=green!60!white, font=\sffamily\bfseries] at (10.6,0.35) {NORMAL};
+\node[text=white, font=\tiny] at (10.6,-0.25) {waterfall, peak bins};
+\node[text=white, font=\tiny] at (10.6,-0.55) {baseline from an idle run};
+\draw[cable] (7.3,0.2) -- (8.6,0.2);
+\node[anchor=south, font=\tiny] at (7.95,0.3) {DSI ribbon};
+% ---------------- the isolated core, called out below the host
+\node[umlnote, text width=44mm, anchor=north] at (5.0,-2.25)
+  {isolcpus=3 nohz\_full=3 on the kernel command line, taskset -c 3 on the analysis process};
+\end{tikzpicture}

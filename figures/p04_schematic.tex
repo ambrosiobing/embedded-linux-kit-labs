@@ -1,0 +1,41 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ================= the probe
+\draw[rounded corners=3pt, fill=hwcol, draw=linecol] (0,0) rectangle (6.0,6.2);
+\node[font=\sffamily\bfseries\small, anchor=north] at (3.0,6.05) {STEVAL-STWINBX1};
+\node[draw=linecol, fill=white, minimum width=20mm, minimum height=7mm, align=center]
+  (iis) at (1.4,4.7) {IIS3DWB\\{\tiny 6 kHz}};
+\node[draw=linecol, fill=white, minimum width=20mm, minimum height=7mm, align=center]
+  (md) at (1.4,3.3) {IMP34DT05\\{\tiny digital mic}};
+\node[draw=linecol, fill=white, minimum width=20mm, minimum height=7mm, align=center]
+  (ma) at (1.4,1.9) {IMP23ABSU\\{\tiny analog mic}};
+\node[draw=linecol, fill=fwcol, minimum width=22mm, minimum height=26mm, align=center]
+  (stm) at (4.6,3.3) {STM32U585\\[2pt]{\tiny DMA}\\{\tiny timestamp}\\{\tiny sequence}\\{\tiny packetise}};
+\draw[flow] (iis) -- node[lbl, above]{SPI} (iis -| stm.west);
+\draw[flow] (md) -- node[lbl, above]{digital} (md -| stm.west);
+\draw[flow] (ma) -- node[lbl, above]{analog} (ma -| stm.west);
+% USB-C connector on the probe
+\node[draw=linecol, fill=gray!40, minimum width=9mm, minimum height=3.5mm] (usbc) at (4.6,0.55) {};
+\node[font=\tiny] at (4.6,0.55) {USB-C};
+\draw[flow] (stm.south) -- node[lbl, right]{CDC-ACM} (usbc.north);
+% ================= the host
+\draw[rounded corners=3pt, fill=hwcol, draw=linecol] (10.0,0) rectangle (16.0,6.2);
+\node[font=\sffamily\bfseries\small, anchor=north] at (13.0,6.05) {Raspberry Pi 4};
+% the 40-pin header, drawn empty
+\node[draw=linecol, fill=white, minimum width=44mm, minimum height=7mm] (hdr) at (13.0,5.0) {};
+\foreach \x in {11.2,11.4,...,14.8}{\fill[black!70] (\x,5.12) circle (0.6mm);
+                                   \fill[black!70] (\x,4.88) circle (0.6mm);}
+\node[anchor=west, font=\tiny, text=red!70!black] at (10.15,4.2) {40-pin header: left empty for this lab};
+% USB-A port
+\node[draw=linecol, fill=gray!40, minimum width=10mm, minimum height=4mm] (usba) at (10.8,2.0) {};
+\node[anchor=west, font=\tiny] at (11.4,2.0) {USB-A};
+% DISPLAY connector
+\node[draw=linecol, fill=gray!40, minimum width=4mm, minimum height=10mm] (dsi) at (15.7,2.6) {};
+\node[anchor=east, font=\tiny] at (15.5,2.6) {DISPLAY};
+% ================= cables
+\draw[usbcable] (usbc.east) -- (7.6,0.55) -- (7.6,2.0) -- (usba.west);
+\node[anchor=south, font=\tiny, align=center] at (8.0,2.15) {short USB-C cable:\\data and 5 V bus power};
+\node[draw=linecol, fill=extcol, minimum width=30mm, minimum height=12mm, align=center]
+  (screen) at (14.2,-1.5) {official DSI touchscreen\\{\tiny the waterfall}};
+\draw[cable] (dsi.south) -- (15.7,-1.5) -- (screen.east);
+\node[anchor=west, font=\tiny] at (15.85,0.6) {DSI ribbon};
+\end{tikzpicture}
