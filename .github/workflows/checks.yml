@@ -1,0 +1,64 @@
+name: checks
+
+# The house rules need nothing but a Python interpreter, so they run on every
+# push and on every pull request. Building the volume itself needs a TeX
+# installation and is done locally, so the Markdown check regenerates the
+# chapters only, not the figures.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: House rules over every lab
+        run: python lint.py
+
+      - name: Every lab has its four figures and a lab line
+        run: |
+          set -e
+          fail=0
+          for n in $(seq -w 1 20); do
+            test -f "sections/p${n}.tex" || { echo "missing sections/p${n}.tex"; fail=1; }
+            grep -q 'project{' "sections/p${n}.tex" || { echo "p${n}: no lab line"; fail=1; }
+            for f in arch schematic bench uml; do
+              test -f "figures/p${n}_${f}.tex" || { echo "missing figures/p${n}_${f}.tex"; fail=1; }
+            done
+          done
+          test -f sections/front.tex
+          test -f sections/appendix.tex
+          test -f figures/front_path.tex
+          exit $fail
+
+      - name: The Markdown edition is in step with the source
+        run: |
+          set -e
+          python mdbuild.py >/dev/null
+          if ! git diff --quiet -- chapters; then
+            echo "chapters/ is behind sections/; run python mdbuild.py and commit"
+            git --no-pager diff --stat -- chapters
+            exit 1
+          fi
+          echo "chapters/ matches sections/"
+
+      - name: No built artefacts committed
+        run: |
+          set -e
+          if git ls-files | grep -E '\.(pdf|html|aux|log|toc|out)$'; then
+            echo "built artefacts must not be committed; they are rebuilt from source"
+            exit 1
+          fi
+          echo "none committed, as intended"

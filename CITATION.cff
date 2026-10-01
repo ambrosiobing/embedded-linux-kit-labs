@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+title: "Embedded Linux Top 20: the audited kit cookbook"
+message: "If you refer to this work, please cite it as below."
+type: software
+authors:
+  - family-names: Pagaran
+    given-names: Joseph Ambrose
+    orcid: ""
+abstract: >-
+  Twenty bench labs on one fixed parts bin and four Linux hosts, where every
+  pairing was checked against headers, voltages and silicon before it was
+  written down. Six rules decide what a lab may do: one 40-pin expansion board
+  per host, a 24-pin host that accepts none of them, 3.3 V logic throughout, one
+  instrument per lab, and a Linux host that owns storage, time, the network and
+  the interface while a microcontroller only feeds it. The labs cover a Cat-4
+  default route with event compression, an NB-IoT power-saving duty cycle, a
+  Cat-M node that timestamps from satellite rather than from the host clock, a
+  wideband vibration and ultrasound gateway over a serial gadget, a calibrated
+  analogue recorder at 100 kS/s, multi-zone ranging painted on a small display,
+  two sensor shields kept deliberately apart, a non-Raspberry host with its own
+  storage-wear question, a source-measure energy bench, a real-time clock and
+  device-tree console, an operator display with a local broker, signalling
+  failover across two radios, a serial provisioning jig, a mixed-voltage safety
+  lab, two wireless sidecars, a high-rate serial recorder, an offline tilt
+  instrument, and a four-host fleet sweep. Each lab carries the correction that
+  an earlier architectural draft of the same material needed, printed beside the
+  lab rather than hidden in a changelog, and an acceptance test written to be
+  failable.
+keywords:
+  - embedded linux
+  - raspberry pi
+  - device tree
+  - sensor integration
+  - cellular IoT
+  - data acquisition
+  - energy measurement
+  - bench method
+license: MIT
+repository-code: "https://github.com/ambrosiobing/embedded-linux-kit-labs"
+version: "1.0.0"
+date-released: "2026-10-01"
