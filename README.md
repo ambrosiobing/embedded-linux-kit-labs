@@ -128,27 +128,37 @@ because a reader who has just read chapter 4 should not have to go looking.
 
 | Path | What it is |
 | --- | --- |
-| [`p04/`](p04/) | the host half of the vibration and ultrasound gateway, with its own README and design note |
-| [`benchkit/`](benchkit/) | the parts every stream-shaped lab needs: sequence accounting, sources, the lab book, the spectrum arithmetic |
-| [`tests/`](tests/) | thirty-five checks, none of which touch a device |
+| [`p04/`](p04/) | the host half of the vibration and ultrasound gateway, in C, with its own README |
+| [`p04/src/`](p04/src/) | the capture format, the transform, the classification, the invariants |
+| [`p04/tests/`](p04/tests/) | the suite, four groups, no framework and no device |
 
-    python -m unittest discover -s tests -t .
-    python -m p04 synth --kind touch --blocks 10 --out touch.npz
+    make -C p04 check     the suite: no hardware, no serial port, no network
+    make -C p04 demo      the lab's own demonstration, on synthetic data
+
+**It is C because the lab is embedded Linux.** The deliverable of a lab is the
+program, not a description of one. No allocation on the data path, library code
+that returns a status rather than exiting, and samples that stay `int16_t`
+until the one place where they become floats.
+
+**Python here builds the book and nothing else.** `build.py`, `mdbuild.py` and
+`lint.py` turn the sources into chapters, figures and the reading editions.
+They do not touch a bus, a device or a lab, and no lab depends on them.
 
 Most of these labs are the same shape: something arrives over a line in
 sequence-numbered pieces and a decision is made from it. P02 and P03 drive a
 modem, P06 reads a ranging grid, P18 counts gaps in a sequence, P13 decides on
-a timeout. So the shared half sits in `benchkit` rather than in whichever lab
-first needed it, and the next lab starts from it.
+a timeout. When the second of them is written, the shared half moves out of
+`p04/src` and into a library beside it, rather than being guessed at now.
 
 Three rules hold across all of them. No default threshold anywhere, because a
 threshold without the baseline it was measured against is not a measurement. No
-invented wire format, so where a vendor owns the frame layout the reader raises
-and names the decoder to run. And transport before signal, because a spectrum
-computed over a stream with holes in it is a picture of the holes.
+invented wire format, so where a vendor owns the frame layout the program says
+so and stops. And transport before signal, because a spectrum computed over a
+stream with holes in it is a picture of the holes.
 
-Nothing here has been run against hardware, and each lab's README says so in
-its own words.
+Nothing here has been run against hardware, and nothing has been compiled on
+the authoring laptop, which has no compiler. The workflow is the first compile.
+Each lab's README says so in its own words.
 
 ## Building
 

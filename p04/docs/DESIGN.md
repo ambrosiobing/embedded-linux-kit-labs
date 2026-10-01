@@ -27,7 +27,7 @@ defect in this family of projects.
 | The wire format | the probe firmware | this repository, which must not infer it |
 | Sequence accounting | `p04.frames.Transport` | the analysis, which must not hide a hole |
 | The window, the transform, the band | `p04.analysis` | the pipeline, which only sequences them |
-| The baseline and the two thresholds | the lab book file | any default in any module |
+| The baseline and the two thresholds | the lab book file | any default compiled into the program |
 | The band in hertz | the lab book file | the chapter's upper-half fallback, once a rate is known |
 | Deciding NORMAL, WARNING or FAULT | `p04.analysis.classify` | the reader, the source, the command line |
 | Where blocks come from | `p04.sources` | the analysis, which never learns |
@@ -99,7 +99,7 @@ assumption the whole analysis rests on.
 This lab is on the better side of that problem by design, because the probe
 samples on the sensor's clock and reads out in bursts, so the record really is
 indexed by sensor sample. What remained was whether the configured rate is the
-claimed one, and the probe already stamps what answers it. `benchkit.timing`
+claimed one, and the probe already stamps what answers it. `p04_timing_check` in `src/analysis.c`
 compares the two and refuses when they disagree beyond a tolerance the lab book
 carries. The span covers one block fewer than were read, because both stamps
 mark the first sample of their own block, and getting that wrong overstates the
@@ -107,11 +107,11 @@ rate by a block, which at sixteen blocks is six per cent and would pass a loose
 tolerance.
 
 **The scale.** A count is not a measurement until something fixes counts per g.
-`benchkit.invariants` reads the static level of a resting capture and refuses a
+`p04_dc_level_g` in `src/analysis.c` reads the static level of a resting capture and refuses a
 level outside the one g gravity allows on one axis.
 
 Its reach was measured rather than assumed, and the measurement changed the
-claim. The module first said it validated the register map, the byte order, the
+claim. The check first said it validated the register map, the byte order, the
 sign convention and the full-scale setting, which is what the three-axis
 magnitude does. The one-axis form does not: a byte swap took an honest +0.984 g
 to -0.416 g and both sit inside the bound. So it is a floor, it says so, and a

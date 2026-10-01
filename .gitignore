@@ -26,14 +26,17 @@ __pycache__/
 
 # The labs' own evidence. A capture is what one bench produced on one day and
 # a lab book is the baseline and thresholds that belong to it, so neither is
-# source. Regenerate a synthetic one with: python -m p04 synth
-*.npz
-book.json
-axis.json
-labbook*.json
+# source. Regenerate a synthetic one with: ./p04 synth
+*.p04
+*.lab
+
+# What building the lab leaves behind: objects, dependency files and the two
+# binaries. Rebuild with: make -C p04
+*.o
+*.d
+p04/p04
+p04/p04-test
 
 # What a local run of the checks workflow leaves behind
 touch.txt
 speech.txt
-honest.npz
-skewed.npz

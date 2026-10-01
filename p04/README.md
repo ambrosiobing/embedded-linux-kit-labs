@@ -1,105 +1,117 @@
 # P04: the host half of the vibration and ultrasound gateway
 
-The Linux side of lab P04, written and tested before the probe is wired. Every
-command but `live` runs with no hardware attached, so the pipeline, its tests
-and its defects are all dealt with while the probe is still in its box. When it
+The Linux side of lab P04, in C, written and tested before the probe is wired.
+Every command runs with no hardware attached, so the pipeline, its tests and
+its defects are all dealt with while the probe is still in its box. When it
 arrives, the remaining work is one USB cable and a real baseline.
 
 **What it does.** Reads sequence-numbered blocks of two channels, wideband
-vibration and a digital microphone, checks the stream for holes, windows and
-transforms them, sums a named band, and classifies the result against a
-baseline you measured as NORMAL, WARNING or FAULT.
+vibration and a digital microphone, accounts for holes in the stream, windows
+and transforms each block, sums a named band, and classifies the result
+against a baseline you measured as NORMAL, WARNING or FAULT.
 
-**State: written, never run against hardware.** Thirty-five tests pass on a
-laptop with no probe, no serial port and no Raspberry Pi. No number here is a
-measurement of anything physical. The synthetic stimuli are signals with the
+## State, stated plainly
+
+**Written, never compiled here, never run against hardware.** The authoring
+laptop has no C compiler and no WSL distribution, so the first compile happens
+in the workflow on a push. A red run there is the expected way to find out what
+the compiler has to say, not a surprise. No number this program produces is a
+measurement of anything physical: the synthetic stimuli are signals with the
 right shape, not a model of the probe, and a threshold tuned against them is a
 threshold tuned against them.
 
+## Build and check
+
+    make            build p04 and the suite
+    make check      run the suite: no hardware, no serial port, no network
+    make demo       the lab's own demonstration, end to end, on synthetic data
+    make strict     a second pass with the conversion warnings turned on
+
+The gate is `-Wall -Wextra -Werror` with a few more. The conversion warnings
+live in `make strict` instead, because code that turns counts into floats and
+back deserves a reading rather than a reflex cast, and mixing that into the
+gate teaches people to silence it.
+
 ## With no hardware
 
-    python -m p04 synth --kind idle   --blocks 10 --out idle.npz
-    python -m p04 synth --kind touch  --blocks 10 --out touch.npz
-    python -m p04 synth --kind speech --blocks 10 --out speech.npz
+    ./p04 synth --kind idle   --blocks 10 --out idle.p04
+    ./p04 synth --kind touch  --blocks 10 --out touch.p04
+    ./p04 synth --kind speech --blocks 10 --out speech.p04
 
-    python -m p04 baseline --source idle.npz --mounting "synthetic, no probe" \
-        --warn 1.5 --fault 3.0 --band-low 2000 --band-high 6000 --out book.json
+    ./p04 baseline --source idle.p04 --out book.lab \
+        --mounting "synthetic, no probe" --warn 1.5 --fault 3.0 \
+        --band-low 2000 --band-high 6000
 
-    python -m p04 analyse --source touch.npz  --book book.json
-    python -m p04 analyse --source speech.npz --book book.json
-    python -m p04 replay  --source touch.npz  --book book.json
+    ./p04 validate --source idle.p04   --book book.lab
+    ./p04 analyse  --source touch.p04  --book book.lab
+    ./p04 analyse  --source speech.p04 --book book.lab
+    ./p04 replay   --source touch.p04  --book book.lab
 
-The last three reproduce the lab's own demonstration. A case touch reads
-WARNING with the microphone unmoved; a voice reads NORMAL with the microphone
-level an order of magnitude higher. That separation is the lab.
+The last three reproduce the lab's own demonstration. A case touch raises the
+vibration band with the microphone unmoved; a voice raises the microphone an
+order of magnitude with the band unmoved. That separation is the lab, and the
+suite asserts it as a comparison a reader can repeat rather than a sentence
+they have to believe.
 
-## Two findings from building it
+## Why it is C
 
-**The chapter's default band sits above the sensor.** The outline takes the
-high-frequency band as the upper half of the spectrum. At the accelerometer's
-output data rate that runs from about 6.7 kHz to 13.3 kHz, and the part is
-specified flat to about 6 kHz, so a 4.2 kHz case resonance lands outside the
-measured band and the classifier reports NORMAL while the structure rings. The
-band is named in hertz here, and the upper-half default is only safe while the
-output data rate is still unknown.
+Because the lab is embedded Linux and the deliverable is the program, not a
+description of one. Three choices follow from that and are visible in the
+source.
 
-**A tap at a block edge is attenuated by the window.** A Hann window is near
-zero at both ends, so a decaying tap that lands at the start keeps roughly a
-third of its weight, measured. One tap can read WARNING or NORMAL depending
-only on where the block boundary fell. Take the worst of several blocks rather
-than the mean, and overlap blocks if a single tap has to be caught.
+**No allocation on the data path.** Every buffer is a fixed array sized at
+compile time. A capture whose blocks are longer than the build allows is
+refused at the file header rather than part way through an analysis.
 
-Both are tests, not comments, so they cannot quietly stop being true.
+**Library code returns a status and never exits.** Only `main.c` decides the
+program stops, which is what lets the same code sit behind a service later.
 
-## Two numbers that arrive from paperwork, and are now checked
+**Samples are `int16_t` because that is what the probe sends.** They become
+`float` only inside the transform, so the one place where a count turns into a
+number is small enough to check.
 
-A band edge in hertz needs a sample rate and a count needs a scale. Both used to
-be taken on trust, and a wrong one produces a confident answer with no symptom.
+## What each file is
 
-**The rate is now measured, not asserted.** Each block carries the timestamp the
-probe stamps it with, and the observed rate is compared with the one in the lab
-book. A probe configured to a different output data rate than the paperwork
-claims is refused with both numbers named, because every band edge in hertz
-would be wrong by that ratio and nothing in a spectrum would show it. A capture
-with no clock says so rather than passing quietly.
-
-**A resting probe is checked against gravity.** `validate` reads the static
-level of an idle capture in g and refuses a level outside the one g that gravity
-allows on one axis, which catches a full-scale setting that disagrees with the
-lab book.
-
-That second check has a limit, and the limit is recorded rather than implied. It
-is a bound, not the equality the bench rule asks for. A byte swap turns an honest
-+0.98 g into -0.42 g on this generator and both sit inside the bound, so the
-check stays silent on a stream it ought to refuse. Only the three-axis magnitude
-pins byte order. A test asserts that limitation, so when the stream carries three
-axes the test fails and says which stronger form to put in.
-[`docs/DESIGN.md`](docs/DESIGN.md) carries the reasoning and the ownership
-table.
-
-## When the probe is on the desk
-
-1. Flash it, then confirm the serial device exists. Until the firmware declares
-   the interface, the connector carries power and a firmware-update interface
-   and nothing else.
-2. Install pyserial, the only dependency not needed before this point.
-3. Capture an idle run, take a real baseline, and write the mounting down in
-   the same file.
-4. Set the two thresholds where they separate your idle population from your
-   stimulus population, on your bench.
-5. Run `live`, then repeat the orthogonality test and record both numbers.
-
-Replace the synthetic lab book before quoting any number. The baseline command
-prints a warning when its input was synthetic, for exactly this reason.
-
-## This lab's files
-
-| Path | What it is |
+| File | What it holds |
 | --- | --- |
-| `synth.py` | the three stimuli, deterministic, for use with no hardware |
-| `pipeline.py` | one pass: transport, then analysis |
-| `__main__.py` | the command line |
-| `docs/DESIGN.md` | the boundary, what is deferred, and why |
+| `src/p04.h` | every declaration, and the three rules above as a comment |
+| `src/block.c` | the capture file format and the transport accounting |
+| `src/dsp.c` | the window, an iterative radix-2 transform, the band |
+| `src/analysis.c` | thresholds, classification, the gravity invariant, the run |
+| `src/labbook.c` | the baseline file, flat key and value, no dependency |
+| `src/synth.c` | synthetic stimuli, deterministic from a seed |
+| `src/main.c` | six subcommands and the exit status rules |
+| `tests/test_p04.c` | the suite, four groups, no framework |
 
-The parts this lab shares with the rest of the volume are in
-[`benchkit/`](../benchkit/).
+## Three things the program refuses to do
+
+**Classify over a stream with holes in it, silently.** The sequence numbers are
+accounted for first and reported beside every result, because a spectrum over a
+stream that lost a third of its blocks is a picture of the holes.
+
+**Use a band that sits above Nyquist.** It returns an error rather than an
+empty sum. A sum of no bins reads as silence, and silence is the wrong answer
+to a question that should not have been asked.
+
+**Apply a lab book to a capture that arrived at a different rate.** The band
+edges were turned into bin numbers at the rate the baseline was taken at.
+Pointing them at data from a different rate gives an answer that is confident
+and wrong, so `analyse` refuses and says by how much the rates differ.
+
+## Exit status
+
+Zero means the question was answered. Non-zero means it could not be, and the
+reason is on stderr. A classification of FAULT is still a zero exit: the
+program worked and the machine did not, and conflating those two is how a
+monitoring tool teaches its operator to ignore it.
+
+## What is still missing
+
+A `live` subcommand that opens the probe's character device with `termios` and
+feeds the same pipeline. It is deliberately absent until the probe is wired,
+because a serial reader with nothing on the other end is untested code that
+looks finished.
+
+The probe's own framing comes from its firmware and is not invented here. The
+capture format in `src/block.c` is this program's own file format for recorded
+blocks, and it says so.
