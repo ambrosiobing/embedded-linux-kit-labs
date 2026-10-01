@@ -1,0 +1,62 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ================= mode caption, above everything =================
+\node[anchor=south, align=center, font=\tiny] at (4.65,6.75)
+  {UM3239 Mode 1: 1-2 and 11-12 shorted on both J4 and J5, which puts every sensor on the
+   microcontroller I2C bus\\
+   the header orientation is vendor art: confirm it on the silkscreen};
+% ================= the shield =================
+\draw[rounded corners=2pt, draw=linecol, fill=fwcol] (0.4,3.1) rectangle (8.9,6.6);
+\node[font=\sffamily\bfseries\small] at (4.65,6.25) {X-NUCLEO-IKS4A1};
+% chip list, names left and addresses right inside one white box
+\draw[draw=linecol, fill=white, rounded corners=1pt] (0.6,3.30) rectangle (4.70,5.95);
+\node[align=left, anchor=north west, font=\tiny] at (0.75,5.85)
+  {LSM6DSV16X / DSO16IS\\ LIS2MDL\\ SHT40AD1B\\ LPS22DF\\ STTS22H\\ LIS2DUXS12\\ Qvar electrode};
+\node[align=right, anchor=north east, font=\tiny] at (4.55,5.85)
+  {0x6A\\ 0x1E\\ 0x44\\ 0x5C\\ 0x38\\ UM3239\\ off today};
+\node[anchor=south west, font=\tiny, text=black!60] at (0.75,3.36) {all on the uC I2C bus};
+% J4 and J5 jumper rows
+\foreach \jy/\jname in {5.30/J4, 4.10/J5}{
+  \node[anchor=east, font=\sffamily\bfseries\scriptsize] at (5.15,\jy) {\jname};
+  \foreach \i in {0,...,11}{
+    \draw[fill=black!75] (5.35+0.28*\i,\jy) circle (0.9mm);
+  }
+  \draw[line width=2.4pt, draw=red!65!black] (5.35,\jy) -- (5.63,\jy);
+  \draw[line width=2.4pt, draw=red!65!black] (8.15,\jy) -- (8.43,\jy);
+  \node[anchor=south, font=\tiny] at (5.49,\jy+0.16) {1-2};
+  \node[anchor=south, font=\tiny] at (8.29,\jy+0.16) {11-12};
+}
+% ================= the Nucleo =================
+\draw[rounded corners=2pt, draw=linecol, fill=hwcol] (0.4,0.9) rectangle (8.9,2.5);
+\node[font=\sffamily\bfseries\small] at (4.65,2.05) {NUCLEO-H7A3ZI-Q};
+\node at (4.65,1.55) {STM32H7A3, the only I2C master on the sensor bus};
+\node[draw=black!70, fill=gray!55, minimum width=4mm, minimum height=3mm, inner sep=0pt]
+  (nusb) at (8.75,1.15) {};
+\node[anchor=east, font=\tiny] at (8.5,1.15) {USER USB};
+% stack
+\foreach \x in {1.0,7.7}{
+  \draw[line width=1.3pt] (\x,2.5) -- (\x,3.1);
+  \draw[line width=1.3pt] (\x+0.18,2.5) -- (\x+0.18,3.1);
+}
+\node[anchor=west, align=left, font=\tiny] at (1.55,2.80)
+  {Arduino UNO headers: SDA, SCL, 3V3, GND};
+% ================= the Pi =================
+\draw[rounded corners=2pt, draw=linecol, fill=hwcol] (11.4,0.9) rectangle (16.2,2.5);
+\node[font=\sffamily\bfseries\small] at (13.8,2.05) {Raspberry Pi 4 or 3B+};
+\node at (13.8,1.55) {Bookworm, the recorder};
+\node[draw=black!70, fill=gray!55, minimum width=4mm, minimum height=3mm, inner sep=0pt]
+  (pusb) at (11.55,1.15) {};
+\node[anchor=west, font=\tiny] at (11.8,1.15) {USB-A};
+% empty 40-pin header
+\node[pinrow, minimum width=34mm, minimum height=2.2mm, fill=white, draw=linecol] at (13.8,2.9) {};
+\node[anchor=south, font=\tiny, align=center] at (13.8,3.15)
+  {40-pin header, empty in this lab:\\nothing on pin 3 or pin 5};
+% ================= the cable =================
+\draw[usbcable] (nusb.east) -- (pusb.west);
+\node[anchor=south, font=\sffamily\scriptsize, align=center, fill=white, inner sep=2pt]
+  at (10.1,1.35) {\textbf{one USB cable}\\{\tiny CDC ACM, JSON lines}};
+% ================= the boundary note =================
+\node[draw=red!65!black, dashed, rounded corners=2pt, fill=white, align=center,
+      font=\tiny, inner sep=4pt, text width=58mm, anchor=north] at (13.8,0.55)
+  {sudo i2cdetect -y 1 on the Pi shows an empty grid.\\
+   The sensor bus is on the other side of the USB cable.};
+\end{tikzpicture}

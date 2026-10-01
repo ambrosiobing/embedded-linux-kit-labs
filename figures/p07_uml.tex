@@ -1,0 +1,61 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize,
+  comp/.style={draw=linecol, fill=white, rounded corners=1pt, align=center,
+               inner sep=3pt, minimum height=6.5mm},
+  pkg/.style={draw=linecol, dashed, rounded corners=3pt, inner sep=7pt, fill=none}]
+\coordinate (bus) at (4.05,0);
+% ================= sensor components =================
+\node[comp, fill=hwcol, text width=30mm] (c1) at (0,5.4) {LSM6DSV16X / DSO16IS \ 0x6A};
+\node[comp, fill=hwcol, text width=30mm] (c2) at (0,4.6) {LIS2MDL \ 0x1E};
+\node[comp, fill=hwcol, text width=30mm] (c3) at (0,3.8) {SHT40AD1B \ 0x44};
+\node[comp, fill=hwcol, text width=30mm] (c4) at (0,3.0) {LPS22DF \ 0x5C};
+\node[comp, fill=hwcol, text width=30mm] (c5) at (0,2.2) {STTS22H \ 0x38};
+\node[comp, fill=hwcol, text width=30mm] (c6) at (0,1.4) {LIS2DUXS12 \ UM3239};
+\node[comp, fill=hwcol!55, text width=30mm] (c7) at (0,0.6) {Qvar electrode \ off today};
+% ================= firmware components =================
+\node[comp, fill=fwcol, text width=32mm] (f1) at (8.5,5.0) {USB-CDC device class};
+\node[comp, fill=fwcol, text width=32mm] (f2) at (8.5,4.0) {JSON encoder};
+\node[comp, fill=fwcol, text width=32mm] (f3) at (8.5,3.0) {sampler, one object per 20 ms};
+\node[comp, fill=fwcol, text width=32mm] (f4) at (8.5,1.4) {STM32 I2C master + ST drivers};
+% ================= Linux components =================
+\node[comp, fill=usrcol, text width=30mm] (l1) at (14.6,5.0) {cat | tee p07.jsonl};
+\node[comp, fill=usrcol, text width=30mm] (l2) at (14.6,4.0) {p07.jsonl, the artifact};
+\node[comp, fill=usrcol, text width=30mm] (l3) at (14.6,3.0) {tilt view, acc and gyro};
+\node[comp, fill=extcol, text width=30mm] (l4) at (14.6,1.4) {sudo i2cdetect -y 1\\{\tiny empty grid, a pass}};
+% ================= packages =================
+\begin{scope}[on background layer]
+\node[pkg, fit=(c1)(c7),
+  label={[layerlabel, anchor=south west]north west:X-NUCLEO-IKS4A1}] {};
+\node[pkg, fit=(f1)(f4),
+  label={[layerlabel, anchor=south west]north west:Nucleo firmware}] {};
+\node[pkg, fit=(l1)(l4),
+  label={[layerlabel, anchor=south west]north west:Raspberry Pi, Linux}] {};
+\end{scope}
+% ================= required I2C interface: socket cupping the ball =================
+\foreach \c in {c1,c2,c3,c4,c5,c6}{\draw[draw=linecol] (\c.east) -- (\c.east -| bus);}
+\draw[draw=linecol] (4.05,0.6) -- (4.05,5.4);
+\draw[draw=linecol] (4.05,1.4) -- (4.93,1.4);
+\draw[line width=0.9pt, draw=linecol] ([shift=(90:0.42)]5.35,1.4) arc (90:270:0.42);
+\draw[fill=white, draw=linecol] (5.35,1.4) circle (1.7mm);
+\draw[draw=linecol] (5.52,1.4) -- (6.75,1.4);
+\node[anchor=south, font=\tiny] at (4.75,1.90) {required};
+\node[anchor=north, font=\tiny, align=center] at (5.35,0.92)
+  {I2C on the uC bus,\\provided by the STM32};
+% ================= firmware and Linux internals =================
+\draw[flow] (f4) -- (f3);
+\draw[flow] (f3) -- (f2);
+\draw[flow] (f2) -- (f1);
+\draw[flow] (l1) -- (l2);
+\draw[flow] (l2) -- (l3);
+% ================= provided CDC interface =================
+\draw[draw=linecol] (f1.east) -- (11.28,5.0);
+\draw[fill=white, draw=linecol] (11.45,5.0) circle (1.7mm);
+\draw[line width=0.9pt, draw=linecol] ([shift=(-90:0.42)]11.45,5.0) arc (-90:90:0.42);
+\draw[draw=linecol] (11.87,5.0) -- (13.05,5.0);
+\node[anchor=north, font=\tiny, align=center] at (11.45,4.50)
+  {JSON lines\\over CDC ACM};
+% ================= the missing interface, stated not drawn =================
+\node[draw=red!65!black, dashed, rounded corners=2pt, fill=white, align=center,
+      font=\tiny, inner sep=4pt, text width=56mm, anchor=north] at (8.5,0.25)
+  {No interface connects a Linux component to the sensor bus.
+   The Pi scanner is in the picture, and it finds nothing.};
+\end{tikzpicture}

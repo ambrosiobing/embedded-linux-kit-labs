@@ -1,0 +1,49 @@
+\begin{tikzpicture}[font=\sffamily\small]
+% ---------------- sensor column (left)
+\node[hw, text width=37mm] (s1) at (0,4.6) {LSM6DSV16X / DSO16IS\\{\scriptsize 0x6A}};
+\node[hw, text width=37mm] (s2) at (0,3.5) {LIS2MDL\\{\scriptsize 0x1E}};
+\node[hw, text width=37mm] (s3) at (0,2.4) {SHT40AD1B\\{\scriptsize 0x44}};
+\node[hw, text width=37mm] (s4) at (0,1.3) {LPS22DF\\{\scriptsize 0x5C}};
+\node[hw, text width=37mm] (s5) at (0,0.2) {STTS22H\\{\scriptsize 0x38}};
+\node[hw, text width=37mm] (s6) at (0,-0.9) {LIS2DUXS12\\{\scriptsize address: see UM3239}};
+\node[hw, text width=37mm, fill=hwcol!55] (s7) at (0,-2.0) {Qvar electrode\\{\scriptsize off until the stream is clean}};
+% ---------------- firmware column
+\node[fw, text width=32mm] (i2c)  at (5.3,2.4) {STM32 I2C master\\{\scriptsize the only master here}};
+\node[fw, text width=32mm] (scan) at (5.3,0.7) {firmware scanner\\{\scriptsize proves the addresses}};
+\node[fw, text width=32mm] (json) at (5.3,4.2) {JSON formatter\\{\scriptsize one object per 20 ms}};
+\node[fw, text width=32mm] (cdcf) at (5.3,5.8) {USB-CDC device class};
+% ---------------- Linux column
+\node[kern, text width=32mm] (acm)    at (11.4,5.8) {/dev/ttyACM0\\{\scriptsize cdc\_acm}};
+\node[user, text width=32mm] (rec)    at (11.4,4.2) {cat | tee p07.jsonl};
+\node[user, text width=32mm] (tilt)   at (11.4,2.6) {tilt from acc and gyro\\{\scriptsize a view of the file}};
+\node[kern, text width=32mm, fill=kercol!40] (pii2c) at (11.4,0.7) {Pi i2c-1\\{\scriptsize nothing wired}};
+\node[ext, text width=32mm] (scanpi)  at (11.4,-1.1) {sudo i2cdetect -y 1\\{\scriptsize empty grid, a pass}};
+% ---------------- bands
+\begin{scope}[on background layer]
+\node[layer, fit=(s1)(s7), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:X-NUCLEO-IKS4A1: sensor parts}] {};
+\node[layer, fit=(i2c)(scan)(json)(cdcf), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:STM32H7A3: firmware}] {};
+\node[layer, fit=(acm)(rec)(tilt)(pii2c)(scanpi), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:Raspberry Pi: Linux}] {};
+\end{scope}
+% ---------------- sensor bus
+\foreach \s in {s1,s2,s3,s4,s5,s6}{\draw[bus] (\s.east) -- (i2c.west);}
+\draw[flow] (i2c) -- (json);
+\draw[flow] (json) -- (cdcf);
+\draw[flow] (i2c) -- (scan);
+\draw[flow] (acm) -- (rec);
+\draw[flow] (rec) -- (tilt);
+\draw[flow] (pii2c) -- (scanpi);
+% ---------------- the one cable, in the gap between the bands
+\draw[bus, line width=1.6pt] (cdcf.east) -- (acm.west);
+\node[anchor=south, font=\sffamily\bfseries\scriptsize] at (8.35,5.95) {one USB cable};
+\node[anchor=north, font=\sffamily\scriptsize, text=black!65, align=center] at (8.35,5.62)
+  {JSON lines\\only};
+% ---------------- the boundary statement, as a banner under everything
+\node[draw=red!65!black, dashed, rounded corners=2pt, fill=white, align=center,
+      font=\sffamily\scriptsize, inner sep=5pt, text width=130mm, anchor=north]
+      at (5.6,-3.1)
+  {\textbf{The boundary:} no wire runs from the Pi header to these chips. The Pi I2C
+   controller is idle, so the Pi scanner has nothing to find. Only text crosses the cable.};
+\end{tikzpicture}

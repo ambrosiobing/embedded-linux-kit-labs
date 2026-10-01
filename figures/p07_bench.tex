@@ -1,0 +1,42 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ================= the Nucleo stack =================
+\node[board, minimum width=46mm, minimum height=22mm, fill=green!20!black!55] (nuc) at (0,0) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,-0.55) {Nucleo-H7A3ZI-Q};
+\node[hat, minimum width=42mm, minimum height=14mm, fill=purple!35!black!45] (sh) at (0,1.5) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,1.70) {X-NUCLEO-IKS4A1};
+\node[text=white, font=\tiny] at (0,1.30) {Mode 1: J4 and J5, 1-2 and 11-12};
+% USB port
+\node[draw=black!70, fill=gray!55, minimum width=4mm, minimum height=5mm, inner sep=0pt]
+  (nusb) at (2.4,-0.2) {};
+\node[anchor=north, font=\tiny] at (2.4,-0.65) {USER USB};
+% ================= the Pi =================
+\node[board, minimum width=46mm, minimum height=22mm] (pi) at (9.2,0) {};
+\node[text=white, font=\sffamily\bfseries\small] at (9.2,-0.3) {Raspberry Pi 4 or 3B+};
+\node[text=white, font=\tiny] at (9.2,-0.75) {the recorder};
+\node[draw=black!70, fill=gray!55, minimum width=4mm, minimum height=5mm, inner sep=0pt]
+  (pusb) at (6.8,-0.2) {};
+\node[anchor=north, font=\tiny] at (6.8,-0.65) {USB-A};
+% empty header on the Pi
+\node[pinrow, minimum width=36mm, minimum height=2.4mm, fill=white, draw=linecol] (hdr) at (9.2,1.35) {};
+\node[anchor=south, align=center, font=\tiny] at (9.2,1.60)
+  {40-pin header, empty:\\no HAT in this lab};
+% ================= the cable =================
+\draw[usbcable] (nusb.east) -- (pusb.west);
+\node[anchor=south, align=center, font=\sffamily\scriptsize, fill=white, inner sep=2pt]
+  at (4.6,0.15) {\textbf{one USB cable}\\{\tiny JSON lines, CDC ACM}};
+% ================= the two stimuli =================
+\node[draw=linecol, fill=notecol, rounded corners=2pt, align=center, font=\tiny,
+      text width=34mm, inner sep=4pt, anchor=south] (breath) at (-2.7,3.5)
+  {a breath toward the SHT40:\\relative humidity moves};
+\draw[flow, draw=black!65] (breath.south) to[out=-90, in=150] (-1.5,2.25);
+\node[draw=linecol, fill=notecol, rounded corners=2pt, align=center, font=\tiny,
+      text width=34mm, inner sep=4pt, anchor=south] (palm) at (2.7,3.5)
+  {a palm held over the board:\\STTS22H moves about 0.5 degrees C};
+\draw[flow, draw=black!65] (palm.south) to[out=-90, in=30] (1.5,2.25);
+% ================= bench hygiene =================
+\node[anchor=north, align=center, font=\tiny, text=black!70] at (0,-1.5)
+  {keep the stack clear of a laptop fan and a hot mug:\\both move humidity and temperature
+   on their own};
+\node[anchor=north, align=center, font=\tiny, text=black!70] at (9.2,-1.5)
+  {nothing is wired to pin 3 or pin 5,\\so the Pi scanner has nothing to find};
+\end{tikzpicture}
