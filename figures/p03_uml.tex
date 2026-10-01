@@ -1,0 +1,35 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize,
+  lbltxt/.style={above, font=\sffamily\scriptsize, fill=white, inner sep=1.5pt}]
+% ---------------- lifelines
+\foreach \x/\name/\id in {0/p03\_fix.py/py, 2.9/AT channel ttyUSB2/at, 5.8/GNSS engine/gnss,
+                          8.7/module MQTT client/mq, 11.6/broker/brk}{
+  \node[actor, text width=19mm] (\id) at (\x,0) {\name};
+  \draw[lifeline] (\id.south) -- ++(0,-10.4);
+}
+% ---------------- lock the bearer
+\draw[msg] (0,-1.0) -- node[lbltxt]{AT+CNMP=38, AT+CMNB=1} (2.9,-1.0);
+\node[activation, minimum height=20mm] at (2.9,-1.9) {};
+\draw[msg] (0,-1.9) -- node[lbltxt]{AT+CPSI?} (2.9,-1.9);
+\draw[reply] (2.9,-2.7) -- node[below, fill=white, inner sep=1.5pt]{CAT-M / eMTC, yellow LED on} (0,-2.7);
+% ---------------- GNSS window
+\draw[msg] (0,-3.6) -- node[lbltxt]{AT+CGNSPWR=1} (5.8,-3.6);
+\node[activation, minimum height=21mm] at (5.8,-4.6) {};
+\draw[msg] (0,-4.3) -- node[lbltxt]{AT+CGNSINF, polled until the fix is valid} (5.8,-4.3);
+\draw[reply] (5.8,-4.9) -- node[below, fill=white, inner sep=1.5pt]{+CGNSINF: time, lat, lon} (0,-4.9);
+\draw[msg] (0,-5.6) -- node[lbltxt]{AT+CGNSPWR=0} (5.8,-5.6);
+% ---------------- only now the module transmits
+\draw[msg] (0,-6.4) -- node[lbltxt]{AT+SMCONF URL and CLIENTID} (8.7,-6.4);
+\node[activation, minimum height=26mm] at (8.7,-7.6) {};
+\draw[msg] (0,-7.0) -- node[lbltxt]{AT+SMCONN} (8.7,-7.0);
+\draw[reply] (8.7,-7.6) -- node[below, fill=white, inner sep=1.5pt]{session open} (0,-7.6);
+\draw[msg] (0,-8.3) -- node[lbltxt]{AT+SMPUB "lab/p03/fix",0,1 and the payload} (8.7,-8.3);
+\draw[msg] (8.7,-8.9) -- node[lbltxt]{GNSS stamp, lat, lon} (11.6,-8.9);
+\draw[msg] (0,-9.7) -- node[lbltxt]{sleep 60 s, then repeat} (0.9,-9.7);
+% ---------------- notes, parked left of the first lifeline
+\node[umlnote, text width=25mm, anchor=north east] (n1) at (-0.6,-5.2)
+  {The receiver is powered down before the session opens. This ordering is the lab.};
+\node[umlnote, text width=25mm, anchor=north east] (n2) at (-0.6,-8.1)
+  {The payload starts with the GNSS stamp, never the Pi clock.};
+\draw[dotted, draw=linecol] (n1.east) -- (0,-5.6);
+\draw[dotted, draw=linecol] (n2.east) -- (0,-8.3);
+\end{tikzpicture}
