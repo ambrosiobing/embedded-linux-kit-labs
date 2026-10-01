@@ -1,0 +1,44 @@
+\begin{circuitikz}[scale=0.9, every node/.style={transform shape}, font=\sffamily\small]
+% ---------------- Pi header block
+\draw[rounded corners=2pt, fill=hwcol] (0,1.4) rectangle (3.6,6.4);
+\node[font=\sffamily\bfseries\small] at (1.8,6.0) {Raspberry Pi 3};
+\node[font=\sffamily\scriptsize] at (1.8,5.65) {40-pin header};
+\foreach \y/\pin/\name in {5.0/1/3V3, 4.5/3/GPIO2 SDA, 4.0/5/GPIO3 SCL, 3.5/6/GND}{
+  \draw (3.6,\y) -- (4.2,\y);
+  \node[anchor=east, font=\sffamily\scriptsize] at (3.5,\y) {pin \pin\ \ \name};
+}
+\node[anchor=east, font=\sffamily\scriptsize, text=black!60, align=right] at (3.5,2.4)
+  {SPI0 and the rest of\\the header: the LCD};
+% ---------------- the LCD HAT, seated over the header
+\draw[rounded corners=2pt, fill=extcol] (0,-2.4) rectangle (3.6,0.9);
+\node[font=\sffamily\bfseries\small] at (1.8,0.5) {Waveshare 3.5 inch (A)};
+\node[font=\sffamily\scriptsize, align=center, text width=32mm] at (1.8,-0.35)
+  {480x320 SPI panel,\\resistive touch};
+\node[font=\sffamily\scriptsize, align=center, text width=32mm] at (1.8,-1.5)
+  {seated on the 40-pin header,\\pins 1, 3, 5, 6 passed through};
+\draw[thick] (1.8,0.9) -- (1.8,1.4);
+\node[anchor=west, font=\sffamily\scriptsize] at (1.95,1.15) {seats here};
+% ---------------- ADXL345 breakout
+\draw[rounded corners=2pt, fill=usrcol] (7.0,2.6) rectangle (10.4,5.4);
+\node[font=\sffamily\bfseries\small] at (8.7,5.05) {SEN0032};
+\node[font=\sffamily\scriptsize] at (8.7,4.7) {ADXL345, 0x53};
+\node[font=\sffamily\scriptsize, text=black!60] at (8.7,4.42) {SDO open: 0x53};
+\foreach \y/\name in {4.05/VCC, 3.6/SDA, 3.15/SCL, 2.85/GND}{
+  \draw (6.4,\y) -- (7.0,\y);
+  \node[anchor=west, font=\sffamily\scriptsize] at (7.1,\y) {\name};
+}
+% ---------------- routing through the pass-through pins
+\draw (4.2,5.0) -- (6.4,5.0) -- (6.4,4.05);
+\draw (4.2,4.5) -- (6.1,4.5) -- (6.1,3.6) -- (6.4,3.6);
+\draw (4.2,4.0) -- (5.8,4.0) -- (5.8,3.15) -- (6.4,3.15);
+\draw (4.2,3.5) -- (5.5,3.5) -- (5.5,2.85) -- (6.4,2.85);
+\draw (5.1,3.5) -- (5.1,3.05);
+\node[ground] at (5.1,3.05) {};
+\node[anchor=west, font=\sffamily\scriptsize, text=red!70!black] at (4.3,2.15)
+  {VCC goes to pin 1. Never pin 2.};
+\node[anchor=west, font=\sffamily\scriptsize, text=black!60, align=left] at (4.3,1.55)
+  {Confirm on the silkscreen that the HAT\\passes pins 1, 3, 5 and 6 through.};
+% ---------------- the exclusivity rule
+\node[anchor=west, font=\sffamily\scriptsize, text=red!70!black, align=left] at (4.3,0.1)
+  {The LCD owns the 40-pin header.\\This cannot share a Pi with P06 in the same sitting.};
+\end{circuitikz}

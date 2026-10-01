@@ -1,0 +1,36 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- Pi 3 with the LCD seated on top
+\node[board, minimum width=46mm, minimum height=20mm] (pi) at (0,0) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,-0.5) {Raspberry Pi 3};
+\node[hat, minimum width=46mm, minimum height=26mm, fill=blue!45!black!55] (hat) at (0,2.3) {};
+\node[text=white, font=\tiny] at (0,3.35) {Waveshare 3.5 inch (A), 480x320};
+% the two bars drawn on the glass
+\node[draw=white, fill=black!85, minimum width=40mm, minimum height=16mm] (scr) at (0,2.1) {};
+\node[text=white, font=\tiny, anchor=west] at (-1.85,2.68) {pitch};
+\draw[fill=green!60!black, draw=white] (-1.85,2.22) rectangle (0.6,2.48);
+\node[text=white, font=\tiny, anchor=west] at (-1.85,1.98) {roll};
+\draw[fill=yellow!70!black, draw=white] (-1.85,1.52) rectangle (-1.05,1.78);
+% ---------------- ADXL fixed to the same body
+\node[draw=linecol, fill=usrcol, minimum width=20mm, minimum height=10mm, align=center]
+  (adxl) at (4.6,0.4) {ADXL345\\{\tiny 0x53}};
+\draw[cable, red!70!black]   (2.3,0.35) -- (3.6,0.65);
+\draw[cable, black]          (2.3,0.20) -- (3.6,0.50);
+\draw[cable, blue!60!black]  (2.3,0.05) -- (3.6,0.35);
+\draw[cable, green!45!black] (2.3,-0.10) -- (3.6,0.20);
+\node[anchor=north, font=\tiny, align=center] at (3.6,-0.35) {four short jumpers\\to pins 1, 3, 5, 6};
+% the mounting statement
+\draw[dashed, draw=linecol] (-2.6,-1.3) rectangle (5.8,3.8);
+\node[anchor=north west, font=\tiny] at (-2.55,-1.35) {one rigid assembly: the sensor moves with the panel};
+% ---------------- the rotation gesture, clear of the assembly
+\node[anchor=south west, font=\tiny, text=red!70!black, align=left] at (6.9,2.55)
+  {rotate 90 degrees\\on one axis};
+\draw[->, thick, draw=red!70!black] (7.0,2.4) arc (90:0:1.2);
+\node[anchor=west, font=\tiny, align=left] at (6.5,0.5)
+  {that bar travels full scale,\\the other stays near zero};
+% ---------------- power
+\node[draw=black!70, fill=gray!50, minimum width=6mm, minimum height=3mm] (psu) at (-1.4,-1.15) {};
+\node[anchor=north, font=\tiny] at (-1.4,-1.8) {5 V supply};
+% ---------------- what is not on the bench
+\node[umlnote, text width=60mm, anchor=north west] at (-2.6,-2.3)
+  {Nothing else is on this bench. No broker, no radio, no second host, and no MQTT client running anywhere on the Pi.};
+\end{tikzpicture}

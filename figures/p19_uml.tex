@@ -1,0 +1,36 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize, node distance=7mm]
+% ---------------- the activity chain
+\node[initial] (s0) at (0,0) {};
+\node[state, text width=40mm, below=8mm of s0] (init)
+  {\textbf{configure the sensor}\\0x2D measure, 0x31 full resolution};
+\node[state, text width=40mm, below=of init] (read)
+  {\textbf{read}\\six bytes from 0x32};
+\node[state, text width=40mm, below=of read] (conv)
+  {\textbf{convert}\\three signed words to g};
+\node[state, text width=40mm, below=of conv] (calc)
+  {\textbf{compute}\\pitch and roll, two-argument arctangent};
+\node[state, text width=40mm, below=of calc] (draw)
+  {\textbf{draw}\\two bars on the framebuffer};
+\node[state, text width=40mm, below=of draw] (wait)
+  {\textbf{wait}\\sleep 0.05 s};
+\node[final, below=8mm of wait] (sf) {};
+\foreach \a/\b in {s0/init, init/read, read/conv, conv/calc, calc/draw, draw/wait}{
+  \draw[trans] (\a) -- (\b);
+}
+\draw[trans] (wait) -- node[right, font=\tiny, pos=0.4]{on a signal} (sf);
+% the loop back, routed on the left
+\draw[trans] (wait.west) -- ++(-12mm,0) |- node[left, font=\tiny, pos=0.25]{repeat} (read.west);
+% ---------------- the formulas, parked on the right of the state they explain
+\node[umlnote, text width=52mm, right=14mm of calc] (n1)
+  {pitch = atan2(ax, sqrt(ay*ay + az*az))\\roll\ \ = atan2(ay, sqrt(ax*ax + az*az))\\[1mm]
+   The two-argument form keeps the sign across the whole range. The single-argument one does not.};
+\draw[dotted, draw=linecol] (calc.east) -- (n1.west);
+% ---------------- the absent branch
+\node[umlnote, text width=52mm, right=14mm of draw] (n2)
+  {No branch in this diagram reaches a network. There is no publish state, no retry state and no connection state to lose.};
+\draw[dotted, draw=linecol] (draw.east) -- (n2.west);
+% ---------------- the acceptance condition
+\node[umlnote, text width=52mm, right=14mm of wait] (n3)
+  {Acceptance: rotate 90 degrees on one axis and that bar travels full scale while the other stays near zero.};
+\draw[dotted, draw=linecol] (wait.east) -- (n3.west);
+\end{tikzpicture}
