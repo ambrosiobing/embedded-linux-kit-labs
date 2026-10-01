@@ -1,0 +1,54 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize,
+  labnode/.style={draw=linecol, rounded corners=1.5pt, align=center, text width=23mm,
+                  minimum height=9mm, inner sep=2pt, font=\sffamily\scriptsize},
+  hatlab/.style={labnode, fill=hwcol, line width=1.1pt},
+  shieldlab/.style={labnode, fill=fwcol},
+  gadgetlab/.style={labnode, fill=extcol},
+  parttitle/.style={align=center, text width=25mm, font=\sffamily\scriptsize\bfseries}]
+% ---------------- part titles
+\node[parttitle] at (0,1.3) {Cellular labs};
+\node[parttitle] at (3.0,1.3) {Instruments};
+\node[parttitle] at (6.0,1.3) {Sensor shields on the Nucleo};
+\node[parttitle] at (9.0,1.3) {Hosts, consoles and displays};
+\node[parttitle] at (12.0,1.3) {Rails, sidecars and the fleet};
+% ---------------- part 1
+\node[hatlab] (l01) at (0,0)    {\textbf{P01} SIM7600E-H};
+\node[hatlab] (l02) at (0,-1.2) {\textbf{P02} SIM7020E};
+\node[hatlab] (l03) at (0,-2.4) {\textbf{P03} SIM7070G};
+\node[hatlab] (l13) at (0,-3.6) {\textbf{P13} 7600 and 7020};
+% ---------------- part 2
+\node[gadgetlab] (l04) at (3.0,0)    {\textbf{P04} STWIN.box};
+\node[hatlab]    (l05) at (3.0,-1.2) {\textbf{P05} MCC 118};
+\node[hatlab]    (l06) at (3.0,-2.4) {\textbf{P06} LCD and 53L8A1};
+\node[gadgetlab] (l10) at (3.0,-3.6) {\textbf{P10} PPK2};
+% ---------------- part 3
+\node[shieldlab] (l07) at (6.0,0)    {\textbf{P07} IKS4A1};
+\node[shieldlab] (l08) at (6.0,-1.2) {\textbf{P08} IKS5A1};
+\node[gadgetlab] (l18) at (6.0,-2.4) {\textbf{P18} bare Nucleo};
+% ---------------- part 4
+\node[gadgetlab] (l09) at (9.0,0)    {\textbf{P09} NanoPi NEO Air};
+\node[hatlab]    (l11) at (9.0,-1.2) {\textbf{P11} Explorer700};
+\node[gadgetlab] (l12) at (9.0,-2.4) {\textbf{P12} DSI panel};
+\node[hatlab]    (l19) at (9.0,-3.6) {\textbf{P19} LCD and ADXL345};
+% ---------------- part 5
+\node[gadgetlab] (l15) at (12.0,0)    {\textbf{P15} POW-BB rails};
+\node[gadgetlab] (l14) at (12.0,-1.2) {\textbf{P14} USB-TTL jig};
+\node[gadgetlab] (l16) at (12.0,-2.4) {\textbf{P16} ESP32};
+\node[gadgetlab] (l17) at (12.0,-3.6) {\textbf{P17} ESP8266};
+\node[gadgetlab] (l20) at (12.0,-4.8) {\textbf{P20} all four hosts};
+% ---------------- part frames
+\begin{scope}[on background layer]
+\node[layer, fit=(l01)(l13), inner sep=4pt] {};
+\node[layer, fit=(l04)(l10), inner sep=4pt] {};
+\node[layer, fit=(l07)(l18), inner sep=4pt] {};
+\node[layer, fit=(l09)(l19), inner sep=4pt] {};
+\node[layer, fit=(l15)(l20), inner sep=4pt] {};
+\end{scope}
+% ---------------- legend
+\node[hatlab, minimum height=6mm, text width=6mm] (k1) at (-0.9,-6.1) {};
+\node[anchor=west, font=\sffamily\scriptsize] at (-0.4,-6.1) {seats a 40-pin HAT: one per Pi};
+\node[shieldlab, minimum height=6mm, text width=6mm] (k2) at (4.4,-6.1) {};
+\node[anchor=west, font=\sffamily\scriptsize] at (4.9,-6.1) {one Arduino shield on the Nucleo};
+\node[gadgetlab, minimum height=6mm, text width=6mm] (k3) at (9.7,-6.1) {};
+\node[anchor=west, font=\sffamily\scriptsize] at (10.2,-6.1) {USB, UART or no header};
+\end{tikzpicture}
