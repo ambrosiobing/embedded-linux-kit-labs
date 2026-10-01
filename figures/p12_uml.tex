@@ -1,0 +1,37 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize,
+  mlbl/.style={above, fill=white, inner sep=1.5pt, font=\sffamily\scriptsize}]
+% lifelines
+\foreach \x/\name/\id in {0/publisher on another host/pub, 3.4/LAN/lan, 6.8/mosquitto on the Pi 4/brk,
+                          10.2/subscriber on the glass/sub, 13.6/labwc compositor/wm, 17.0/DSI panel/glass}{
+  \node[actor, text width=22mm] (\id) at (\x,0) {\name};
+  \draw[lifeline] (\id.south) -- ++(0,-7.3);
+}
+% ---- the publish
+\draw[msg] (0,-1.2) -- node[mlbl]{connect to 1883, user lab} (6.8,-1.2);
+\node[activation, minimum height=5mm] at (6.8,-1.55) {};
+\draw[reply] (6.8,-2.1) -- node[mlbl]{CONNACK} (0,-2.1);
+\draw[msg] (0,-3.0) -- node[mlbl]{PUBLISH lab/p12/hello} (3.4,-3.0);
+\draw[msg] (3.4,-3.5) -- node[mlbl]{one hop, no cloud} (6.8,-3.5);
+\node[activation, minimum height=22mm] at (6.8,-4.7) {};
+% ---- fan-out
+\draw[msg] (6.8,-4.3) -- node[mlbl]{deliver to the subscriber} (10.2,-4.3);
+\node[activation, minimum height=18mm] at (10.2,-5.3) {};
+\draw[msg] (10.2,-5.2) -- node[mlbl]{update the page or the terminal} (13.6,-5.2);
+\node[activation, minimum height=10mm] at (13.6,-5.7) {};
+\draw[msg] (13.6,-6.2) -- node[mlbl]{compose the frame} (17.0,-6.2);
+\node[activation, minimum height=5mm] at (17.0,-6.5) {};
+% ---- the budget bracket, drawn outside the lifelines on the right
+\draw[<->, thick, draw=red!70!black] (18.3,-3.0) -- (18.3,-6.2);
+\node[anchor=west, font=\tiny, text=red!70!black, align=left] at (18.45,-4.6)
+  {acceptance:\\under 1 s from\\the publish to\\the glass};
+% ---- notes parked left of the first lifeline
+\node[umlnote, text width=28mm, anchor=north east] at (-0.8,-1.0)
+  {allow\_anonymous false, so the client carries a user name from the password file.};
+\node[umlnote, text width=28mm, anchor=north east] at (-0.8,-4.3)
+  {Subscribe locally with mosquitto\_sub at the same time. A slow LAN and a slow page then look different.};
+\draw[dotted, draw=linecol] (-0.8,-1.4) -- (0,-1.2);
+\draw[dotted, draw=linecol] (-0.8,-4.7) -- (0,-3.0);
+% ---- the reboot clause
+\node[umlnote, text width=54mm, anchor=north west] at (0,-7.8)
+  {The second half of the acceptance test has no messages in it: reboot the Pi 4 and the broker unit comes back on its own, because it was enabled and not merely started.};
+\end{tikzpicture}

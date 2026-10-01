@@ -1,0 +1,45 @@
+\begin{tikzpicture}[node distance=6mm and 15mm]
+% ---------------- hardware column (right): the connectors of the Pi 4
+\node[hw, text width=38mm] (jack) {Ethernet or Wi-Fi\\{\scriptsize the LAN side of the broker}};
+\node[hw, text width=38mm, below=12mm of jack] (panel) {official 7 inch panel\\{\scriptsize its own DISPLAY connector}};
+\node[hw, text width=38mm, below=12mm of panel] (kbd) {official keyboard\\{\scriptsize USB-A}};
+\node[hw, text width=38mm, below=12mm of kbd] (gadget) {USB gadget of the day\\{\scriptsize STWIN P04, ESP32 P16, Nucleo P18}};
+\node[draw=linecol, dashed, rounded corners=2pt, align=center, text width=38mm,
+      minimum height=12mm, inner sep=4pt, fill=white, below=12mm of gadget] (hdr)
+  {40-pin header\\{\scriptsize EMPTY today, free for a later sitting}};
+\node[ext, text width=38mm, above=11mm of jack] (lan) {another host on the LAN\\{\scriptsize mosquitto\_pub -t lab/...}};
+% ---------------- kernel column
+\node[kern, wide, left=of jack] (netk) {net stack\\{\scriptsize port 1883, websockets 9001}};
+\node[kern, wide, left=of panel] (drm) {DRM and KMS\\{\scriptsize the panel is detected, no overlay}};
+\node[kern, wide, left=of kbd] (hid) {USB HID};
+\node[kern, wide, left=of gadget] (cdc) {USB CDC-ACM\\{\scriptsize /dev/ttyACM*}};
+% ---------------- user space column
+\node[user, wide, left=of netk] (brk) {mosquitto\\{\scriptsize systemd unit, enabled}};
+\node[user, wide, left=of drm] (wl) {labwc on Wayland\\{\scriptsize the Bookworm default}};
+\node[user, wide, left=of hid] (page) {full-screen page, or watch terminals};
+\node[user, wide, left=of cdc] (free) {nothing in this lab\\{\scriptsize the gadget labs own this}};
+% ---------------- bands
+\begin{scope}[on background layer]
+\node[layer, fit=(brk)(wl)(page)(free), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:user space}] {};
+\node[layer, fit=(netk)(drm)(hid)(cdc), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:kernel}] {};
+\node[layer, fit=(jack)(panel)(kbd)(gadget)(hdr), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:Pi 4 connectors}] {};
+\end{scope}
+% ---------------- links
+\draw[flow] (lan) -- node[lbl, right, pos=0.75]{publish on 1883} (jack);
+\draw[bus] (netk) -- node[lbl, above, pos=0.3]{LAN} (jack);
+\draw[bus] (drm) -- node[lbl, above, pos=0.3]{DSI} (drm -| panel.west);
+\draw[bus] (hid) -- node[lbl, above, pos=0.3]{USB} (hid -| kbd.west);
+\draw[bus] (cdc) -- node[lbl, above, pos=0.3]{USB} (cdc -| gadget.west);
+\draw[flow] (netk) -- (brk);
+\draw[flow] (wl) -- (drm);
+\draw[flow] (hid) -- (page);
+\draw[flow] (page) -- node[lbl, pos=0.6]{draw} (wl);
+\draw[flow] (brk.west) -- ++(-8mm,0) |- node[lbl, left, pos=0.3]{subscribe} (page.west);
+\node[anchor=east, font=\sffamily\scriptsize, text=black!60, align=right] at ($(hdr.west)+(-5mm,0)$)
+  {no kernel row and\\no user-space row:\\nothing is seated};
+\node[umlnote, text width=46mm, below=10mm of free.south west, anchor=north west]
+  {The panel uses the DISPLAY connector, so the 40-pin header is untouched and the USB gadgets of P04, P16 and P18 fit beside the glass.};
+\end{tikzpicture}
