@@ -1,0 +1,52 @@
+\begin{tikzpicture}[font=\sffamily\small]
+% ---------------- sensor column
+\node[hw, text width=38mm] (s1) at (0,4.3) {ISM6HG256X\\{\scriptsize 0x6A, low-g and high-g}};
+\node[hw, text width=38mm] (s2) at (0,3.1) {ISM330IS\\{\scriptsize 0x6B, ISPU}};
+\node[hw, text width=38mm] (s3) at (0,1.9) {ILPS22QS\\{\scriptsize 0x5C, 1260 / 4060 hPa}};
+\node[hw, text width=38mm] (s4) at (0,0.7) {IIS2MDC\\{\scriptsize 0x1E}};
+\node[hw, text width=38mm] (s5) at (0,-0.5) {IIS2DULPX\\{\scriptsize 0x19}};
+% ---------------- firmware column
+\node[fw, text width=34mm] (bus) at (5.6,1.9) {STM32 I2C master\\{\scriptsize five parts, one bus}};
+\node[fw, text width=34mm] (plo) at (5.6,4.3) {low-g producer\\{\scriptsize 104 Hz}};
+\node[fw, text width=34mm] (phi) at (5.6,3.1) {high-g producer\\{\scriptsize peak-hold, per event}};
+\node[fw, text width=34mm] (pba) at (5.6,0.7) {baro producer\\{\scriptsize scale carried in the record}};
+\node[fw, text width=34mm] (cdc) at (5.6,-0.9) {USB-CDC device class\\{\scriptsize two keys, never merged}};
+% ---------------- Linux column
+\node[kern, text width=34mm] (acm) at (12.2,-0.9) {/dev/ttyACM0\\{\scriptsize cdc\_acm}};
+\node[user, text width=34mm] (wlo) at (12.2,4.3) {writer: key lowg};
+\node[user, text width=34mm] (whi) at (12.2,3.1) {writer: key highg\_peak};
+\node[user, text width=34mm] (flo) at (12.2,1.9) {p08\_lowg.jsonl};
+\node[user, text width=34mm] (fhi) at (12.2,0.7) {p08\_highg.jsonl};
+% ---------------- bands
+\begin{scope}[on background layer]
+\node[layer, fit=(s1)(s5), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:X-NUCLEO-IKS5A1}] {};
+\node[layer, fit=(plo)(cdc)(bus), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:Nucleo firmware}] {};
+\node[layer, fit=(wlo)(acm), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:Raspberry Pi 3B+, Linux}] {};
+\end{scope}
+% ---------------- links
+\foreach \s in {s1,s2,s3,s4,s5}{\draw[bus] (\s.east) -- (bus.west);}
+\draw[flow] (bus) -- node[lbl, right]{high-g} (phi);
+\draw[flow] (phi) -- node[lbl, right]{low-g} (plo);
+\draw[flow] (bus) -- node[lbl, right]{pressure} (pba);
+\draw[flow] (pba) -- (cdc);
+\draw[flow] (plo.east) -- ++(0.55,0) |- (cdc.east);
+\draw[flow] (phi.east) -- ++(0.35,0) |- (cdc.east);
+\draw[bus, line width=1.6pt] (cdc.east) -- (acm.west);
+\draw[flow] (acm.east) -- ++(0.5,0) |- (whi.east);
+\draw[flow] (acm.east) -- ++(0.7,0) |- (wlo.east);
+\draw[flow] (wlo) -- (whi);
+\draw[flow] (whi) -- (flo);
+\draw[flow] (flo) -- (fhi);
+\node[anchor=south, font=\sffamily\bfseries\scriptsize] at (9.35,-0.75) {one USB cable};
+\node[anchor=north, font=\sffamily\scriptsize, text=black!65, align=center] at (9.35,-1.1)
+  {two keys,\\one stream of lines};
+% ---------------- the rule
+\node[draw=red!65!black, dashed, rounded corners=2pt, fill=white, align=center,
+      font=\sffamily\scriptsize, inner sep=5pt, text width=120mm, anchor=north]
+      at (5.6,-2.3)
+  {\textbf{The rule:} lowg and highg\_peak are never collapsed into one acc field, and
+   neither of them shares a log file with P07.};
+\end{tikzpicture}

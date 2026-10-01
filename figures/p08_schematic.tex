@@ -1,0 +1,56 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ================= the shield =================
+\draw[rounded corners=2pt, draw=linecol, fill=fwcol] (0.4,2.9) rectangle (8.4,6.6);
+\node[font=\sffamily\bfseries\small] at (4.4,6.25) {X-NUCLEO-IKS5A1};
+\node[font=\tiny, text=black!65] at (4.4,5.90) {the P07 stack with the other shield, IKS4A1 removed};
+% chip table
+\draw[draw=linecol, fill=white, rounded corners=1pt] (0.65,3.15) rectangle (5.55,5.60);
+\node[align=left, anchor=north west, font=\tiny] at (0.80,5.50)
+  {ISM6HG256X\\ ISM330IS\\ ILPS22QS\\ IIS2MDC\\ IIS2DULPX};
+\node[align=left, anchor=north west, font=\tiny] at (2.55,5.50)
+  {0x6A\\ 0x6B\\ 0x5C\\ 0x1E\\ 0x19};
+\node[align=left, anchor=north west, font=\tiny] at (3.35,5.50)
+  {low-g and high-g\\ ISPU\\ 1260 / 4060 hPa\\ magnetometer\\ low-power accel.};
+\node[anchor=south west, font=\tiny, text=black!60] at (0.80,3.20) {all on the uC I2C bus};
+% mode jumpers, deliberately not invented
+\node[draw=linecol, fill=notecol, rounded corners=2pt, align=center, font=\tiny,
+      text width=24mm, inner sep=4pt, anchor=north] at (7.0,5.30)
+  {mode jumpers:\\see the shield user manual and the silkscreen};
+% what is not on this board
+\node[draw=red!65!black, dashed, rounded corners=2pt, fill=white, align=center, font=\tiny,
+      text width=24mm, inner sep=4pt, anchor=north] at (7.0,3.95)
+  {not on this board:\\ISM330DHCX\\it is on the STWIN.box, P04};
+% ================= the Nucleo =================
+\draw[rounded corners=2pt, draw=linecol, fill=hwcol] (0.4,0.9) rectangle (8.4,2.4);
+\node[font=\sffamily\bfseries\small] at (4.4,1.95) {NUCLEO-H7A3ZI-Q};
+\node at (4.4,1.45) {STM32H7A3, the only I2C master on the sensor bus};
+\node[draw=black!70, fill=gray!55, minimum width=4mm, minimum height=3mm, inner sep=0pt]
+  (nusb) at (8.25,1.15) {};
+\node[anchor=east, font=\tiny] at (8.0,1.15) {USER USB};
+% stack
+\foreach \x in {1.0,7.2}{
+  \draw[line width=1.3pt] (\x,2.4) -- (\x,2.9);
+  \draw[line width=1.3pt] (\x+0.18,2.4) -- (\x+0.18,2.9);
+}
+\node[anchor=west, align=left, font=\tiny] at (1.55,2.65)
+  {Arduino UNO headers, as in P07};
+% ================= the Pi =================
+\draw[rounded corners=2pt, draw=linecol, fill=hwcol] (10.9,0.9) rectangle (15.7,2.4);
+\node[font=\sffamily\bfseries\small] at (13.3,1.95) {Raspberry Pi 3B+};
+\node at (13.3,1.45) {two files, two schemas};
+\node[draw=black!70, fill=gray!55, minimum width=4mm, minimum height=3mm, inner sep=0pt]
+  (pusb) at (11.05,1.15) {};
+\node[anchor=west, font=\tiny] at (11.3,1.15) {USB-A};
+\node[pinrow, minimum width=32mm, minimum height=2.2mm, fill=white, draw=linecol] at (13.3,2.8) {};
+\node[anchor=south, font=\tiny, align=center] at (13.3,3.05)
+  {40-pin header, empty in this lab};
+% ================= the cable =================
+\draw[usbcable] (nusb.east) -- (pusb.west);
+\node[anchor=south, font=\sffamily\scriptsize, align=center, fill=white, inner sep=2pt]
+  at (9.65,1.35) {\textbf{one USB cable}\\{\tiny CDC ACM, two keys}};
+% ================= the note =================
+\node[draw=linecol, rounded corners=2pt, fill=notecol, align=center,
+      font=\tiny, inner sep=4pt, text width=62mm, anchor=north] at (13.3,0.55)
+  {p08\_lowg.jsonl and p08\_highg.jsonl are two files.\\
+   Neither of them is the P07 capture.};
+\end{tikzpicture}
