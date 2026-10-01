@@ -1,0 +1,27 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- first column
+\node[initial] (start) at (0,1.2) {};
+\node[state, text width=32mm] (s1) at (0,0)    {measure the three rails\\5 V, 3V3 and a common GND};
+\node[state, text width=32mm] (s2) at (0,-1.7) {label both rails, write the\\three numbers in the lab book};
+\node[state, text width=32mm] (s3) at (0,-3.4) {wire anodes to 3V3 through a\\series R, cathodes to BCM 27/22/23};
+% ---------------- second column
+\node[state, text width=32mm] (s4) at (6.6,0)    {blink the semaphore from\\3.3 V logic only};
+\node[state, text width=32mm] (s5) at (6.6,-1.7) {negative test: a 5 V pull-up\\on the breadboard, measured};
+\node[state, text width=32mm] (s6) at (6.6,-3.4) {dismantle the pull-up};
+\node[final] (end) at (6.6,-4.6) {};
+% ---------------- transitions
+\draw[trans] (start) -- (s1);
+\draw[trans] (s1) -- (s2);
+\draw[trans] (s2) -- (s3);
+\draw[trans] (s3.east) -- (3.3,-3.4) -- node[lbl, right, pos=0.55]{rails proved} (3.3,0) -- (s4.west);
+\draw[trans] (s4) -- (s5);
+\draw[trans] (s5) -- (s6);
+\draw[trans] (s6) -- (end);
+% ---------------- notes, parked right of the second column
+\node[umlnote, text width=30mm, anchor=west] (n1) at (9.0,-1.7)
+  {the pull-up is measured on the breadboard and is never wired to a header pin};
+\node[umlnote, text width=30mm, anchor=west] (n2) at (9.0,-3.6)
+  {take it apart before the next lab borrows a jumper from that row};
+\draw[dotted, draw=linecol] (s5.east) -- (n1.west);
+\draw[dotted, draw=linecol] (s6.east) -- (n2.west);
+\end{tikzpicture}

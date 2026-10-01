@@ -1,0 +1,190 @@
+\project{15}{POW-BB mixed-voltage discipline}{SBC-POW-BB + R/Y/G LEDs + any Pi or NanoPi host}{the electrical safety lab}
+
+\begin{unique}
+Owns the electrical safety lab. No radio, no IMU. Every other lab in this book assumes the rails are labelled and the logic level is settled; this is where that happens.
+\end{unique}
+
+\subsection*{Intent}
+
+Label the rails. Prove that a 5 V LED circuit does not share a data pin with a 3.3 V system-on-chip input. The POW-BB is a labelled rail splitter, so the product of this lab is a bench where the 5 V rail and the 3.3 V rail are told apart by reading, not by guessing, and where the three numbers that say so are written in the lab book.
+
+Red, yellow and green become a semaphore driven from 3.3 V GPIO, through the resistors already fitted on the LED module or through a series resistor on the breadboard. The lab sequence puts this lab first and says do not skip it. The reason is arithmetic rather than caution: Pi, NanoPi and Nucleo I/O are 3.3 V, and a 5 V pull-up sits above that limit whatever the rest of the circuit does.
+
+\begin{kit}
+Any Pi or NanoPi host, SBC-POW-BB, breadboard, jumpers, red, yellow and green LEDs.
+\end{kit}
+
+\begin{note}{Where this lab sits in the order}
+The lab sequence in the appendix opens with P15 rails, and adds: do not skip. Everything after it assumes a labelled 5 V rail, a labelled 3.3 V rail and a ground that is common to the host, the breadboard and the supply. The jig of P14 and the sidecars of P16 and P17 are the next three labs, and each of them puts 3.3 V logic on a wire you can reach.
+\end{note}
+
+\subsection*{System architecture}
+
+\diagram{p15_arch}{Two domains that meet only at ground. The power domain carries no data, and the data domain carries no 5 V. The multimeter is the only instrument in the lab, and it is the acceptance test.}
+
+There are two domains on this bench and exactly one point where they meet. The power domain runs from the supply through the POW-BB into a labelled 5 V rail and a labelled 3.3 V rail. The data domain runs from a blink script through \texttt{gpiochip0} to three header pins. The rails feed LED anodes, the header pins sink LED cathodes, and the only shared conductor is ground.
+
+Read the architecture figure as a statement about what is missing. Nothing connects the 5 V rail to a header pin. That absence is the lab, and the negative test at the end of the procedure is there to show what the absent connection would have measured.
+
+There is no microcontroller in this chapter, which makes it the plainest example of the rule that Linux owns the system. The host holds the script, the state and the record. Every later lab adds a peripheral to this picture, whether it is a modem on USB, a Nucleo on USB-CDC or an ESP on a UART, and none of them changes the voltage that arrives at a header pin.
+
+\subsection*{Wiring and schematic}
+
+\diagram{p15_schematic}{The rails, the semaphore and the negative test. LED anodes sit on the 3.3 V rail through a series resistor and the cathodes sink into GPIO, so a pin driven low lights its LED. The dashed fragment at the bottom is the negative test, and it lives on the breadboard.}
+
+\begin{table}[H]\centering\small
+\begin{tabular}{p{40mm}p{24mm}p{20mm}p{62mm}}
+\toprule
+Signal & Header pin & BCM GPIO & Note \\
+\midrule
+POW-BB 5 V rail & none & none & Measured, labelled, and connected to no header pin \\
+POW-BB 3V3 rail & none & none & From the board regulator, not a guess. Feeds the LED anodes \\
+Ground & 6 & GND & Common to POW-BB, breadboard and host \\
+Green LED cathode & 13 & GPIO27 & Sinks when the pin is driven low \\
+Yellow LED cathode & 15 & GPIO22 & Sinks when the pin is driven low \\
+Red LED cathode & 16 & GPIO23 & Sinks when the pin is driven low \\
+Series resistor & none & none & On the breadboard, unless the LED module already carries one \\
+\bottomrule
+\end{tabular}
+\caption{Wiring for a Raspberry Pi host. The GPIO numbers are the source's BCM 27/22/23; the pin numbers are the matching positions on the 40-pin header.}
+\end{table}
+
+On a NanoPi NEO Air the same circuit uses pin 1 SYS\_3V3 and pin 6 GND on the 24-pin header. The NEO Air GPIO chosen for each cathode is not fixed by this book: pick three free pins and confirm them against the silkscreen before wiring. The one number that does not change is the logic level. The NEO Air is an Allwinner H3 board with 3.3 V I/O, and its 3.3 V pin is named SYS\_3V3 rather than 3V3, which is the kind of difference that a labelled rail prevents from becoming a mistake.
+
+Two details in the schematic carry the whole chapter. The first is the direction of the LED: the anode is on the 3.3 V rail and the cathode goes to the pin, so the pin sinks current and a low output is the lit state. The second is that the 5 V rail ends at a probe and goes nowhere else. Neither is difficult to build. Both are easy to build the other way round by accident, which is why they are drawn.
+
+\begin{asciiart}
+PSU 5V ---- POW-BB 5V rail   (label it)
+POW-BB 3V3 rail labelled     (from the board regulator, not a guess)
+GND common
+LED anodes on 3V3 via series R, cathodes to GPIO as sinks
+  OR LED modules already 3.3 V tolerant on the data pin
+Never tie a 5V pull-up to a Pi GPIO.
+\end{asciiart}
+
+\subsection*{Bench layout}
+
+\diagram{p15_bench}{Bench layout. The POW-BB sits between the supply and the breadboard, the host contributes only ground and three sinking pins, and the multimeter stays on the bench for the whole sitting.}
+
+Put the POW-BB between the supply and the breadboard, not beside the host. That placement is a reminder of where the current comes from. Keep the multimeter out for the whole sitting: the three rail readings are taken at the start, and the negative test at the end uses the same probes without rewiring anything on the host side.
+
+The host contributes two things to this bench and nothing else: a ground and three pins that can sink current. Nothing on the host side of the bench is a power source in this lab, and no jumper runs from the 5 V rail toward the header. A bench that looks like this one is a bench where the next lab can be wired without rechecking the rails.
+
+\subsection*{Software design (UML)}
+
+\diagram{p15_uml}{The procedure as an activity. The negative test is a branch that ends in a dismantle step, never in a connection to a header pin.}
+
+The software in this lab is three output pins and a loop, so the interesting design is the procedure rather than the program. Measure, label, wire, blink, then run the negative test and take it apart. The dismantle step is part of the procedure and not an afterthought: a pull-up left on the breadboard is a 5 V source sitting within jumper reach of a 3.3 V input for the rest of the week.
+
+The blink script itself sets every pin high before it does anything else, because high is the unlit state when the cathode sinks. It also restores the pins on the way out. A semaphore that is left in an arbitrary state at the end of a run is a semaphore the next lab cannot read, and the same three colours carry meaning in P01, P02 and P03, where green means registered, yellow means a default route and red means an event.
+
+\subsection*{Data flow (ASCII)}
+
+The current path and the information path are drawn together below. Current leaves the 3.3 V rail, passes the series resistor and the LED, and returns through the pin into the common ground. Information travels the other way: the state of the script decides whether the pin sinks, and the colour on the bench is the only output of the program.
+
+\begin{asciiart}
+   PSU 5 V
+      |
+      v
+  +------------------+   5V rail  ---> multimeter probe only, no header pin
+  |   SBC-POW-BB     |
+  |  rail splitter   |   3V3 rail ---> series R ---> LED anode
+  +------------------+                                  |
+      |                                                 | cathode
+      | GND                                             v
+      |                                        Pi header pin 13 / 15 / 16
+      |                                                 |
+      +--- common ground -----------------------------> + GPIO low = LED on
+                                                          GPIO high = LED off
+
+  Negative test (breadboard only):
+      5V rail --- pull-up R --- test node --- multimeter --- GND
+      test node ---> a GPIO:  never.  Read it, then take it apart.
+\end{asciiart}
+
+\subsection*{Steps}
+
+\begin{steps}
+\item \textbf{Measure and write down three numbers.} With the multimeter: the 5 V rail is 5 V, the 3.3 V rail is 3.3 V, and GND is common. Write the three numbers in the lab book. A rail that reads something else is a wiring question to answer now, not after the LEDs are fitted.
+\begin{plaincode}
+lab book, P15
+  5V rail        measured   ____ V
+  3V3 rail       measured   ____ V
+  GND continuity POW-BB to breadboard to host   ____
+  note: no 5 V on header pins
+\end{plaincode}
+The ground line is a continuity check rather than a voltage: the POW-BB ground, the breadboard ground rail and the host ground are one node or the rest of the lab means nothing.
+
+\item \textbf{Blink the semaphore from 3.3 V logic.} Drive green, yellow and red from BCM 27/22/23 on a Pi, without ever connecting those GPIOs to the 5 V rail. The anodes sit on the 3.3 V rail through the series resistor, so the pin sinks the current and a low output is the lit state.
+\begin{pycode}
+import time
+import RPi.GPIO as GPIO
+
+PINS = {"grn": 27, "yel": 22, "red": 23}      # BCM numbering, cathodes sink
+
+GPIO.setmode(GPIO.BCM)
+for p in PINS.values():
+    GPIO.setup(p, GPIO.OUT, initial=GPIO.HIGH)   # HIGH = no sink = LED off
+
+try:
+    while True:
+        for name, p in PINS.items():
+            GPIO.output(p, GPIO.LOW)             # LOW = sink = LED on
+            time.sleep(0.4)
+            GPIO.output(p, GPIO.HIGH)
+finally:
+    GPIO.cleanup()
+\end{pycode}
+
+\item \textbf{Run the negative test on the breadboard only, not on a GPIO.} Build a 5 V pull-up on the breadboard, measure it, and show that it sits above 3.3 V. Then take it apart. Nothing in this step touches a header pin, and the pull-up does not stay on the board afterwards.
+\end{steps}
+
+\begin{rulebox}{The 3.3 V rule in the rest of the book}
+\begin{itemize}
+\item Pi, NanoPi and Nucleo I/O are 3.3 V. The POW-BB is a labelled rail splitter.
+\item Never 5 V TTL into ESP pins (P14).
+\item Do not put 5 V onto SYS\_3V3 on the NanoPi NEO Air (P09).
+\item Never exceed $\pm$10.1 V on an MCC 118 input, and Pi GPIO is not an analog source (P05).
+\item Never source a Cat-4 power amplifier from the PPK2 (P10).
+\end{itemize}
+\end{rulebox}
+
+\subsection*{Acceptance test}
+
+\begin{itemize}
+\item Three measured rail voltages are written in the lab book: the 5 V rail, the 3.3 V rail and a ground that is common to the POW-BB, the breadboard and the host.
+\item A blink script runs the three LEDs as a semaphore from BCM 27/22/23.
+\item The lab book carries a sentence that says "no 5 V on header pins".
+\item The breadboard is clear of the negative-test pull-up when the sitting ends.
+\item No jumper runs between the 5 V rail and any header pin, on any host, at any point in the lab.
+\end{itemize}
+
+\subsection*{Practices}
+
+The source gives this lab no practices paragraph of its own, so the practices are its own sentences. Label the rails on the POW-BB and treat the label as the instrument: it is a rail splitter, not a supply with a display. Take the three measurements before the LEDs go in, because a mislabelled rail found afterwards means unwiring work that was already done.
+
+Keep every I/O pin on this bench at 3.3 V: Pi, NanoPi and Nucleo I/O are 3.3 V, and that number is the same in every other lab in the book. The negative test exists to be seen once and then removed. Build one lab at a time, and do not skip this one, which is why it is first in the lab sequence.
+
+\subsection*{Pitfalls}
+
+\begin{itemize}
+\item \textbf{A 5 V pull-up on a GPIO.} The symptom ranges from an input that reads high and never changes to a pin that stops responding altogether. This is the one connection the lab exists to prevent.
+\item \textbf{An unlabelled rail.} Two red jumpers, two rails, one guess. Label the rails and the guess disappears.
+\item \textbf{No series resistor.} An LED straight across a rail and a pin draws whatever the rail can deliver. Confirm whether the LED module already carries a resistor before adding another.
+\item \textbf{Ground not common.} If the POW-BB ground and the host ground are separate, the LED either stays dark or lights in a way that does not follow the script, and the measured rail numbers are meaningless.
+\item \textbf{LED fitted the wrong way round.} With anodes on 3.3 V and cathodes on GPIO, a reversed LED never lights and looks like a software fault.
+\item \textbf{The negative test left standing.} A 5 V pull-up that stays on the breadboard is a hazard to the next lab that borrows a jumper from the same row.
+\item \textbf{Two red jumpers from the same strip.} Colour is a convention, not a measurement. The label on the POW-BB and the reading in the lab book are what settle which rail a wire came from.
+\item \textbf{Assuming the semaphore is inverted software.} With cathodes on GPIO, low is lit. A script written for the opposite convention runs perfectly and shows the wrong state on every LED.
+\end{itemize}
+
+\subsection*{Sources}
+
+\begin{itemize}
+\item JOY-iT SBC-POW-BB breadboard power supply documentation, \url{https://joy-it.net/en/products/SBC-POW-BB}
+\item Raspberry Pi hardware documentation, 40-pin header and GPIO electrical limits, \url{https://www.raspberrypi.com/documentation/computers/raspberry-pi.html}
+\item FriendlyElec NanoPi NEO Air wiki, 24-pin header pinout, \url{https://wiki.friendlyelec.com/wiki/index.php/NanoPi_NEO_Air}
+\item RPi.GPIO documentation for the BCM numbering used by the blink script, \url{https://sourceforge.net/projects/raspberry-gpio-python/}
+\item libgpiod and the character-device GPIO interface, for hosts where \texttt{RPi.GPIO} is not available, \url{https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git/}
+\item JOY-iT LED module documentation, to confirm whether a series resistor is already fitted, \url{https://joy-it.net/en/}
+\end{itemize}
