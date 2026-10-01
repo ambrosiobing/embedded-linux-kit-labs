@@ -1,0 +1,40 @@
+\begin{circuitikz}[scale=0.85, every node/.style={transform shape}, font=\sffamily\small]
+% ---------------- rail splitter
+\draw[rounded corners=2pt, fill=hwcol] (0,0.2) rectangle (3.0,5.4);
+\node[font=\sffamily\bfseries\small] at (1.5,5.0) {SBC-POW-BB};
+\node[font=\sffamily\scriptsize, align=center] at (1.5,2.6) {the 5 V rail is\\not used here};
+\node[anchor=east, font=\sffamily\scriptsize] at (2.9,4.0) {3V3};
+\node[anchor=east, font=\sffamily\scriptsize] at (2.9,0.6) {GND};
+\draw (3.0,4.0) -- (4.2,4.0);
+\draw (4.2,4.0) -- (4.2,1.6);
+% ---------------- three LED branches into the ESP32 outputs
+\draw (4.2,4.0) to[R, l=series R, -] (6.4,4.0) to[led, -] (8.2,4.0) -- (10.4,4.0);
+\draw (4.2,2.8) to[R, l=series R, -] (6.4,2.8) to[led, -] (8.2,2.8) -- (10.4,2.8);
+\draw (4.2,1.6) to[R, l=series R, -] (6.4,1.6) to[led, -] (8.2,1.6) -- (10.4,1.6);
+\node[anchor=south, font=\sffamily\scriptsize] at (9.3,4.08) {green};
+\node[anchor=south, font=\sffamily\scriptsize] at (9.3,2.88) {yellow};
+\node[anchor=south, font=\sffamily\scriptsize] at (9.3,1.68) {red};
+% ---------------- the sidecar
+\draw[rounded corners=2pt, fill=fwcol] (10.4,1.4) rectangle (14.2,5.4);
+\node[font=\sffamily\bfseries\small] at (12.3,5.0) {ESP32 NodeMCU};
+\node[font=\sffamily\scriptsize] at (12.3,4.65) {3.3 V pins};
+\node[anchor=west, font=\sffamily\scriptsize] at (10.55,4.0) {output a};
+\node[anchor=west, font=\sffamily\scriptsize] at (10.55,2.8) {output b};
+\node[anchor=west, font=\sffamily\scriptsize] at (10.55,1.6) {output c};
+\node[anchor=west, font=\sffamily\scriptsize, align=left] at (14.35,2.8)
+  {pick three free GPIOs\\and confirm them\\on the silkscreen};
+% ---------------- USB and radio
+\draw[thick] (11.6,5.4) -- (11.6,6.4);
+\node[anchor=south, font=\sffamily\scriptsize, align=center] at (11.6,6.45)
+  {USB to a Pi 4 USB-A port:\\power and the serial console};
+\draw (13.6,5.4) -- (13.6,6.0);
+\draw (13.35,6.35) -- (13.6,6.0) -- (13.85,6.35);
+\node[anchor=west, font=\sffamily\scriptsize, align=left] at (13.95,6.1)
+  {2.4 GHz Wi-Fi\\to the broker};
+% ---------------- common ground
+\draw (3.0,0.6) -- (13.4,0.6);
+\draw (13.4,0.6) -- (13.4,1.4);
+\node[anchor=north, font=\sffamily\scriptsize] at (6.6,0.5) {common ground: POW-BB, breadboard and ESP32};
+\draw (10.0,0.6) -- (10.0,0.2);
+\node[ground] at (10.0,0.2) {};
+\end{circuitikz}
