@@ -1,0 +1,25 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize, node distance=11mm]
+% ---------------- the cycle, top to bottom
+\node[initial] (i) at (0,1.1) {};
+\node[state, text width=32mm] (s1) at (0,0) {Attach\\{\tiny AT+COPS=0, AT+CBAND=20}};
+\node[state, text width=32mm, below=of s1] (s2) {PSM and eDRX requested\\{\tiny AT+CPSMS, AT+CEDRXS}};
+\node[state, text width=32mm, below=of s2] (s3) {Active window\\{\tiny short active time, radio reachable}};
+\node[state, text width=32mm, below=of s3] (s4) {Send\\{\tiny AT+CSOC, AT+CSOCON, AT+CSOSEND}};
+\node[state, text width=32mm, below=of s4] (s5) {PSM sleep\\{\tiny long update interval, radio idle}};
+% ---------------- transitions
+\draw[trans] (i) -- (s1);
+\draw[trans] (s1) -- node[right=1mm]{AT+CEREG? shows a cell} (s2);
+\draw[trans] (s2) -- node[right=1mm]{AT+CPSMS? read back} (s3);
+\draw[trans] (s3) -- node[right=1mm]{datagram due} (s4);
+\draw[trans] (s4) -- node[right=1mm]{about 20 bytes sent} (s5);
+% ---------------- the wake loop, on the far right
+\draw[trans] (s5.east) -- ++(1.1,0) |- node[pos=0.25, right=1mm, align=left]
+  {update interval expires:\\the node wakes, about\\every 10 minutes} (s3.east);
+% ---------------- notes, parked left of the column
+\node[umlnote, text width=33mm, left=9mm of s2] (n1)
+  {The two bitmaps are requests. The network grants what it grants.};
+\node[umlnote, text width=33mm, left=9mm of s5] (n2)
+  {If PSM is not honoured from this HAT, power-cycle the radio with AT+CFUN=0 then AT+CFUN=1.};
+\draw[dotted, draw=linecol] (n1.east) -- (s2.west);
+\draw[dotted, draw=linecol] (n2.east) -- (s5.west);
+\end{tikzpicture}

@@ -1,0 +1,31 @@
+\begin{tikzpicture}[node distance=7mm and 13mm]
+% ---------------- hardware column (right)
+\node[hw, text width=34mm] (modem) {SIM7020E HAT\\{\scriptsize NB-IoT only, UART jumper B}};
+\node[ext, text width=34mm, above=11mm of modem] (cell) {NB-IoT cell\\{\scriptsize operator APN, CoAP endpoint on port 5683}};
+% ---------------- kernel column (middle)
+\node[kern, wide, left=of modem] (uart) {/dev/ttyAMA0\\{\scriptsize PL011, 115200, Bluetooth overlay off}};
+\node[kern, wide, below=of uart] (gpio) {gpiochip0\\{\scriptsize BCM27 output}};
+% ---------------- user space column (left)
+\node[user, wide, left=of uart] (atd) {AT driver\\{\scriptsize python3-serial}};
+\node[user, wide, above=of atd] (sched) {10-minute scheduler\\{\scriptsize cron or sleep loop}};
+\node[user, wide, below=of atd] (ledsm) {LED state\\{\scriptsize follows AT+CEREG?}};
+% ---------------- LED, aligned with the gpio row
+\node[hw, text width=34mm] (led) at (modem |- gpio) {green LED\\{\scriptsize BCM27, registered}};
+% ---------------- bands
+\begin{scope}[on background layer]
+\node[layer, fit=(sched)(atd)(ledsm), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:user space}] {};
+\node[layer, fit=(uart)(gpio), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:kernel}] {};
+\node[layer, fit=(modem)(led), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:hardware}] {};
+\end{scope}
+% ---------------- links
+\draw[bus] (uart) -- node[lbl, above]{AT} (modem);
+\draw[flow] (gpio) -- node[lbl, above]{3.3 V} (led);
+\draw[bus] (atd) -- node[lbl, above]{write, read} (uart);
+\draw[flow] (sched) -- (atd);
+\draw[flow] (atd) -- (ledsm);
+\draw[flow] (ledsm.east) -- ++(4mm,0) |- (gpio.west);
+\draw[flow] (modem) -- node[lbl, right]{20-byte datagram} (cell);
+\end{tikzpicture}
