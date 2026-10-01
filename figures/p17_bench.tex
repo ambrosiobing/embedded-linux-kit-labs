@@ -1,0 +1,40 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- the host
+\node[board, minimum width=34mm, minimum height=22mm] (nano) at (0,0) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,0.45) {NanoPi NEO Air};
+\node[text=white, font=\tiny] at (0,0.1) {24-pin, headless};
+\node[pinrow, minimum width=24mm] at (0,1.0) {};
+\node[anchor=south, font=\tiny] at (0,1.15) {24-pin header};
+% the onboard radio, switched off
+\node[draw=black!60, fill=gray!25, minimum width=15mm, minimum height=5mm, font=\tiny]
+  (ap) at (-0.3,-0.65) {AP6212};
+\draw (0.45,-0.65) -- (1.05,-0.65);
+\draw[red!70!black, line width=1pt] (1.1,-0.9) -- (1.5,-0.4);
+\draw[red!70!black, line width=1pt] (1.1,-0.4) -- (1.5,-0.9);
+\node[anchor=north west, font=\tiny, text=red!70!black] at (-1.7,-1.25)
+  {AP6212 off: nmcli radio wifi off};
+% ---------------- the console path
+\node[draw=linecol, fill=extcol, minimum width=20mm, minimum height=8mm, align=center]
+  (ttl) at (-4.2,-1.4) {USB/TTL\\{\tiny UART0 console, as in P09}};
+\draw[cable, black!70] (-1.7,-0.3) to[out=180,in=0] (-3.2,-1.4);
+% ---------------- the modem
+\node[draw=linecol, fill=fwcol, minimum width=26mm, minimum height=18mm, align=center]
+  (esp) at (6.0,0.2) {ESP8266-PROG\\{\tiny AT firmware}};
+\node[pinrow, minimum width=18mm] at (6.0,1.0) {};
+\draw (6.9,1.2) -- (6.9,1.9);
+\draw (6.7,2.2) -- (6.9,1.9) -- (7.1,2.2);
+\node[anchor=west, font=\tiny] at (7.2,2.0) {2.4 GHz to the access point};
+% ---------------- four jumpers
+\foreach \ya/\yb/\c in {0.55/0.85/red!70!black, 0.2/0.5/black,
+                        -0.15/0.15/green!55!black, -0.5/-0.2/blue!55!black}{
+  \draw[cable, \c] (1.7,\ya) to[out=0,in=180] (4.7,\yb);
+}
+\node[anchor=south, font=\tiny, align=center] at (3.2,1.0)
+  {pin 1 to 3V3, pin 6 to GND,\\pin 8 TX to RX, pin 10 RX to TX};
+% ---------------- what the two halves report
+\node[ext, text width=30mm, minimum height=8mm] (host) at (-2.6,2.9) {host: no wireless};
+\node[ext, text width=30mm, minimum height=8mm] (mod) at (3.6,2.9) {module: an IP address};
+\draw[dashed, draw=linecol] (host) -- node[lbl, above]{the split is the lab} (mod);
+\draw[dashed, draw=linecol] (-2.6,2.4) -- (-0.9,1.15);
+\draw[dashed, draw=linecol] (3.6,2.4) -- (5.3,1.15);
+\end{tikzpicture}

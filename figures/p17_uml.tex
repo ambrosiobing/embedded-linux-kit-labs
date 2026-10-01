@@ -1,0 +1,34 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- lifelines
+\foreach \x/\name/\id in {0/operator/op, 3.0/NanoPi shell/sh, 6.0/dev ttyS1/tty,
+                          9.0/ESP8266 AT/esp, 12.0/access point/ap}{
+  \node[actor, text width=22mm] (\id) at (\x,0) {\name};
+  \draw[lifeline] (\id.south) -- ++(0,-8.6);
+}
+% ---------------- the host radio goes down first and stays down
+\draw[msg] (0,-1.0) -- node[above]{nmcli radio wifi off} (3.0,-1.0);
+\node[activation, minimum height=3mm] at (3.0,-1.3) {};
+\draw[reply] (3.0,-1.8) -- node[below]{iwconfig: no wireless} (0,-1.8);
+\draw[<->, thick, draw=red!60!black] (13.4,-1.0) -- (13.4,-8.0);
+\node[font=\sffamily\scriptsize, text=red!60!black, rotate=90] at (14.0,-4.5)
+  {AP6212 stays down for the whole run};
+% ---------------- the AT session
+\draw[msg] (0,-2.6) -- node[above]{minicom -D /dev/ttyS1 -b 115200} (6.0,-2.6);
+\draw[msg] (0,-3.3) -- node[above]{AT} (9.0,-3.3);
+\node[activation, minimum height=3mm] at (9.0,-3.6) {};
+\draw[reply] (9.0,-4.1) -- node[below]{the module answers} (0,-4.1);
+\draw[msg] (0,-5.1) -- node[above]{AT+CWMODE=1} (9.0,-5.1);
+\draw[msg] (0,-5.8) -- node[above]{AT+CWJAP="YOURAP","..."} (9.0,-5.8);
+\draw[msg] (9.0,-6.3) -- node[above]{join} (12.0,-6.3);
+\node[activation, minimum height=3mm] at (12.0,-6.6) {};
+\draw[reply] (12.0,-7.1) -- node[below]{associated} (9.0,-7.1);
+\draw[msg] (0,-7.8) -- node[above]{AT+CIFSR} (9.0,-7.8);
+\draw[reply] (9.0,-8.3) -- node[below]{an IP address, on the module} (0,-8.3);
+% ---------------- notes, parked left of the first lifeline
+\node[umlnote, text width=26mm, anchor=north east] at (-0.8,-2.6)
+  {the console is the UART0 debug header or a wired login, never the radio that was just switched off};
+\node[umlnote, text width=26mm, anchor=north east] at (-0.8,-7.5)
+  {the host still reports no wireless: that disagreement is the acceptance test};
+\draw[dotted, draw=linecol] (-0.8,-3.0) -- (0,-2.6);
+\draw[dotted, draw=linecol] (-0.8,-8.2) -- (0,-8.3);
+\end{tikzpicture}

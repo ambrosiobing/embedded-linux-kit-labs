@@ -1,0 +1,47 @@
+\begin{circuitikz}[scale=0.8, every node/.style={transform shape}, font=\sffamily\small]
+% ---------------- the host
+\draw[rounded corners=2pt, fill=hwcol] (0,1.0) rectangle (4.0,6.4);
+\node[font=\sffamily\bfseries\small] at (2.0,6.0) {NanoPi NEO Air};
+\node[font=\sffamily\scriptsize] at (2.0,5.65) {24-pin header, 3.3 V I/O};
+\node[anchor=east, font=\sffamily\scriptsize] at (3.9,5.2) {pin 1\ \ SYS\_3V3};
+\node[anchor=east, font=\sffamily\scriptsize] at (3.9,4.6) {pin 2\ \ VDD\_5V};
+\node[anchor=east, font=\sffamily\scriptsize] at (3.9,4.0) {pin 6\ \ GND};
+\node[anchor=east, font=\sffamily\scriptsize] at (3.9,3.4) {pin 8\ \ TX, PG6};
+\node[anchor=east, font=\sffamily\scriptsize] at (3.9,2.8) {pin 10\ \ RX, PG7};
+% the onboard radio, down for the whole session
+\node[draw=linecol, fill=extcol, minimum width=24mm, minimum height=7mm, align=center,
+      font=\sffamily\scriptsize] at (1.8,1.9) {AP6212 Wi-Fi and BT};
+\draw (3.0,1.9) -- (4.0,1.9);
+\draw[red!70!black, line width=1pt] (4.05,1.65) -- (4.55,2.15);
+\draw[red!70!black, line width=1pt] (4.05,2.15) -- (4.55,1.65);
+\node[anchor=north west, font=\sffamily\scriptsize, text=red!70!black, align=left] at (4.8,1.6)
+  {the onboard radio is down:\\nmcli radio wifi off};
+% ---------------- the modem
+\draw[rounded corners=2pt, fill=fwcol] (9.6,2.2) rectangle (13.6,6.4);
+\node[font=\sffamily\bfseries\small] at (11.6,6.0) {ESP8266-PROG};
+\node[font=\sffamily\scriptsize] at (11.6,5.65) {AT firmware};
+\node[anchor=west, font=\sffamily\scriptsize] at (9.75,5.2) {3V3};
+\node[anchor=west, font=\sffamily\scriptsize] at (9.75,4.0) {GND};
+\node[anchor=west, font=\sffamily\scriptsize] at (9.75,3.4) {TX};
+\node[anchor=west, font=\sffamily\scriptsize] at (9.75,2.8) {RX};
+\node[anchor=north, font=\sffamily\scriptsize, align=center] at (11.6,2.1)
+  {AT+CIFSR returns the address.\\The host does not have it.};
+% ---------------- wires
+\draw (4.0,5.2) -- (9.6,5.2);
+\node[anchor=south, font=\sffamily\scriptsize] at (6.8,5.28) {SYS\_3V3, the 3.3 V supply};
+\draw (4.0,4.0) -- (9.6,4.0);
+\node[anchor=north, font=\sffamily\scriptsize] at (6.8,3.92) {common ground};
+\draw (4.0,3.4) -- (5.8,3.4) -- (7.8,2.8) -- (9.6,2.8);
+\draw (4.0,2.8) -- (5.8,2.8) -- (7.8,3.4) -- (9.6,3.4);
+\node[anchor=north, font=\sffamily\scriptsize] at (6.8,2.4) {transmit crossed to receive};
+% ---------------- the 5 V pin that stays unused
+\draw (4.0,4.6) -- (5.2,4.6);
+\draw[red!70!black, line width=1pt] (5.25,4.35) -- (5.75,4.85);
+\draw[red!70!black, line width=1pt] (5.25,4.85) -- (5.75,4.35);
+\node[anchor=west, font=\sffamily\scriptsize, text=red!70!black] at (6.0,4.6)
+  {do not put 5 V onto SYS\_3V3};
+% ---------------- antenna
+\draw (12.6,6.4) -- (12.6,7.0);
+\draw (12.35,7.35) -- (12.6,7.0) -- (12.85,7.35);
+\node[anchor=west, font=\sffamily\scriptsize] at (13.0,7.1) {2.4 GHz to the access point};
+\end{circuitikz}
