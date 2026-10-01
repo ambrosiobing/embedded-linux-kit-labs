@@ -1,0 +1,25 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- the two states
+\node[state, text width=34mm] (pri) at (0,0) {PRIMARY\\{\tiny the cat4 sample is the live one}};
+\node[state, text width=34mm] (fail) at (7.6,0) {FAILOVER\\{\tiny the nb sample is the live one}};
+% ---------------- the supervisor starts having heard nothing
+\node[initial] (i) at (7.6,-2.5) {};
+\draw[trans] (i) -- node[right=1mm]{no sample yet} (fail.south);
+% ---------------- transitions between the states
+\draw[trans] (fail.north west) to[bend right=22]
+  node[above, fill=white, inner sep=1.5pt]{a cat4 sample arrives} (pri.north east);
+\draw[trans] (pri.south east) to[bend right=22]
+  node[below, fill=white, inner sep=1.5pt]{no cat4 sample for 45 s} (fail.south west);
+% ---------------- self transitions
+\draw[trans] (pri) to[loop above, looseness=6, out=115, in=65]
+  node[above]{cat4 sample: reset the timer} (pri);
+\draw[trans] (fail) to[loop above, looseness=6, out=115, in=65]
+  node[above]{nb sample: update the live reading} (fail);
+% ---------------- notes
+\node[umlnote, text width=38mm, anchor=north east] (n1) at (-1.0,-0.8)
+  {45 s is three samples from a 15 s publisher, so one lost message does not flip the state.};
+\node[umlnote, text width=38mm, anchor=north west] (n2) at (10.0,-0.8)
+  {The backup path sends every 120 s. It is signalling only: about 20 bytes, no user traffic.};
+\draw[dotted, draw=linecol] (n1.north east) -- (pri.west);
+\draw[dotted, draw=linecol] (n2.north west) -- (fail.east);
+\end{tikzpicture}
