@@ -54,10 +54,51 @@ jobs:
           fi
           echo "chapters/ matches sections/"
 
+      - name: The labs' own suite, with no hardware anywhere
+        run: |
+          set -e
+          python -m pip install --quiet numpy
+          python -m unittest discover -s tests -t .
+
+      - name: Nothing imports a serial port at module level
+        run: |
+          set -e
+          python - <<'PY'
+          import importlib, sys
+          for name in ("benchkit.analysis", "benchkit.frames", "benchkit.sources",
+                       "benchkit.labbook", "p04.synth", "p04.pipeline"):
+              importlib.import_module(name)
+          if "serial" in sys.modules:
+              raise SystemExit("pyserial was imported at module level; the live "
+                               "command must be the only thing that needs it")
+          print("imported every module with no serial dependency")
+          PY
+
+      - name: P04's command flow, end to end
+        run: |
+          set -e
+          python -m p04 synth --kind idle   --blocks 6 --out idle.npz
+          python -m p04 synth --kind touch  --blocks 6 --out touch.npz
+          python -m p04 synth --kind speech --blocks 6 --out speech.npz
+          python -m p04 baseline --source idle.npz --out book.json \
+              --mounting "continuous integration" \
+              --warn 1.5 --fault 3.0 --band-low 2000 --band-high 6000
+          python -m p04 analyse --source touch.npz  --book book.json | tee touch.txt
+          python -m p04 analyse --source speech.npz --book book.json | tee speech.txt
+          python -m p04 replay  --source touch.npz  --book book.json
+          grep -q "WARNING\|FAULT" touch.txt || { echo "a case touch should not read NORMAL"; exit 1; }
+          grep -q "NORMAL" speech.txt          || { echo "a voice should read NORMAL"; exit 1; }
+          python -m p04 synth --kind idle --blocks 8 --drop 3,4 --out holed.npz
+          if python -m p04 transport --source holed.npz; then
+            echo "transport reported success on a stream with holes in it"
+            exit 1
+          fi
+          echo "the orthogonality demonstration holds and a holed stream is refused"
+
       - name: No built artefacts committed
         run: |
           set -e
-          if git ls-files | grep -E '\.(pdf|html|aux|log|toc|out)$'; then
+          if git ls-files | grep -E '\.(pdf|html|aux|log|toc|out|npz)$|^book\.json$'; then
             echo "built artefacts must not be committed; they are rebuilt from source"
             exit 1
           fi

@@ -120,6 +120,36 @@ Work in the order the appendix gives if the boards are bare. The rails lab is
 first and is not optional, and the fleet file is last so that it reflects a
 known sitting.
 
+## The labs' software
+
+A lab's host side can be written and tested long before its hardware is wired,
+and one has been. It lives in this repository beside the chapter it belongs to,
+because a reader who has just read chapter 4 should not have to go looking.
+
+| Path | What it is |
+| --- | --- |
+| [`p04/`](p04/) | the host half of the vibration and ultrasound gateway, with its own README and design note |
+| [`benchkit/`](benchkit/) | the parts every stream-shaped lab needs: sequence accounting, sources, the lab book, the spectrum arithmetic |
+| [`tests/`](tests/) | thirty-five checks, none of which touch a device |
+
+    python -m unittest discover -s tests -t .
+    python -m p04 synth --kind touch --blocks 10 --out touch.npz
+
+Most of these labs are the same shape: something arrives over a line in
+sequence-numbered pieces and a decision is made from it. P02 and P03 drive a
+modem, P06 reads a ranging grid, P18 counts gaps in a sequence, P13 decides on
+a timeout. So the shared half sits in `benchkit` rather than in whichever lab
+first needed it, and the next lab starts from it.
+
+Three rules hold across all of them. No default threshold anywhere, because a
+threshold without the baseline it was measured against is not a measurement. No
+invented wire format, so where a vendor owns the frame layout the reader raises
+and names the decoder to run. And transport before signal, because a spectrum
+computed over a stream with holes in it is a picture of the holes.
+
+Nothing here has been run against hardware, and each lab's README says so in
+its own words.
+
 ## Building
 
     python build.py --chapter 5      one lab, PDF and self-contained HTML

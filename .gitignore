@@ -23,3 +23,14 @@ venv/
 .idea/
 __pycache__/
 *.pyc
+
+# The labs' own evidence. A capture is what one bench produced on one day and
+# a lab book is the baseline and thresholds that belong to it, so neither is
+# source. Regenerate a synthetic one with: python -m p04 synth
+*.npz
+book.json
+labbook*.json
+
+# What a local run of the checks workflow leaves behind
+touch.txt
+speech.txt
