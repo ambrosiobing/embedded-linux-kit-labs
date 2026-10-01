@@ -1,0 +1,39 @@
+\begin{tikzpicture}[font=\sffamily\small]
+% ---------------- the power path (top row)
+\node[ext, text width=30mm] (sup) at (0,3.2) {bench 5 V\\{\scriptsize or a Pi USB port}};
+\node[hw, text width=38mm] (ppk) at (4.8,3.2) {nRF PPK2\\{\scriptsize source mode, 3300 mV, about 1 A}};
+\node[hw, text width=34mm] (dut) at (9.8,3.2) {ESP32 NodeMCU\\{\scriptsize the DUT, one supply only}};
+\node[fw, text width=34mm] (fw) at (9.8,1.4) {three sketches\\{\scriptsize idle, BLE advertise, deep-sleep}};
+% ---------------- the measurement path (bottom row)
+\node[kern, text width=34mm] (cdc) at (4.8,-0.3) {PPK2 USB to the Pi\\{\scriptsize 100 kS/s sample stream}};
+\node[user, text width=34mm] (tool) at (0,-0.3) {nRF Util Power Profiler\\{\scriptsize or ppk2-python}};
+\node[user, text width=34mm] (cap) at (0,-2.0) {2 s capture per state};
+\node[user, text width=34mm] (red) at (4.8,-2.0) {median and p95\\{\scriptsize the two numbers per state}};
+\node[user, text width=34mm] (book) at (9.8,-2.0) {the lab book table\\{\scriptsize three states, six numbers}};
+% ---------------- bands
+\begin{scope}[on background layer]
+\node[layer, fit=(sup)(ppk)(dut)(fw), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:the power path: one rail, one source}] {};
+\node[layer, fit=(tool)(cdc)(book), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:the measurement path: Raspberry Pi 4}] {};
+\end{scope}
+% ---------------- links
+\draw[flow, line width=1.3pt] (sup) -- node[lbl, above]{VIN} (ppk);
+\draw[flow, line width=1.3pt] (ppk) -- node[lbl, above]{VOUT to 3V3} (dut);
+\draw[flow, dashed] (fw) -- node[lbl, right]{state under test} (dut);
+\draw[flow] (ppk) -- node[lbl, right]{samples} (cdc);
+\draw[flow] (cdc) -- (tool);
+\draw[flow] (tool) -- (cap);
+\draw[flow] (cap) -- (red);
+\draw[flow] (red) -- (book);
+% ---------------- the absent cable
+\node[draw=red!65!black, dashed, rounded corners=2pt, fill=white, align=center,
+      font=\sffamily\scriptsize, inner sep=4pt, text width=40mm, anchor=north] (nousb) at (14.4,3.2)
+  {the DUT's own USB cable is not in this picture, because it is not connected};
+\draw[dotted, draw=red!65!black] (nousb.west) -- (11.6,3.2);
+% ---------------- the rule
+\node[draw=red!65!black, dashed, rounded corners=2pt, fill=white, align=center,
+      font=\sffamily\scriptsize, inner sep=5pt, text width=124mm, anchor=north] at (5.4,-3.5)
+  {\textbf{The limits:} the PPK2 in source mode is 5 V-class and about 1 A. Never source a
+   Cat-4 power amplifier from it, and never let the DUT hold a second power path.};
+\end{tikzpicture}

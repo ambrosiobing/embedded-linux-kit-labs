@@ -1,0 +1,58 @@
+\begin{circuitikz}[scale=1.0, every node/.style={transform shape}, font=\sffamily\small]
+% ================= bench 5 V supply =================
+\draw[rounded corners=2pt, fill=extcol] (0,3.6) rectangle (2.6,5.4);
+\node[font=\sffamily\bfseries\small] at (1.3,5.05) {bench 5 V};
+\node[font=\sffamily\scriptsize, align=center] at (1.3,4.35) {or a Pi USB port,\\the supply side};
+% ================= the PPK2 =================
+\draw[rounded corners=2pt, fill=hwcol] (4.6,2.4) rectangle (9.2,5.4);
+\node[font=\sffamily\bfseries\small] at (6.9,5.05) {nRF PPK2};
+\node[font=\sffamily\scriptsize, align=center] at (6.9,4.45)
+  {source mode, set 3300 mV\\100 kS/s source-measure};
+\node[font=\sffamily\scriptsize, align=center, text=red!65!black] at (6.9,3.50)
+  {5 V-class, about 1 A:\\never source a Cat-4\\power amplifier from it};
+\node[font=\sffamily\scriptsize, anchor=west] at (4.72,2.85) {VIN};
+\node[font=\sffamily\scriptsize, anchor=east] at (9.08,2.85) {VOUT};
+% ================= supply into VIN =================
+\draw[thick] (1.3,3.6) -- (1.3,2.85) -- (4.6,2.85);
+\node[font=\sffamily\scriptsize, anchor=south, fill=white, inner sep=1.5pt] at (2.95,2.92) {5 V in};
+% ================= VOUT into the DUT 3V3 pin =================
+\draw[thick] (9.2,2.85) -- (10.2,2.85) -- (10.2,2.1);
+\node[font=\sffamily\scriptsize, anchor=west, align=left] at (10.45,2.90)
+  {3300 mV in source mode:\\the DUT's only supply};
+\node[font=\sffamily\scriptsize, anchor=east] at (10.05,2.32) {3V3 pin};
+% ================= the DUT =================
+\draw[rounded corners=2pt, fill=usrcol] (9.4,0.2) rectangle (13.4,2.1);
+\node[font=\sffamily\bfseries\small] at (11.4,1.70) {ESP32 NodeMCU};
+\node[font=\sffamily\scriptsize, align=center] at (11.4,1.05)
+  {the DUT: radio-off idle,\\BLE advertise, deep-sleep};
+% ================= common ground =================
+\draw[thick] (12.6,0.2) -- (12.6,-0.6);
+\node[font=\sffamily\scriptsize, anchor=west] at (12.72,-0.15) {GND};
+\draw[thick] (2.4,-0.5) -- (2.4,-0.6) -- (12.6,-0.6);
+\draw[thick] (6.9,2.4) -- (6.9,-0.6);
+\node[ground] at (6.9,-0.6) {};
+\node[font=\sffamily\scriptsize, anchor=north] at (4.4,-0.72) {one common ground: PPK2, DUT, Pi};
+% ================= the Pi =================
+\draw[rounded corners=2pt, fill=extcol] (0.2,-0.5) rectangle (4.6,1.4);
+\node[font=\sffamily\bfseries\small] at (2.4,1.05) {Raspberry Pi 4};
+\node[font=\sffamily\scriptsize, align=center] at (2.4,0.35)
+  {nRF Util Power Profiler\\or ppk2-python, 2 s per state};
+% ================= PPK2 USB to the Pi =================
+\draw[line width=1.4pt, draw=black!70] (5.6,2.4) -- (5.6,1.78) -- (2.4,1.78) -- (2.4,1.4);
+\node[font=\sffamily\scriptsize, anchor=south, fill=white, inner sep=1.5pt] at (4.0,1.84)
+  {PPK2 USB to a Pi USB-A port};
+% ================= the DUT USB, drawn where it is not =================
+\node[draw=black!70, fill=gray!55, minimum width=3mm, minimum height=4.5mm, inner sep=0pt]
+  at (9.28,0.65) {};
+\draw[line width=1.4pt, draw=black!70] (9.12,0.65) -- (8.55,0.65);
+\node[draw=black!70, fill=gray!40, minimum width=3mm, minimum height=4.5mm, inner sep=0pt]
+  at (8.40,0.65) {};
+\draw[line width=1.2pt, draw=red!70!black] (7.62,0.42) -- (8.08,0.88);
+\draw[line width=1.2pt, draw=red!70!black] (8.08,0.42) -- (7.62,0.88);
+\node[draw=red!65!black, dashed, rounded corners=2pt, fill=white, align=center,
+      font=\sffamily\scriptsize, inner sep=4pt, text width=62mm, anchor=north west]
+      at (7.3,-1.05)
+  {\textbf{ESP32 USB: DISCONNECTED.} This is the whole experiment. A second power path
+   makes every number in the run an unknown fraction of the truth.};
+\draw[dotted, draw=red!65!black] (8.3,-1.05) -- (7.85,0.30);
+\end{circuitikz}

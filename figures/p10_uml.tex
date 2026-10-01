@@ -1,0 +1,37 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize, node distance=6mm]
+% ================= the run =================
+\node[initial] (i) at (0,5.4) {};
+\node[state, text width=34mm] (flash) at (0,4.4) {flash one state\\{\tiny idle, BLE advertise or deep-sleep}};
+\node[state, text width=34mm] (settle) at (0,2.9) {let the state settle\\{\tiny boot current is not idle current}};
+\node[state, text width=34mm] (cap) at (0,1.4) {capture 2 s at 100 kS/s};
+\node[state, text width=34mm] (red) at (0,-0.1) {reduce to median and p95};
+\node[state, text width=34mm] (write) at (0,-1.6) {write both numbers down\\{\tiny not a screenshot}};
+\node[draw=linecol, fill=white, diamond, aspect=2.4, inner sep=2pt, align=center]
+      (more) at (0,-3.4) {all three\\states done?};
+% ================= the check =================
+\node[draw=linecol, fill=white, diamond, aspect=2.6, inner sep=2pt, align=center]
+      (over) at (6.6,-3.4) {do the three traces\\overlay?};
+\node[state, text width=40mm, fill=white] (fix) at (6.6,-1.2)
+  {the DUT still has a second power path\\{\tiny disconnect its USB and run again}};
+\node[state, text width=52mm] (pass) at (6.6,-5.2)
+  {pass: deep-sleep in tens of microamps\\to low milliamps, active radio\\in tens of milliamps};
+\node[final] (f) at (6.6,-6.6) {};
+% ================= transitions =================
+\draw[trans] (i) -- (flash);
+\draw[trans] (flash) -- (settle);
+\draw[trans] (settle) -- (cap);
+\draw[trans] (cap) -- (red);
+\draw[trans] (red) -- (write);
+\draw[trans] (write) -- (more);
+\draw[trans] (more.west) -- node[lbl, above]{no, next state} ++(-2.4,0) |- (flash.west);
+\draw[trans] (more.east) -- node[lbl, above]{yes} (over.west);
+\draw[trans] (over.north) -- node[lbl, right]{yes} (fix.south);
+\draw[trans] (over.south) -- node[lbl, right]{no} (pass.north);
+\draw[trans] (pass) -- (f);
+\draw[trans] (fix.east) -- ++(1.1,0) |- node[lbl, right, pos=0.25]{fix the cable, repeat the run} (flash.east);
+% ================= the note =================
+\node[umlnote, text width=52mm, anchor=north west] at (-2.9,-6.0)
+  {\textbf{write in the lab book:} a dev-board deep-sleep figure includes the USB-UART
+   silicon leaking. Record that sentence with the number, so it is never quoted as a bare
+   module.};
+\end{tikzpicture}
