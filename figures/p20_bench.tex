@@ -1,0 +1,33 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- the operator, with its glass
+\node[board, minimum width=38mm, minimum height=18mm] (op) at (0,2.6) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,2.9) {operator Pi};
+\node[text=white, font=\tiny] at (0,2.45) {keyboard and glass from P12};
+% the artifact
+\node[draw=linecol, fill=usrcol, minimum width=40mm, minimum height=12mm, align=center]
+  (log) at (0,0.2) {/var/log/lab-fleet.txt\\{\tiny the acceptance artifact}};
+\draw[flow] (0,1.7) -- (log.north);
+% ---------------- the four hosts in a column
+\node[board, minimum width=42mm, minimum height=16mm] (pi4) at (6.4,3.2) {};
+\node[text=white, font=\sffamily\bfseries\small] at (6.4,3.45) {pi4};
+\node[text=white, font=\tiny] at (6.4,3.05) {Pi 4, header often empty};
+\node[board, minimum width=42mm, minimum height=16mm] (pi3bp) at (6.4,1.3) {};
+\node[text=white, font=\sffamily\bfseries\small] at (6.4,1.55) {pi3bp};
+\node[text=white, font=\tiny] at (6.4,1.15) {Pi 3B+, Explorer700 if seated};
+\node[board, minimum width=42mm, minimum height=16mm] (pi3) at (6.4,-0.6) {};
+\node[text=white, font=\sffamily\bfseries\small] at (6.4,-0.35) {pi3};
+\node[text=white, font=\tiny] at (6.4,-0.75) {Pi 3, 3.5 inch LCD if seated};
+\node[board, minimum width=42mm, minimum height=16mm] (air) at (6.4,-2.5) {};
+\node[text=white, font=\sffamily\bfseries\small] at (6.4,-2.25) {air};
+\node[text=white, font=\tiny] at (6.4,-2.65) {NanoPi NEO Air, 24-pin};
+% ---------------- the switch
+\node[draw=linecol, fill=extcol, minimum width=10mm, minimum height=44mm, align=center]
+  (sw) at (3.1,0.4) {};
+\node[rotate=90, font=\tiny] at (3.1,0.4) {LAN switch};
+\draw[usbcable] (1.9,2.6) -- (2.85,2.6);
+\foreach \y in {3.2,1.3,-0.6,-2.5}{\draw[usbcable] (3.35,\y) -- (4.3,\y);}
+\node[anchor=south, font=\tiny] at (3.83,3.3) {ssh};
+% ---------------- the rule about the sitting
+\node[umlnote, text width=48mm, anchor=north west] at (-2.6,-1.4)
+  {Run the sweep with the bench in the state you want recorded. A HAT that came off an hour ago is reported absent, and the file is right to say so.};
+\end{tikzpicture}
