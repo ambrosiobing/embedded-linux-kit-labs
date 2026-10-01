@@ -1,0 +1,31 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- host
+\node[board, minimum width=44mm, minimum height=26mm] (pi) at (0,0) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,0.4) {Raspberry Pi 3};
+\node[text=white, font=\tiny] at (0,0.0) {40-pin header empty};
+\node[draw=black!70, fill=gray!50, minimum width=5mm, minimum height=3mm] (usb) at (2.2,-0.6) {};
+\node[below=0mm of usb, font=\tiny] {USB-A};
+% ---------------- the cable and its adapter body
+\node[draw=linecol, fill=extcol, minimum width=18mm, minimum height=7mm] (ttl) at (5.2,1.4) {USB/TTL};
+\node[above=0.5mm of ttl, font=\tiny] {jumper set to 3.3 V};
+\draw[usbcable] (2.2,-0.6) to[out=0,in=180] (4.3,1.4);
+\foreach \y in {0.2,0.05,-0.1,-0.25}{\draw[cable, black!70] (6.1,1.4) to[out=0,in=180] (8.25,\y);}
+\node[anchor=north, font=\tiny] at (5.2,0.95) {3V3, GND, TXD, RXD};
+% ---------------- breadboard with the target under test
+\node[breadboard, minimum width=46mm, minimum height=32mm] (bb) at (10.4,-0.3) {};
+\node[anchor=south west, font=\tiny] at (8.3,-1.8) {breadboard};
+\node[draw=linecol, fill=fwcol, minimum width=13mm, minimum height=24mm, align=center]
+  (esp) at (8.9,-0.3) {ESP32\\{\tiny target}};
+\node[ledsym, fill=green!70!black] at (11.6,0.4) {};
+\node[ledsym, fill=yellow!80!black] at (12.1,0.4) {};
+\node[ledsym, fill=red!80!black] at (12.6,0.4) {};
+\node[anchor=north, font=\tiny, align=center] at (12.1,0.1) {jig semaphore,\\wired as in P15};
+% ---------------- the second target, waiting
+\node[draw=linecol, fill=fwcol, minimum width=26mm, minimum height=10mm, align=center]
+  (esp8) at (3.4,-3.4) {ESP8266-PROG\\{\tiny waiting on the bench}};
+\draw[usbcable, black!55] (4.7,-3.4) to[out=0,in=200] (6.6,-3.0);
+\draw[red!70!black, line width=1pt] (6.45,-3.25) -- (6.95,-2.75);
+\draw[red!70!black, line width=1pt] (6.45,-2.75) -- (6.95,-3.25);
+\node[anchor=west, font=\tiny, text=red!70!black, align=left] at (7.2,-3.0)
+  {its own USB cable stays out of the Pi\\while the TTL cable is the active path};
+\end{tikzpicture}
