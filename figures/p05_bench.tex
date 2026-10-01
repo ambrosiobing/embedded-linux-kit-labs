@@ -1,0 +1,37 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- Pi 4 with the MCC 118 seated on top
+\node[board, minimum width=46mm, minimum height=22mm] (pi) at (0,0) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,-0.5) {Raspberry Pi 4};
+\node[hat, minimum width=46mm, minimum height=14mm, fill=blue!40!black!60] (hat) at (0,1.5) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,1.75) {MCC 118};
+\node[text=white, font=\tiny] at (0,1.35) {alone on the 40-pin header};
+% screw terminal block along the left edge of the HAT
+\node[draw=black!70, fill=gray!45, minimum width=4mm, minimum height=13mm] (tb) at (-2.1,1.5) {};
+\node[anchor=south, font=\tiny] at (-2.1,2.3) {screw terminals};
+% power
+\node[draw=black!70, fill=gray!50, minimum width=5mm, minimum height=3mm] (psu) at (1.6,-1.25) {};
+\node[below=0mm of psu, font=\tiny] {USB-C supply};
+% ---------------- POW-BB on the bench, left
+\node[draw=linecol, fill=hwcol, minimum width=26mm, minimum height=18mm, align=center] (pow) at (-6.2,1.5)
+  {SBC-POW-BB\\{\tiny 3V3 and 5V rails}\\{\tiny labelled}};
+\draw[cable, red!70!black]    (-5.3,2.0) to[out=0,in=180] (-2.3,1.9);
+\draw[cable, orange!80!black] (-5.3,1.6) to[out=0,in=180] (-2.3,1.5);
+\draw[cable, black]           (-5.3,1.2) to[out=0,in=180] (-2.3,1.1);
+\node[anchor=north, font=\tiny, align=center] at (-3.8,0.35) {3V3 to CH0, 5V to CH1,\\GND to AGND};
+% ---------------- multimeter, optional but honest
+\node[draw=linecol, fill=extcol, minimum width=22mm, minimum height=14mm, align=center] (dmm) at (-6.2,-1.6)
+  {multimeter\\{\tiny confirm the rail}};
+\draw[cable, black!60] (-6.2,-0.9) -- (-6.2,0.6);
+% ---------------- the panel
+\node[draw=linecol, fill=black!80, minimum width=38mm, minimum height=24mm, rounded corners=1mm]
+  (glass) at (5.4,0.6) {};
+\node[text=white, font=\sffamily\bfseries\small] at (5.4,1.4) {DSI touchscreen};
+\node[text=white, font=\tiny] at (5.4,0.75) {CH0 3.30 V};
+\node[text=white, font=\tiny] at (5.4,0.45) {CH1 5.00 V};
+\node[text=white, font=\tiny] at (5.4,0.05) {10 000 rows, no holes};
+\draw[cable] (2.3,0.6) -- (3.5,0.6);
+\node[anchor=south, font=\tiny] at (2.9,0.7) {DSI ribbon};
+% ---------------- the limit, restated on the bench
+\node[umlnote, text width=46mm, anchor=north] at (0,-1.9)
+  {Never exceed +/-10.1 V. Pi GPIO is not an analog source. Warm up 1 minute before quoting a number.};
+\end{tikzpicture}

@@ -1,0 +1,32 @@
+\begin{tikzpicture}[font=\sffamily\small]
+% ---------------- user space column
+\node[user, wide] (app) at (0,2.2) {p05 recorder\\{\scriptsize scan, CSV, sample index}};
+\node[user, wide] (lib) at (0,0.6) {daqhats library\\{\scriptsize userspace, applies the factory calibration}};
+\node[user, wide] (plot) at (0,-2.6) {matplotlib\\{\scriptsize the DSI panel is the screen}};
+\node[user, wide] (file) at (0,-1.0) {CSV file\\{\scriptsize index, ch0, ch1}};
+% ---------------- kernel column
+\node[kern, wide] (spi) at (6.0,0.6) {SPI0, chip select CE0\\{\scriptsize the kernel SPI interface}};
+\node[kern, wide] (drm) at (6.0,-2.6) {DRM and KMS\\{\scriptsize the DSI display pipeline}};
+% ---------------- hardware column
+\node[hw, text width=36mm] (mcc) at (12.2,0.6) {MCC 118, board 0\\{\scriptsize 8 ch, 12-bit, 100 kS/s, calibration in the ID EEPROM}};
+\node[hw, text width=36mm] (pow) at (12.2,2.6) {POW-BB rails\\{\scriptsize 3V3 on CH0, 5V on CH1, common AGND}};
+\node[hw, text width=36mm] (panel) at (12.2,-2.6) {official DSI panel};
+% ---------------- the path that does not exist
+\node[umlnote, text width=36mm] (noiio) at (12.2,-1.0) {Not this board: there is no IIO device node, no DMABUF and no io\_uring.};
+% ---------------- bands
+\begin{scope}[on background layer]
+\node[layer, fit=(app)(lib)(file)(plot), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:user space}] {};
+\node[layer, fit=(spi)(drm), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:kernel}] {};
+\end{scope}
+% ---------------- links
+\draw[flow] (app) -- (lib);
+\draw[bus] (lib) -- node[lbl, above]{SPI} (spi);
+\draw[bus] (spi) -- node[lbl, above]{CE0} (mcc);
+\draw[flow] (pow) -- node[lbl, right]{screw terminals} (mcc);
+\draw[flow] (lib) -- node[lbl, right]{blocks of samples} (file);
+\draw[flow] (file) -- (plot);
+\draw[flow] (plot) -- (drm);
+\draw[flow] (drm) -- node[lbl, above]{DSI} (panel);
+\end{tikzpicture}

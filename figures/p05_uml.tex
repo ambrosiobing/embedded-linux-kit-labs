@@ -1,0 +1,35 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize,
+  lbltxt/.style={above, font=\sffamily\scriptsize, fill=white, inner sep=1.5pt}]
+% ---------------- lifelines
+\foreach \x/\name/\id in {0/p05 recorder/app, 3.4/daqhats library/lib, 6.8/SPI0 CE0/spi,
+                          10.2/MCC 118 board/brd, 13.2/CSV file/csv}{
+  \node[actor, text width=20mm] (\id) at (\x,0) {\name};
+  \draw[lifeline] (\id.south) -- ++(0,-9.6);
+}
+% ---------------- open the board
+\draw[msg] (0,-1.0) -- node[lbltxt]{mcc118(0)} (3.4,-1.0);
+\draw[reply] (3.4,-1.6) -- node[below, fill=white, inner sep=1.5pt]{handle, calibration loaded} (0,-1.6);
+% ---------------- start the paced scan
+\draw[msg] (0,-2.4) -- node[lbltxt]{a\_in\_scan\_start(0x03, 10000, 10000)} (3.4,-2.4);
+\draw[msg] (3.4,-3.0) -- node[lbltxt]{configure} (10.2,-3.0);
+\node[activation, minimum height=40mm] at (10.2,-5.0) {};
+\node[anchor=west, font=\sffamily\scriptsize, align=left] at (10.5,-3.7)
+  {the board now paces\\itself: 10 kS/s per\\channel, CH0 and CH1};
+% ---------------- read blocks
+\draw[msg] (0,-5.2) -- node[lbltxt]{a\_in\_scan\_read(20000, 5000)} (3.4,-5.2);
+\node[activation, minimum height=14mm] at (3.4,-5.8) {};
+\draw[msg] (3.4,-5.8) -- node[lbltxt]{transfer} (6.8,-5.8);
+\draw[reply] (10.2,-6.4) -- node[below, fill=white, inner sep=1.5pt]{samples, interleaved} (3.4,-6.4);
+\draw[reply] (3.4,-6.9) -- node[below, fill=white, inner sep=1.5pt]{block.data, scaled volts} (0,-6.9);
+% ---------------- close and write
+\draw[msg] (0,-7.6) -- node[lbltxt]{a\_in\_scan\_stop()} (10.2,-7.6);
+\draw[msg] (0,-8.2) -- node[lbltxt]{a\_in\_scan\_cleanup()} (3.4,-8.2);
+\draw[msg] (0,-9.0) -- node[lbltxt]{index, ch0, ch1 per row} (13.2,-9.0);
+% ---------------- notes, parked left of the first lifeline
+\node[umlnote, text width=26mm, anchor=north east] (n1) at (-0.6,-4.9)
+  {This call blocks until the samples arrive or the 5000 ms timeout expires.};
+\node[umlnote, text width=26mm, anchor=north east] (n2) at (-0.6,-7.5)
+  {Both closing calls are required. Without them the board keeps scanning.};
+\draw[dotted, draw=linecol] (n1.east) -- (0,-5.2);
+\draw[dotted, draw=linecol] (n2.east) -- (0,-7.6);
+\end{tikzpicture}
