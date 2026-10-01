@@ -1,0 +1,155 @@
+# P17. ESP8266 AT modem on the NanoPi, onboard Wi-Fi off
+
+> **Host:** NanoPi NEO Air + SBC-ESP8266-PROG, AP6212 down  
+> **Owns:** the air-gap radio
+
+> [!NOTE]
+> **Why this lab is unique**
+>
+> Owns the air-gap radio. The NanoPi's AP6212 is down and the ESP8266 speaks AT over UART1. Different from P16, where the ESP32 is a peer, not an AT slave.
+
+## Intent
+
+Take the radio away from the Linux host and give it to a serial device. The AP6212 that the NEO Air carries for Wi-Fi and Bluetooth is switched off for the whole session, and the only network interface that reaches an access point is the one inside the ESP8266. The host reaches it through four wires and a command language.
+
+The split is the product of the lab. When it is built correctly, `nmcli` on the NanoPi reports no Wi-Fi at all while `AT+CIFSR` on the same bench returns an IP address. An operating system with no radio and a radio with no operating system, joined by a UART: that is the shape a great many field devices actually have, and the acceptance test is the demonstration that the two halves really are separate.
+
+> [!NOTE]
+> **Kit from the bin**
+>
+> NanoPi NEO Air with FriendlyElec Ubuntu, SBC-ESP8266-PROG, four jumpers to the 24-pin header, 3V3 from SYS\_3V3. The source names no other part for this lab.
+
+> [!NOTE]
+> **Three serial ports and three jobs**
+>
+> UART1 on pins 8 and 10 is the modem path in this lab. The 4-pin debug header of UART0 is the console, as it is in P09, and the ESP8266-PROG onboard USB-UART is the path from P14 that stays unplugged here. Three serial ports on one bench, each with one job.
+
+## System architecture
+
+![Figure 17.1. The air gap.](../figures/p17_arch.svg)
+
+*Figure 17.1. The air gap. The AP6212 is switched off on the Linux side, and the IP address lives on the far side of a UART. Nothing in the host network stack knows the access point exists.*
+
+Read this architecture next to P16 and the difference is the direction of authority. There the ESP32 is a peer on the LAN with its own subscription and its own opinion about when to move a pin. Here the ESP8266 is an AT slave: it answers commands, it holds an address the host cannot see in `ip addr`, and it originates nothing.
+
+That has a consequence worth stating plainly. Anything the host wants to send leaves through a command, not through a socket. There is no route, no interface and no DNS resolver on the Linux side taking part in this path, so the usual tools report a machine with no network, which is exactly what the acceptance test asks you to show.
+
+## Wiring and schematic
+
+![Figure 17.2. Four wires and one switched-off radio.](../figures/p17_schematic.svg)
+
+*Figure 17.2. Four wires and one switched-off radio. Transmit on pin 8 goes to the ESP receive pin, receive on pin 10 comes from the ESP transmit pin, and SYS\_3V3 on pin 1 is the supply. The AP6212 stays down for the whole session.*
+
+| NEO Air 24-pin | Signal | ESP8266 | Note |
+| --- | --- | --- | --- |
+| pin 1 | SYS\_3V3 | 3V3 | Supply. Do not put 5 V onto SYS\_3V3 |
+| pin 6 | GND | GND | Common ground |
+| pin 8 | UART1\_TX, PG6 | RX | Host transmit to modem receive |
+| pin 10 | UART1\_RX, PG7 | TX | Host receive from modem transmit |
+| onboard | AP6212 Wi-Fi and BT |  | Switched off with `nmcli radio wifi off` |
+
+*Table 17.1. The NEO Air is a 24-pin board and cannot take a 40-pin HAT. Confirm pin 1 against the silkscreen before applying power.*
+
+```text
+NEO Air UART1 TX (pin 8 / GPIOG6)  --> ESP8266 RX
+NEO Air UART1 RX (pin 10 / GPIOG7) --> ESP8266 TX
+GND common, 3V3 from SYS_3V3
+nmcli radio wifi off            # AP6212 down
+```
+
+## Bench layout
+
+![Figure 17.3. Bench layout.](../figures/p17_bench.svg)
+
+*Figure 17.3. Bench layout. Two small boards, four jumpers and one antenna that belongs to the ESP. The console arrives on the UART0 debug header or over a wired session, never over the radio that is switched off.*
+
+The bench is deliberately sparse. Keep the console question settled before the radio goes down: on a headless NEO Air the console is the UART0 debug header of P09 or a wired login, because a session over the onboard Wi-Fi will end the moment the first step succeeds. That is the most common way this lab appears to fail when it has in fact worked.
+
+## Software design (UML)
+
+![Figure 17.4. The AT sequence, with the host radio off for the whole run.](../figures/p17_uml.svg)
+
+*Figure 17.4. The AT sequence, with the host radio off for the whole run. Each command is a line on one UART, and the address that comes back belongs to the ESP.*
+
+There is no program in this lab, only a session. The sequence is short: switch the host radio off, open `/dev/ttyS1` at 115200, check that the module answers, set station mode, join an access point, and ask for the address. Each step is a single AT line, and each answer is read by a human before the next line is typed.
+
+Automating it later is a small job, and the shape of that job is the one P03 describes for a very different module: a serial port, one command at a time, and a parser that reads the answer rather than assuming it. Nothing here needs to be automated before the split has been demonstrated once by hand.
+
+## Data flow (ASCII)
+
+```text
+  NanoPi NEO Air, FriendlyElec Ubuntu          ESP8266-PROG
+  +-----------------------------------+        +----------------------+
+  | minicom -D /dev/ttyS1 -b 115200   |        | AT firmware          |
+  |        |                          |        |                      |
+  |        v                          | pin 8  |                      |
+  | UART1: PG6 TX, PG7 RX  -----------+--------> RX                   |
+  |                        <----------+--------- TX                   |
+  |                                   | pin 10 |                      |
+  | pin 1 SYS_3V3 --------------------+--------> 3V3                  |
+  | pin 6 GND ------------------------+--------- GND                  |
+  |                                   |        |          |           |
+  | AP6212 Wi-Fi and BT: OFF          |        +----------|-----------+
+  | nmcli radio wifi off              |                   v
+  | ip addr shows no wireless         |          2.4 GHz to the access point
+  +-----------------------------------+          AT+CIFSR returns the address
+
+  The only IP address on this bench is inside the ESP8266.
+```
+
+## Steps
+
+**Step 1.** **Put the onboard radio down.** The AP6212 carries both Wi-Fi and Bluetooth on this board, and the lab needs the Wi-Fi side switched off before anything else happens. Settle the console first: use the UART0 debug header as in P09, or a wired login.
+
+```bash
+nmcli radio wifi off
+nmcli radio
+iwconfig
+```
+
+**Step 2.** **Open UART1 and bring the modem up.** One command per line, reading each answer.
+
+```text
+sudo minicom -D /dev/ttyS1 -b 115200
+AT
+AT+CWMODE=1
+AT+CWJAP="YOURAP","..."
+AT+CIFSR
+```
+
+**Step 3.** **Show the split.** Ask the host what network it has, then ask the module. The two answers disagree, and that disagreement is the lab.
+
+## Acceptance test
+
+- `iwconfig` or `nmcli` on the NanoPi shows Wi-Fi off.
+- `AT+CIFSR` returns an IP on the ESP, in the same session.
+- That split is the lab: no interface on the Linux side holds the address.
+- `AT` answers before `AT+CWJAP` is attempted, so a join failure is a join failure and not a wiring fault.
+
+## Practices
+
+The source gives this lab no practices paragraph of its own, so the practices are its own sentences. Keep the AP6212 down for the whole session: the acceptance test is a comparison, and a host radio that comes back up quietly makes the comparison meaningless. Keep the roles apart, too. Here the ESP8266 is an AT slave on a UART; in P16 the ESP32 is a peer on the LAN with its own subscription, and the two are not interchangeable.
+
+The NEO Air is a 24-pin board. It cannot accept any 40-pin HAT, so no cellular modem, analog HAT, console board or display belongs on this host. Its supply pin is SYS\_3V3, and P09 states the rule for it: do not put 5 V onto SYS\_3V3.
+
+## Pitfalls
+
+- **Working over the onboard Wi-Fi.** Step 1 ends the session. Settle the console on the UART0 debug header or a wired login before switching the radio off.
+- **Transmit wired to transmit.** Pin 8 is the host transmit and goes to the module receive. Nothing answers when the pair is not crossed, and the symptom looks like a dead module.
+- **The ESP8266-PROG USB cable still plugged in.** That is the second UART path of P14. Here it competes with UART1 for the same pins.
+- **5 V onto SYS\_3V3.** The NEO Air is a 3.3 V board. The 5 V pin is pin 2 and it is not the supply for this module.
+- **Expecting the address in `ip addr`.** It is not there and it is not meant to be. `AT+CIFSR` is the only place the address appears.
+- **Skipping the bare `AT`.** Without that answer, a failed join cannot be told apart from a wiring fault or a wrong baud rate.
+- **Reaching for a 40-pin HAT on this host.** The NEO Air header is 24-pin. SIM7020, SIM7070, SIM7600, MCC 118, Explorer700 and the 3.5 inch LCD do not seat on it.
+
+## Sources
+
+- FriendlyElec NanoPi NEO Air wiki, 24-pin header and UART1 on PG6 and PG7, <https://wiki.friendlyelec.com/wiki/index.php/NanoPi_NEO_Air>
+- Espressif ESP8266 AT command set, `AT+CWMODE`, `AT+CWJAP`, `AT+CIFSR`, <https://docs.espressif.com/projects/esp-at/en/latest/esp32/AT_Command_Set/>
+- JOY-iT SBC-ESP8266-PROG product page and manual, <https://joy-it.net/en/products/SBC-ESP8266-PROG>
+- NetworkManager `nmcli` manual, `nmcli radio wifi off`, <https://networkmanager.dev/docs/api/latest/nmcli.html>
+- Allwinner H3 UART documentation as published by FriendlyElec for the NEO Air
+
+---
+
+[Previous](16-esp32-wi-fi-ble-sidecar.md) &nbsp;&nbsp;|&nbsp;&nbsp; [Contents](../README.md) &nbsp;&nbsp;|&nbsp;&nbsp; [Next](18-nucleo-usb-cdc-recorder.md)
