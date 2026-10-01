@@ -1,0 +1,54 @@
+% Shared TikZ and circuitikz setup, used by main.tex and by the standalone
+% figure wrapper that build.py generates for the HTML/SVG output.
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,shapes.misc,shapes.symbols,fit,backgrounds,chains,decorations.pathreplacing,decorations.markings,patterns,shadows,matrix}
+
+% ---------------------------------------------------------------- colours
+\definecolor{hwcol}{RGB}{255,236,179}   % hardware, boards, sensors
+\definecolor{kercol}{RGB}{197,222,255}  % kernel space
+\definecolor{usrcol}{RGB}{205,240,205}  % user space
+\definecolor{extcol}{RGB}{228,228,228}  % external systems, cloud, PC
+\definecolor{fwcol}{RGB}{245,210,235}   % MCU firmware
+\definecolor{notecol}{RGB}{255,250,205} % notes
+\definecolor{linecol}{RGB}{60,60,60}
+
+% ---------------------------------------------------------------- block diagrams
+\tikzset{
+  every picture/.style={font=\sffamily\small, line width=0.6pt, >=Latex},
+  blk/.style={draw=linecol, rounded corners=2pt, align=center, minimum height=8mm,
+              inner sep=4pt, text width=28mm, fill=white},
+  hw/.style={blk, fill=hwcol},
+  kern/.style={blk, fill=kercol},
+  user/.style={blk, fill=usrcol},
+  ext/.style={blk, fill=extcol},
+  fw/.style={blk, fill=fwcol},
+  wide/.style={text width=44mm},
+  narrow/.style={text width=18mm},
+  layer/.style={draw=linecol, dashed, rounded corners=3pt, inner sep=6pt, fill=none},
+  layerlabel/.style={anchor=north west, font=\sffamily\scriptsize\bfseries, inner sep=2pt},
+  flow/.style={->, thick, draw=linecol},
+  bus/.style={<->, thick, draw=linecol},
+  lbl/.style={font=\sffamily\scriptsize, fill=white, inner sep=1.5pt, midway},
+  irq/.style={->, thick, draw=red!70!black, dashed},
+  % ---------------------------------------------------------------- UML
+  umlclass/.style={draw=linecol, fill=white, align=left, inner sep=0pt, font=\sffamily\scriptsize},
+  lifeline/.style={draw=linecol, dashed},
+  actor/.style={draw=linecol, fill=extcol, rounded corners=2pt, align=center, minimum height=7mm, inner sep=4pt, font=\sffamily\small},
+  msg/.style={->, draw=linecol, thick, font=\sffamily\scriptsize},
+  reply/.style={->, draw=linecol, dashed, font=\sffamily\scriptsize},
+  activation/.style={draw=linecol, fill=kercol, inner sep=0pt, minimum width=2.4mm},
+  state/.style={draw=linecol, rounded corners=3mm, fill=usrcol, align=center, minimum height=8mm, inner sep=5pt},
+  initial/.style={circle, fill=linecol, inner sep=0pt, minimum size=2.4mm},
+  final/.style={circle, draw=linecol, fill=white, inner sep=0pt, minimum size=3.4mm,
+                path picture={\fill[linecol] (path picture bounding box.center) circle (1mm);}},
+  trans/.style={->, draw=linecol, thick, font=\sffamily\scriptsize},
+  umlnote/.style={draw=linecol, fill=notecol, align=left, font=\sffamily\scriptsize, inner sep=3pt},
+  % ---------------------------------------------------------------- bench art
+  board/.style={draw=linecol, fill=green!25!black!60, rounded corners=1.5mm, minimum height=20mm, minimum width=32mm,
+                text=white, font=\sffamily\bfseries\small, align=center},
+  hat/.style={board, fill=blue!40!black!60},
+  breadboard/.style={draw=linecol, fill=white, minimum height=12mm, minimum width=40mm, font=\sffamily\scriptsize},
+  pinrow/.style={draw=linecol, fill=black, minimum height=1.6mm, inner sep=0pt},
+  cable/.style={line width=1.2pt},
+  usbcable/.style={line width=1.4pt, draw=black!70},
+  ledsym/.style={circle, draw=linecol, minimum size=3mm, inner sep=0pt},
+}
