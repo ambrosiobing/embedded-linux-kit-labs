@@ -1,0 +1,29 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- lifelines
+\foreach \x/\name/\id in {0/VL53L8CX/tof, 3.6/STM32 firmware/fw, 7.2/kernel: cdc\_acm/acm,
+                          10.6/p06\_kiosk.py/py, 13.6/framebuffer + LCD/fb}{
+  \node[actor, text width=21mm] (\id) at (\x,0) {\name};
+  \draw[lifeline] (\id.south) -- ++(0,-8.4);
+}
+% ---------------- one frame, top to bottom
+\draw[msg] (3.6,-1.1) -- node[above]{start ranging, 8x8} (0,-1.1);
+\node[activation, minimum height=5mm] at (0,-1.5) {};
+\draw[reply] (0,-2.1) -- node[above]{data-ready} (3.6,-2.1);
+\node[activation, minimum height=34mm] at (3.6,-3.8) {};
+\draw[msg] (3.6,-3.0) -- node[above]{read 64 ranges, 0x29} (0,-3.0);
+\draw[reply] (0,-3.9) -- node[above]{64 millimetre values} (3.6,-3.9);
+\draw[msg] (3.6,-4.9) -- node[above]{print Z,d00,...,d63} (7.2,-4.9);
+\node[activation, minimum height=5mm] at (7.2,-5.3) {};
+\draw[msg] (7.2,-5.9) -- node[above]{readline, 65 fields} (10.6,-5.9);
+\node[activation, minimum height=18mm] at (10.6,-6.7) {};
+\draw[msg] (10.6,-6.9) -- node[above]{64 rectangles, one per zone} (13.6,-6.9);
+\node[activation, minimum height=5mm] at (13.6,-7.3) {};
+\draw[msg] (3.6,-8.0) -- node[above]{next frame} (0,-8.0);
+% ---------------- notes, in a row below the lifelines
+\node[umlnote, text width=40mm, anchor=north west] at (-0.9,-9.1)
+  {\textbf{STM32 firmware:} one complete\\8x8 result per line, 65 comma\\fields, the first is the literal Z};
+\node[umlnote, text width=40mm, anchor=north west] at (4.6,-9.1)
+  {\textbf{p06\_kiosk.py:} a line that does\\not start with Z, or does not hold\\64 values, is dropped and not painted};
+\node[umlnote, text width=40mm, anchor=north west] at (10.1,-9.1)
+  {\textbf{grid painter:} occupied is a range\\below the threshold measured\\against an empty field of view};
+\end{tikzpicture}
