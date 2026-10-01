@@ -1,0 +1,41 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- lifelines
+\foreach \x/\name/\id in {0/M7 firmware/fw, 3.5/USB-CDC class/cdc, 7.0/kernel: ttyACM0/acm,
+                          10.5/p18\_sink.py/sink, 13.8/capture file/file}{
+  \node[actor, text width=24mm] (\id) at (\x,0) {\name};
+  \draw[lifeline] (\id.south) -- ++(0,-9.4);
+}
+% ---------------- setup
+\draw[msg] (10.5,-1.0) -- node[above]{stty 921600 raw} (7.0,-1.0);
+\node[activation, minimum height=4mm] at (7.0,-1.4) {};
+\draw[reply] (7.0,-1.9) -- node[below]{raw, no line discipline} (10.5,-1.9);
+% ---------------- the loop fragment
+\draw[draw=linecol] (-1.35,-2.6) rectangle (15.15,-8.3);
+\draw[draw=linecol, fill=kercol] (-1.35,-2.6) -- (0.55,-2.6) -- (0.55,-2.95) --
+      (0.35,-3.15) -- (-1.35,-3.15) -- cycle;
+\node[anchor=west, font=\sffamily\bfseries\tiny] at (-1.25,-2.87) {loop};
+\node[anchor=west, font=\tiny] at (0.75,-2.87) {[1 kHz, for ten seconds]};
+% one sample
+\node[activation, minimum height=40mm] at (0,-5.4) {};
+\draw[msg] (0,-3.6) -- node[above]{seq++, format the sample} (3.5,-3.6);
+\node[activation, minimum height=4mm] at (3.5,-4.0) {};
+\draw[msg] (3.5,-4.5) -- node[above]{USB transfer} (7.0,-4.5);
+\node[activation, minimum height=4mm] at (7.0,-4.9) {};
+\draw[msg] (7.0,-5.4) -- node[above]{readline} (10.5,-5.4);
+\node[activation, minimum height=24mm] at (10.5,-6.4) {};
+\draw[msg] (10.5,-7.1) -- node[above]{write the line, unchanged} (13.8,-7.1);
+\node[activation, minimum height=4mm] at (13.8,-7.5) {};
+\draw[msg] (10.5,-7.9) -- node[above]{next read} (7.0,-7.9);
+% ---------------- the result
+\draw[msg] (10.5,-8.9) -- node[above]{print samples seen and samples missing} (0,-8.9);
+% ---------------- notes, in a row below everything
+\node[umlnote, text width=46mm, anchor=north west] at (-1.4,-9.9)
+  {\textbf{M7 firmware:} it never waits for the host. A slow reader shows up as a gap,
+   not as back pressure.};
+\node[umlnote, text width=46mm, anchor=north west] at (5.0,-9.9)
+  {\textbf{p18\_sink.py:} if seq is not prev + 1, add the difference to the gap count.
+   Do not interpolate and do not retry.};
+\node[umlnote, text width=46mm, anchor=north west] at (11.4,-9.9)
+  {\textbf{acceptance:} 0.1 percent or fewer gaps in a ten-second capture at 1 kHz,
+   and lsusb shows the CDC interface.};
+\end{tikzpicture}

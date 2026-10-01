@@ -1,0 +1,42 @@
+\begin{tikzpicture}[font=\sffamily\small]
+% ---------------- firmware column
+\node[fw, text width=38mm] (seq) at (0,4.4) {sequence generator\\{\scriptsize uint32 seq++, 1 kHz or more}};
+\node[fw, text width=38mm] (fmt) at (0,3.0) {sample formatter\\{\scriptsize cheap print, seq first}};
+\node[fw, text width=38mm] (cdc) at (0,1.6) {USB-CDC device class};
+\node[fw, text width=38mm, fill=fwcol!45, dashed] (ekf) at (0,-0.2)
+  {optional: quaternion EKF\\{\scriptsize on the M7 FPU, prints seq,q0,q1,q2,q3}};
+\node[hw, text width=38mm, fill=hwcol!55, dashed] (shd) at (0,-1.8)
+  {optional: IKS4A1 shield\\{\scriptsize the P07 shield, the P07 mode}};
+% ---------------- Linux column
+\node[kern, text width=38mm] (acm) at (7.4,1.6) {/dev/ttyACM0\\{\scriptsize cdc\_acm}};
+\node[kern, text width=38mm] (raw) at (7.4,3.0) {stty 921600 raw\\{\scriptsize no line discipline in the way}};
+\node[user, text width=38mm] (sink) at (7.4,4.4) {p18\_sink.py\\{\scriptsize prev, gaps, no repair}};
+\node[user, text width=38mm] (file) at (7.4,-0.2) {capture file\\{\scriptsize the lines it counted}};
+\node[user, text width=38mm] (num) at (7.4,-1.8) {samples seen, samples missing\\{\scriptsize the acceptance number}};
+% ---------------- bands
+\begin{scope}[on background layer]
+\node[layer, fit=(seq)(shd), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:Nucleo-H7A3ZI-Q: firmware}] {};
+\node[layer, fit=(sink)(num), inner ysep=10pt, inner xsep=6pt,
+  label={[layerlabel, anchor=south west]north west:Raspberry Pi 4: Linux, the recorder}] {};
+\end{scope}
+% ---------------- links
+\draw[flow] (seq) -- (fmt);
+\draw[flow] (fmt) -- (cdc);
+\draw[flow, dashed] (shd) -- (ekf);
+\draw[flow, dashed] (ekf) -- (cdc);
+\draw[bus, line width=1.6pt] (cdc.east) -- (acm.west);
+\draw[flow] (acm) -- (raw);
+\draw[flow] (raw) -- (sink);
+\draw[flow] (sink.west) -- ++(-0.5,0) |- (file.west);
+\draw[flow] (file) -- (num);
+\node[anchor=south, font=\sffamily\bfseries\scriptsize] at (3.7,1.75) {one USB cable};
+\node[anchor=north, font=\sffamily\scriptsize, text=black!65, align=center] at (3.7,1.45)
+  {CDC ACM,\\1 kHz of samples};
+% ---------------- the rule
+\node[draw=red!65!black, dashed, rounded corners=2pt, fill=white, align=center,
+      font=\sffamily\scriptsize, inner sep=5pt, text width=112mm, anchor=north]
+      at (3.7,-3.2)
+  {\textbf{The rule:} the filter may run on the M7, but Linux still records the stream.
+   A sketch that discards the host is not a lab in this book.};
+\end{tikzpicture}
