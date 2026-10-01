@@ -1,0 +1,44 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize,
+  comp/.style={draw=linecol, rounded corners=2pt, align=center, text width=40mm,
+               minimum height=11mm, inner sep=3pt},
+  tab/.style={draw=linecol, fill=white, minimum width=4mm, minimum height=1.8mm, inner sep=0pt}]
+% ---------------- lane headers
+\node[font=\sffamily\bfseries\scriptsize, align=center, text width=44mm] at (0,1.4)
+  {DS3231: the overlay binds};
+\node[font=\sffamily\bfseries\scriptsize, align=center, text width=44mm] at (6.6,1.4)
+  {BMP280: a custom overlay};
+\node[font=\sffamily\bfseries\scriptsize, align=center, text width=44mm] at (13.2,1.4)
+  {BMP280: no overlay at all};
+% ---------------- row 1: configuration
+\node[comp, fill=extcol] (c1) at (0,0) {\textbf{configuration}\\config.txt\\dtoverlay=i2c-rtc,ds3231};
+\node[comp, fill=extcol] (c2) at (6.6,0) {\textbf{configuration}\\config.txt\\a custom overlay you write};
+\node[comp, fill=extcol] (c3) at (13.2,0) {\textbf{configuration}\\dtparam=i2c\_arm=on only};
+% ---------------- row 2: device-tree node
+\node[comp, fill=kercol] (n1) at (0,-2.2) {\textbf{device-tree node}\\rtc@68 on i2c1};
+\node[comp, fill=kercol, dashed] (n2) at (6.6,-2.2) {\textbf{device-tree node}\\bmp280@76 on i2c1};
+\node[comp, fill=white] (n3) at (13.2,-2.2) {\textbf{no node}\\the chip stays an address};
+% ---------------- row 3: driver
+\node[comp, fill=kercol] (d1) at (0,-4.4) {\textbf{driver}\\rtc-ds1307 binds};
+\node[comp, fill=kercol, dashed] (d2) at (6.6,-4.4) {\textbf{driver}\\an IIO pressure driver binds};
+\node[comp, fill=kercol] (d3) at (13.2,-4.4) {\textbf{driver}\\i2c-dev, the generic one};
+% ---------------- row 4: interface, drawn as a lollipop
+\node[comp, fill=usrcol] (i1) at (0,-6.6) {\textbf{interface}\\/dev/rtc0};
+\node[comp, fill=usrcol, dashed] (i2) at (6.6,-6.6) {\textbf{interface}\\sysfs IIO channels};
+\node[comp, fill=usrcol] (i3) at (13.2,-6.6) {\textbf{interface}\\/dev/i2c-1};
+% ---------------- row 5: consumers
+\node[comp, fill=usrcol] (u1) at (0,-8.8) {\textbf{consumer}\\hwclock -w and -r\\systemd reads it at boot};
+\node[comp, fill=usrcol] (u2) at (6.6,-8.8) {\textbf{consumer}\\the OLED status page};
+\node[comp, fill=usrcol] (u3) at (13.2,-8.8) {\textbf{consumer}\\python3-smbus read};
+% ---------------- edges
+\foreach \a/\b in {c1/n1, n1/d1, d1/i1, i1/u1, c2/n2, n2/d2, d2/i2, i2/u2, c3/n3, n3/d3, d3/i3, i3/u3}{
+  \draw[flow] (\a) -- (\b);
+}
+% lollipop on the bound interface
+\draw[thick] (i1.east) -- ++(6mm,0) node[circle, draw=linecol, fill=white, minimum size=3mm, inner sep=0pt]{};
+\node[anchor=west, font=\tiny] at (2.88,-6.6) {RTC};
+% ---------------- the note, parked below the lanes
+\node[umlnote, text width=62mm, anchor=north west] at (-2.4,-10.0)
+  {Only the left lane is proved by the acceptance test. A power pull with no network shows that a node was created, that a driver bound to it, and that the boot sequence read /dev/rtc0.};
+\node[umlnote, text width=62mm, anchor=north west] at (6.6,-10.0)
+  {The two right lanes are both legitimate for the BMP280. The source gives the choice and does not print a custom overlay, so write one or read the chip from user space.};
+\end{tikzpicture}

@@ -1,0 +1,38 @@
+\begin{tikzpicture}[font=\sffamily\scriptsize]
+% ---------------- Pi 3B+ with the Explorer700 seated on top
+\node[board, minimum width=48mm, minimum height=22mm] (pi) at (0,0) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,-0.55) {Raspberry Pi 3B+};
+\node[hat, minimum width=48mm, minimum height=20mm, fill=blue!45!black!55] (hat) at (0,1.9) {};
+\node[text=white, font=\sffamily\bfseries\small] at (0,2.50) {JOY-iT RB-Explorer700};
+\node[text=white, font=\tiny] at (0,2.12) {the only 40-pin board in this lab};
+% features drawn on the HAT face
+\node[draw=white, fill=black!70, text=white, minimum width=13mm, minimum height=5mm, font=\tiny]
+  (ol) at (-1.5,1.35) {OLED};
+\node[circle, draw=white, fill=gray!60, minimum size=4.5mm, inner sep=0pt] (jy) at (0.2,1.35) {};
+\node[circle, draw=white, fill=black!55, minimum size=4mm, inner sep=0pt] (bz) at (0.9,1.35) {};
+\node[draw=white, fill=black!60, minimum width=4mm, minimum height=4mm, inner sep=0pt] (irx) at (1.6,1.35) {};
+% callout for the three operator controls, parked off the board
+\node[anchor=west, align=left, font=\tiny] at (4.7,0.75) {joystick, buzzer and IR receiver:\\GPIO lines, see the silkscreen};
+\draw[dotted, draw=linecol] (1.85,1.35) -- (4.6,0.8);
+% callout for the clock, parked off the other side
+\node[anchor=east, align=right, font=\tiny] at (-3.1,1.35) {DS3231 and its\\coin cell, on the HAT};
+\draw[dotted, draw=linecol] (-3.05,1.35) -- (-2.45,1.35);
+% ---------------- power, pulled at the wall for the test
+\node[draw=black!70, fill=gray!50, minimum width=6mm, minimum height=3mm] (psu) at (-1.4,-1.35) {};
+\draw[usbcable] (psu.south) -- (-1.4,-2.2) -- (-3.9,-2.2);
+\node[anchor=east, align=right, font=\tiny] at (-4.0,-2.2) {5 V supply,\\pulled at the wall};
+% ---------------- network, removed before the test
+\node[draw=linecol, fill=extcol, minimum width=22mm, minimum height=10mm, align=center]
+  (lan) at (6.6,-1.8) {LAN switch\\{\tiny not used in this lab}};
+\draw[usbcable, dashed] (2.4,-0.6) to[out=0,in=180] (5.5,-1.8);
+\node[anchor=south, font=\tiny, text=red!70!black] at (4.8,-0.7)
+  {Ethernet unplugged before the power pull};
+% ---------------- the status page
+\node[draw=linecol, fill=usrcol, minimum width=34mm, minimum height=14mm, align=center]
+  (page) at (6.6,1.9) {status page on the glass\\{\tiny host name}\\{\tiny date from /dev/rtc0}};
+\draw[flow] (2.4,1.9) -- (page.west);
+\node[anchor=south, font=\tiny] at (3.6,1.95) {SPI};
+% ---------------- the rule
+\node[umlnote, text width=60mm, anchor=north west] at (-4.2,-2.9)
+  {The acceptance test is a power pull with no network attached. A graceful shutdown can write the time on the way down, which hides the failure the test looks for.};
+\end{tikzpicture}

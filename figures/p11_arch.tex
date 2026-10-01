@@ -1,0 +1,41 @@
+\begin{tikzpicture}[node distance=5mm and 16mm]
+% ---------------- hardware column: the chips on the HAT
+\node[hw, text width=38mm] (ds) {DS3231\\{\scriptsize I2C1 0x68}};
+\node[hw, text width=38mm, below=of ds] (bmp) {BMP280\\{\scriptsize I2C1 0x76 or 0x77}};
+\node[hw, text width=38mm, below=of bmp] (adc) {PCF8591\\{\scriptsize I2C1 0x48}};
+\node[hw, text width=38mm, below=of adc] (exp) {PCF8574\\{\scriptsize I2C1 0x20}};
+\node[hw, text width=38mm, below=of exp] (oled) {SSD1306 OLED\\{\scriptsize SPI0}};
+\node[hw, text width=38mm, below=of oled] (ir) {IR receiver\\{\scriptsize GPIO, see the silkscreen}};
+\node[hw, text width=38mm, below=of ir] (joy) {Joystick and buzzer\\{\scriptsize GPIO, see the silkscreen}};
+% ---------------- kernel column: the binding
+\node[kern, text width=42mm, right=of ds] (kds) {rtc-ds1307\\{\scriptsize dtoverlay=i2c-rtc,ds3231}};
+\node[kern, text width=42mm, right=of bmp] (kbmp) {custom overlay, or none\\{\scriptsize IIO if an overlay binds it}};
+\node[kern, text width=42mm, right=of adc] (kadc) {i2c-dev\\{\scriptsize no binding needed}};
+\node[kern, text width=42mm, right=of exp] (kexp) {i2c-dev\\{\scriptsize no binding needed}};
+\node[kern, text width=42mm, right=of oled] (koled) {SPI controller and spidev};
+\node[kern, text width=42mm, right=of ir] (kir) {GPIO line};
+\node[kern, text width=42mm, right=of joy] (kjoy) {GPIO lines};
+% ---------------- user space column: the interface
+\node[user, text width=42mm, right=of kds] (uds) {/dev/rtc0\\{\scriptsize hwclock, timedatectl}};
+\node[user, text width=42mm, right=of kbmp] (ubmp) {sysfs IIO, or a read from i2c};
+\node[user, text width=42mm, right=of kadc] (uadc) {python3-smbus read};
+\node[user, text width=42mm, right=of kexp] (uexp) {python3-smbus read};
+\node[user, text width=42mm, right=of koled] (uoled) {luma.oled status page};
+\node[user, text width=42mm, right=of kir] (uir) {keycode for the console};
+\node[user, text width=42mm, right=of kjoy] (ujoy) {menu input, buzzer ack};
+% ---------------- bands
+\begin{scope}[on background layer]
+\node[layer, fit=(ds)(joy), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:hardware on the HAT}] {};
+\node[layer, fit=(kds)(kjoy), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:kernel binding}] {};
+\node[layer, fit=(uds)(ujoy), inner ysep=9pt, inner xsep=5pt,
+  label={[layerlabel, anchor=south west]north west:user-space interface}] {};
+\end{scope}
+% ---------------- one row, one path
+\foreach \a/\b/\c in {ds/kds/uds, bmp/kbmp/ubmp, adc/kadc/uadc, exp/kexp/uexp,
+                      oled/koled/uoled, ir/kir/uir, joy/kjoy/ujoy}{
+  \draw[flow] (\a) -- (\b);
+  \draw[flow] (\b) -- (\c);
+}
+\end{tikzpicture}

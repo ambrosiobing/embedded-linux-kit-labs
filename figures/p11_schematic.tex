@@ -1,0 +1,52 @@
+\begin{circuitikz}[scale=0.9, every node/.style={transform shape}, font=\sffamily\small]
+% ---------------- Pi header block
+\draw[rounded corners=2pt, fill=hwcol] (0,-1.0) rectangle (3.6,6.6);
+\node[font=\sffamily\bfseries\small] at (1.8,6.2) {Raspberry Pi 3B+};
+\node[font=\sffamily\scriptsize] at (1.8,5.85) {40-pin header};
+\foreach \y/\pin/\name in {5.3/1/3V3, 4.8/3/GPIO2 SDA, 4.3/5/GPIO3 SCL, 3.8/6/GND,
+                           2.6/19/GPIO10 MOSI, 2.1/23/GPIO11 SCLK, 1.6/24/chip select}{
+  \draw (3.6,\y) -- (4.2,\y);
+  \node[anchor=east, font=\sffamily\scriptsize] at (3.5,\y) {pin \pin\ \ \name};
+}
+\draw (3.6,0.4) -- (4.2,0.4);
+\node[anchor=east, font=\sffamily\scriptsize] at (3.5,0.4) {GPIO lines};
+\node[anchor=east, font=\sffamily\scriptsize, text=black!60] at (3.5,-0.1) {one HAT only};
+% ---------------- rails carried on the HAT
+\draw (4.2,5.3) -- (4.6,5.3) -- (4.6,5.7) -- (12.9,5.7);
+\node[anchor=south, font=\sffamily\scriptsize] at (8.4,5.8) {3V3 supply rail};
+\draw[thick] (4.2,4.8) -- (12.6,4.8);
+\draw[thick] (4.2,4.3) -- (12.6,4.3);
+\node[anchor=south, font=\sffamily\scriptsize] at (8.4,4.95) {I2C1 on the HAT: four devices, one pair of wires};
+\draw (4.2,3.8) -- (12.9,3.8) -- (12.9,2.2);
+\node[ground] at (12.6,3.8) {};
+% ---------------- four I2C devices hanging off the rails
+\foreach \x/\lab/\addr in {5.4/DS3231/0x68, 7.6/BMP280/{0x76 or 0x77}, 9.8/PCF8591/0x48, 12.0/PCF8574/0x20}{
+  \draw[rounded corners=2pt, fill=usrcol] (\x-0.85,2.5) rectangle (\x+0.85,3.4);
+  \node[font=\sffamily\scriptsize\bfseries] at (\x,3.15) {\lab};
+  \node[font=\sffamily\scriptsize] at (\x,2.78) {\addr};
+  \draw (\x-0.5,3.4) -- (\x-0.5,4.8);
+  \fill (\x-0.5,4.8) circle (1.3pt);
+  \draw (\x,3.4) -- (\x,4.3);
+  \fill (\x,4.3) circle (1.3pt);
+  \draw (\x+0.5,2.5) -- (\x+0.5,2.2) -- (12.9,2.2);
+  \fill (\x+0.5,2.2) circle (1.3pt);
+}
+% ---------------- SPI OLED
+\draw[rounded corners=2pt, fill=usrcol] (5.6,0.9) rectangle (9.0,1.9);
+\node[font=\sffamily\scriptsize\bfseries] at (7.3,1.62) {SSD1306 OLED};
+\node[font=\sffamily\scriptsize] at (7.3,1.2) {SPI0, luma.oled};
+\draw (4.2,2.6) -- (5.0,2.6) -- (5.0,1.7) -- (5.6,1.7);
+\draw (4.2,2.1) -- (4.8,2.1) -- (4.8,1.4) -- (5.6,1.4);
+\draw (4.2,1.6) -- (4.6,1.6) -- (4.6,1.1) -- (5.6,1.1);
+\node[anchor=west, font=\sffamily\scriptsize, text=black!60, align=left] at (9.3,1.4)
+  {DC and RESET lines:\\confirm on the silkscreen};
+% ---------------- GPIO operator controls
+\draw[rounded corners=2pt, fill=usrcol] (5.6,-0.9) rectangle (9.0,0.3);
+\node[font=\sffamily\scriptsize\bfseries] at (7.3,0.0) {IR, joystick, buzzer};
+\node[font=\sffamily\scriptsize] at (7.3,-0.4) {GPIO lines on the HAT};
+\node[font=\sffamily\scriptsize, text=black!60] at (7.3,-0.72) {line numbers: see the silkscreen};
+\draw (4.2,0.4) -- (5.0,0.4) -- (5.0,-0.3) -- (5.6,-0.3);
+% ---------------- the rule
+\node[anchor=west, font=\sffamily\scriptsize, text=red!70!black] at (0.0,-1.55)
+  {No flying leads are needed. Do not stack a second 40-pin HAT on this header.};
+\end{circuitikz}
