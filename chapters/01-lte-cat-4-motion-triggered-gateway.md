@@ -22,7 +22,7 @@ The lab is a gateway, not a tracker and not a router. Two things are deliberatel
 > [!NOTE]
 > **Kit from the bin**
 >
-> Pi 4, SIM7600E-H with LTE and GNSS antennas and a micro-SIM, SEN0032 ADXL345, red, yellow and green LEDs on BCM 27/22/23, a 3 A USB-C supply, keyboard.
+> Pi 4, SIM7600E-H with LTE and GNSS antennas and a micro-SIM, SEN0032 ADXL345, three LK-LED10 modules on BCM 16/26/20, a 3 A USB-C supply, keyboard.
 
 ## System architecture
 
@@ -48,11 +48,22 @@ The event path is independent of the network path. A Python loop reads six regis
 | ADXL345 GND | 6 | GND |  |
 | ADXL345 SDO |  |  | Left floating, selects 0x53 |
 | ADXL345 INT1 | 11 | GPIO17 | Optional, not needed for the magnitude poll |
-| Green LED | 13 | GPIO27 | CEREG registered |
-| Yellow LED | 15 | GPIO22 | Default route on usb0 or wwan0 |
-| Red LED | 16 | GPIO23 | Last shock event |
+| Green module, S1 | 36 | GPIO16 | CEREG registered. Lit when driven high |
+| Yellow module, S1 | 37 | GPIO26 | Default route on usb0 or wwan0 |
+| Red module, S1 | 38 | GPIO20 | Last shock event |
+| Module grounds | 34 or 39 | GND | The breadboard ground rail, as in P15 |
+| Pins 13, 15, 16 |  | GPIO27, 22, 23 | Not free on this HAT. See the note below |
 
-*Table 1.1. Wiring. The HAT passes pins 1, 3, 5 and 6 through, so the accelerometer and the modem coexist on one header.*
+*Table 1.1. Wiring. The HAT carries a full 40-pin pass-through, so the accelerometer and the modem coexist on one header and pins 3 and 5 are untouched by the HAT. The indicator pins are not the ones the draft used; the note below says why.*
+
+> [!NOTE]
+> **The status triple cannot sit on BCM 27, 22 and 23 under this HAT**
+>
+> The draft put the three indicators on header pins 13, 15 and 16. On the SIM7600E-H those are the modem's own control lines: GPIO27 is the ring indicator, GPIO22 is data terminal ready and GPIO23 is clear to send. An LED hung on any of them is a second driver on a line the modem is already using, and the failure it produces is not a dark LED but a modem that behaves oddly for reasons nothing in the log explains.
+>
+> This is not peculiar to one board. On the SIM7020E of P02, GPIO27 is the module's power key, which the vendor scripts pulse to boot it. An indicator there would switch the modem on and off every time it reported a change of state, so the lab would interfere with the thing it is reporting.
+>
+> So the triple is per lab rather than per book. The pins above are chosen from the high end of the header, where neither modem HAT documents a connection, with the module grounds going to pin 34 or 39. **Confirm them against the pinout of the HAT in front of you before wiring**, because this is a fact about one board and not about the Raspberry Pi. Some Waveshare HATs carry a jumper block that selects which Pi GPIO reaches each control line, and on a board that has one, removing three jumpers is the other way to free the original pins.
 
 ```text
 ADXL345                 Pi 40-pin (HAT pass-through pins 1/3/5/6 still available)
@@ -98,7 +109,7 @@ The publisher is a single loop with one piece of state, a cool-off timestamp. It
   |   |  yes -> mosquitto_pub ------------------> | usb0 / wwan0  (user)   |---> broker
   |   |  cool-off 2 s               |             |                        |
   |   v                             |   USB       | /dev/ttyUSB2  (AT) <--------+
-  | gpio: GRN 27  YEL 22  RED 23    |<===========>|                        |     |
+  | gpio: GRN 16  YEL 26  RED 20    |<===========>|                        |     |
   +---------------------------------+             +------------------------+     |
         ^                                                                        |
         +--- AT+CSQ every 60 s, AT+CEREG? for the green LED --------------------+

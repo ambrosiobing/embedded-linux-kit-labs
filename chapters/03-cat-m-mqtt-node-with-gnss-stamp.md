@@ -22,7 +22,7 @@ Every publish carries a GNSS time, not `date` from the Pi. That is the rule this
 > [!NOTE]
 > **Kit from the bin**
 >
-> Pi 3B+, SIM7070G HAT with LTE and GNSS antennas and a Cat-M SIM, yellow LED on BCM22.
+> Pi 3B+, SIM7070G HAT with LTE and GNSS antennas and a Cat-M SIM, yellow LK-LED10 module on BCM26.
 
 > [!NOTE]
 > **Without a SIM**
@@ -55,7 +55,7 @@ The GNSS engine is the second subsystem, and it is the one that has to be manage
 
 ## Wiring and schematic
 
-The seating rules are the same as P01: one 40-pin HAT, jumpers set before power, antennas fitted before power. The only flying wire in the lab is the yellow LED on BCM22.
+The seating rules are the same as P01: one 40-pin HAT, jumpers set before power, antennas fitted before power. The only flying wire in the lab is the yellow LK-LED10 module on BCM26.
 
 ![Figure 3.2. The HAT on the header, the USB cable that carries the AT and NMEA channels, and the single status LED.](../figures/p03_schematic.svg)
 
@@ -65,8 +65,9 @@ The seating rules are the same as P01: one 40-pin HAT, jumpers set before power,
 | --- | --- | --- | --- |
 | HAT 5 V | 2 and 4 |  | Supplied through the header when the HAT is seated |
 | HAT GND | 6 | GND |  |
-| Yellow module, S1 | 15 | GPIO22 | Cat-M confirmed and the session open. Lit when driven high |
-| Yellow module, G | 9 | GND | The return. The module's resistor is inside it |
+| Yellow module, S1 | 37 | GPIO26 | Cat-M confirmed and the session open. Lit when driven high |
+| Yellow module, G | 39 | GND | The return. The module's resistor is inside it |
+| Pin 15 |  | GPIO22 | The draft's choice. Unconfirmed on this HAT, see the note |
 | VCCIO jumper |  |  | 3V3 |
 | PWR jumper |  |  | Auto-on, as in P01 |
 | LTE antenna |  |  | Main port on the HAT |
@@ -75,12 +76,19 @@ The seating rules are the same as P01: one 40-pin HAT, jumpers set before power,
 
 *Table 3.2. Wiring. Confirm the jumper block legend on the silkscreen before power, since the HAT revision decides which position is which.*
 
+> [!NOTE]
+> **The indicator pin moved, and this one is a judgement rather than a measurement**
+>
+> The draft put the indicator on GPIO22. On the two sibling HATs that have been checked, the draft's indicator pins turned out to be modem control lines: the SIM7600E-H of P01 uses GPIO27, GPIO22 and GPIO23 for ring indicator, data terminal ready and clear to send, and the SIM7020E of P02 uses GPIO27 as the power key. Nobody has checked the SIM7070G, so what is known is a pattern and not a fact about this board.
+>
+> The pin therefore moves to the high end of the header, where no HAT in this book documents a connection, and the move is recorded as a precaution rather than as a correction. **Read this HAT's pinout before wiring**, and if GPIO22 is genuinely free on it, the draft's pin is fine and this note is the explanation for why it looked wrong.
+
 ```text
 Same seating rules as P01. USB preferred for AT + NMEA.
 VCCIO = 3V3, auto PWR.
 GNSS antenna needs sky view.
 No second HAT.
-LED YEL BCM22 = Cat-M confirmed, module MQTT session open.
+LED YEL BCM26 pin 37 = Cat-M confirmed, module MQTT session open.
 ```
 
 > [!IMPORTANT]
@@ -119,7 +127,7 @@ The sequence is the product of this lab. Read it from the top: lock the bearer, 
   |   AT+SMPUB "lab/p03/fix",0,1    |         |   AT+SMPUB ---------------------> broker
   |   payload: <GNSS stamp>,lat,lon |         |                             |    1883
   |   sleep 60 s                    |         +-----------------------------+
-  | gpio: YEL BCM22 = Cat-M + up    |
+  | gpio: YEL BCM26 = Cat-M + up    |
   +---------------------------------+
   ordering:  GNSS on -> fix -> GNSS OFF -> transmit.  Never GNSS on during TX.
 ```
@@ -203,7 +211,7 @@ while True:
 tail -f /home/pi/p03.log
 ```
 
-**Step 7.** **Drive the LED from two conditions, not one.** Yellow on BCM22 is on when `AT+CPSI?` last contained CAT-M and the module reported the session open. If the bearer changed, the LED goes out, which is the fastest way to notice a silent fallback from across the bench.
+**Step 7.** **Drive the LED from two conditions, not one.** Yellow on BCM26 is on when `AT+CPSI?` last contained CAT-M and the module reported the session open. If the bearer changed, the LED goes out, which is the fastest way to notice a silent fallback from across the bench.
 
 ## Acceptance test
 

@@ -38,30 +38,41 @@ The kernel binds a USB serial driver to the Renkforce cable and presents `/dev/t
 
 ## Wiring and schematic
 
-![Figure 14.2. Four wires to the target, with transmit crossed to receive.](../figures/p14_schematic.svg)
+![Figure 14.2. Three signal wires to the target, with transmit crossed to receive.](../figures/p14_schematic.svg)
 
-*Figure 14.2. Four wires to the target, with transmit crossed to receive. The adapter jumper is set to 3.3 V before anything is connected. GPIO0 is held low for an ESP32 download and released for a normal boot.*
+*Figure 14.2. Three signal wires to the target, with transmit crossed to receive. The red lead is 5 V and stays out of the circuit; the target takes its power from its own USB socket. GPIO0 is held low for an ESP32 download and released for a normal boot.*
 
 | Renkforce USB-TTL | ESP target | Direction | Note |
 | --- | --- | --- | --- |
-| 3V3 | VIN or 3V3 | to the target | Jumper the adapter to 3.3 V first |
-| GND | GND | common | Fit this wire before the others |
-| TXD | RX | to the target | Transmit crossed to receive |
-| RXD | TX | from the target | Receive crossed to transmit |
+| Red | nothing | none | 5 V from the host USB rail. Leave it unconnected |
+| Black, GND | GND | common | Fit this wire before the others, remove it last |
+| Green, TX | RX | to the target | Transmit crossed to receive |
+| White, RX | TX | from the target | Receive crossed to transmit |
+| Target power | its own USB | from the bench | Not from this cable |
 | (none) | GPIO0 | held low | ESP32 download mode only |
 | (none) | EN | reset | Release GPIO0, then reset to run the image |
 
-*Table 14.1. The four-wire mapping, plus the two ESP32 pins that select download mode. The ESP8266-PROG has an onboard USB-UART: use one UART path, not both at once.*
+*Table 14.1. The three-wire mapping, plus the two ESP32 pins that select download mode. The cable is a sealed PL2303HX with four flying leads and no voltage selector of any kind, so there is nothing to set before connecting; what there is to do is leave the red lead alone. The ESP8266-PROG has an onboard USB-UART: use one UART path, not both at once.*
 
 ```text
-USB-TTL 3V3  --> ESP VIN/3V3   (jumper the adapter to 3.3 V)
-USB-TTL GND  --> ESP GND
-USB-TTL TXD  --> ESP RX
-USB-TTL RXD  --> ESP TX
+USB-TTL red    -> nothing        5 V from the host USB rail
+USB-TTL black  -> ESP GND        fit first, remove last
+USB-TTL green  -> ESP RX         TX crossed to RX
+USB-TTL white  <- ESP TX         RX crossed to TX
+ESP power      <- its own USB socket, not this cable
 ESP32: hold GPIO0 low for download, EN reset
-ESP8266-PROG: onboard USB-UART may already exist --- use ONE
+ESP8266-PROG: onboard USB-UART may already exist, so use ONE
               UART path, not both at once
 ```
+
+> [!NOTE]
+> **What this cable is, and the one thing about it that is not measured**
+>
+> It is a sealed moulding over a PL2303HX with four flying leads: red is 5 V taken straight from the host USB rail, black is ground, green is the adapter's transmit and white its receive. There is no jumper, no switch and no voltage marking on the shell, so an instruction to select 3.3 V on it cannot be followed. An earlier draft of this chapter carried one, along with a pitfall about leaving it at 5 V, and both described a part that does not exist.
+>
+> The signal lines are documented as 3.3 V logic, by the source this volume follows and by the vendor's own description. Neither is a measurement, and this bench has no voltmeter to take one, so the claim is recorded as a claim. It matters in one direction only: a transmit line that is really 5 V damages whatever 3.3 V receive pin it meets.
+>
+> That is a good reason to prefer the path that does not depend on it. Both targets carry their own USB-UART, so flash and converse over the board's own socket and keep this cable for a board that has none, which in this book is the NanoPi of P09. When the cable is the only way in, fit ground first and accept the documented level knowingly rather than by not having asked.
 
 The LK-LED10 modules sit on the breadboard as jig status, driven from the host exactly as the semaphore of P15 is driven: the header pin feeds the module's signal pin, which is its anode side, and the module returns to the common ground rail, so a pin driven high is the lit state and each module's resistor is already inside it. The source gives no dedicated pin assignment for this lab, so reuse the P15 wiring rather than inventing a second one, and settle the polarity on one module first, as P15 does, because which way round the LED sits is not printed on the part.
 
@@ -90,13 +101,13 @@ The last exchange in the diagram is the one that makes the run a test rather tha
 ```text
   Pi 3                                Renkforce USB/TTL       one target at a time
   +-------------------------+         +-----------------+     +--------------------+
-  | esptool.py / minicom    |         | 3.3 V logic     |     |  ESP32 NodeMCU     |
-  |   |                     |  USB    | jumper set 3V3  | TXD-> RX                 |
-  |   v                     |<=======>|                 | RXD<- TX                 |
-  | /dev/ttyUSB0            |         |                 | 3V3-> VIN  GPIO0 low     |
-  |   |                     |         |                 | GND-- GND  EN reset      |
+  | esptool.py / minicom    |         | PL2303HX, sealed|     |  ESP32 NodeMCU     |
+  |   |                     |  USB    | 3.3 V logic     |green-> RX                |
+  |   v                     |<=======>| (documented,    |white<- TX                |
+  | /dev/ttyUSB0            |         |  not measured)  |black-- GND GPIO0 low     |
+  |   |                     |         | red: 5 V, unused|     |  EN reset          |
   |   v                     |         +-----------------+     +--------------------+
-  | p14_checklist.txt       |
+  | p14_checklist.txt       |                                 power from its own USB
   |   MAC, flash size,      |         ESP8266-PROG carries its own USB-UART.
   |   client_id, NVS ok     |         Use ONE UART path, never both at once.
   +-------------------------+
@@ -145,12 +156,13 @@ The four fields are not arbitrary. Each of them answers a question that comes up
 
 ## Practices
 
-3.3 V logic. Never 5 V TTL into ESP pins. Set the adapter jumper before the first connection rather than after the first failure, and fit ground first. Flash an image you can rebuild, so that a board can always be returned to a known state. Keep the two targets apart on the bench: the ESP32 goes on to be a peer in P16 and the ESP8266 goes on to be an AT slave in P17, and a mislabelled unit turns both of those labs into guesswork.
+3.3 V logic. Never 5 V TTL into ESP pins, and note that this cable offers nothing to set: its level is fixed by its internal design and its red lead is 5 V whatever else is true, so the discipline is to leave that lead unconnected and fit ground first. Flash an image you can rebuild, so that a board can always be returned to a known state. Keep the two targets apart on the bench: the ESP32 goes on to be a peer in P16 and the ESP8266 goes on to be an AT slave in P17, and a mislabelled unit turns both of those labs into guesswork.
 
 ## Pitfalls
 
 - **Two UART paths at once.** The Renkforce cable and the onboard USB-UART of the ESP8266-PROG drive the same pins. The symptom is a sync that fails at random, or a console that prints half the characters.
-- **The adapter jumper left at 5 V.** ESP pins are 3.3 V. This is the connection to check before power, not after.
+- **The red lead connected to anything.** It is 5 V from the host USB rail, and the one thing on this cable that can damage a 3.3 V part. There is no jumper to get wrong, so this is the connection to leave out rather than the setting to check.
+- **Powering an ESP32 from the cable.** Even at the right voltage it is the wrong source: an association peak draws more than a serial cable's supply lead is meant to carry, and the symptom is a brownout in the middle of a write rather than a clean failure.
 - **Transmit wired to transmit.** Nothing is damaged and nothing answers. `esptool.py` reports a failed connection and the cause is the pair of wires that were not crossed.
 - **GPIO0 not held low.** The ESP32 boots the existing image instead of the serial bootloader, so the write never starts.
 - **Two adapters plugged in.** `/dev/ttyUSB0` is then whichever enumerated first. Unplug one, or read `dmesg` and use the right node.
