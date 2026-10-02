@@ -64,7 +64,8 @@ HAT 5 V & 2 and 4 & & Supplied through the header when the HAT is seated \\
 HAT GND & 6 & GND & \\
 Yellow module, S1 & 36 & GPIO16 & Cat-M confirmed and the session open. Lit when driven high \\
 Yellow module, G & 39 & GND & The return. The module's resistor is inside it \\
-Pin 15 & & GPIO22 & The draft's choice. Unconfirmed on this HAT, see the note \\
+PWRKEY & 7 & GPIO4 & The HAT's own. Never drive it from anything else \\
+Pin 15 & & GPIO22 & The draft's choice. Free on this HAT, see the note \\
 VCCIO jumper & & & 3V3 \\
 PWR jumper & & & Auto-on, as in P01 \\
 LTE antenna & & & Main port on the HAT \\
@@ -75,10 +76,31 @@ HAT USB cable & & & To a Pi USB-A port: AT and NMEA \\
 \caption{Wiring. Confirm the jumper block legend on the silkscreen before power, since the HAT revision decides which position is which.}
 \end{table}
 
-\begin{note}{The indicator pin moved, and this one is a judgement rather than a measurement}
-The draft put the indicator on GPIO22. On the two sibling HATs that have been checked, the draft's indicator pins turned out to be modem control lines: the SIM7600E-H of P01 uses GPIO27, GPIO22 and GPIO23 for ring indicator, data terminal ready and clear to send, and the SIM7020E of P02 uses GPIO27 as the power key. Nobody has checked the SIM7070G, so what is known is a pattern and not a fact about this board.
+\begin{note}{What this HAT claims, and the three ways its vendor spells one pin}
+The draft put the indicator on GPIO22. On the two sibling HATs the draft's indicator pins turned out to be modem control lines: the SIM7600E-H of P01 uses GPIO27, GPIO22 and GPIO23 for ring indicator, data terminal ready and clear to send, and the SIM7020E of P02 uses GPIO27 as the power key. This board was read next, and it is the least greedy of the three.
 
-The pin therefore moves to the high end of the header, where no HAT in this book documents a connection, and the move is recorded as a precaution rather than as a correction. \textbf{Read this HAT's pinout before wiring}, and if GPIO22 is genuinely free on it, the draft's pin is fine and this note is the explanation for why it looked wrong.
+The module's own hardware design document settles only half the question. It confirms the SIM7070G has that family of lines to route, PWRKEY on module pin 1, UART1\_DTR on 3, UART1\_RI on 4, UART1\_DCD on 5, UART1\_CTS on 7 and UART1\_RTS on 8, plus STATUS on 66 and NETLIGHT on 52. Which Raspberry Pi header pin each reaches is the carrier board's decision, so the HAT's own pages are what answer it.
+
+They do, and they claim remarkably little: the UART on GPIO14 and GPIO15, the module's power key, and one optional line.
+
+\begin{table}[H]\centering\small
+\begin{tabular}{p{34mm}p{26mm}p{20mm}p{56mm}}
+\toprule
+HAT connection & Header pin & BCM GPIO & Note \\
+\midrule
+PWRKEY & 7 & GPIO4 & Default. The PWR jumper's other position takes it to the supply instead \\
+DTR & 37 & GPIO26 & \textbf{Only} with the DTR jumper in position A. The default is disconnected \\
+IO level select & none & none & Default 3.3 V. The other position makes the HAT's logic 5 V \\
+\bottomrule
+\end{tabular}
+\caption{What the SIM7070G HAT puts on the header besides the UART, from the vendor's product page and wiki.}
+\end{table}
+
+\textbf{So GPIO22 is free on this board and the draft's pin would have worked.} It stays moved anyway, for a reason worth stating: one indicator assignment that is safe on all four cellular labs is easier to hold in the head than four, and BCM16 is free on every HAT checked so far. What is not free is GPIO26, which an intermediate version of this correction had used and which is exactly what the DTR jumper connects when it is in position A. That pin was abandoned for an unrelated reason, the MCC 118 claiming it in P05, and the right answer arrived by luck rather than by reading. The reading is what settles it now.
+
+\textbf{One pin, three spellings, one vendor.} The product page says PWRKEY goes to "P4". The wiki says it goes to "P7 (wiringPi number)". Those are the same conductor: wiringPi 7 is BCM GPIO4 is physical header pin 7. Neither page says which scheme it is using, and a reader who assumes physical numbering on the first page wires the power key to 5 V. Every pin in this book is given as header pin and BCM number together for exactly this reason.
+
+\textbf{Never move the IO level jumper.} It defaults to 3.3 V and its other position makes the HAT's logic 5 V, on a header whose every pin is a 3.3 V input. That is the single connection P15 exists to prevent, available on this board as a jumper.
 \end{note}
 
 \begin{asciiart}
@@ -201,6 +223,8 @@ tail -f /home/pi/p03.log
 \end{shellcode}
 
 \item \textbf{Drive the LED from two conditions, not one.} Yellow on BCM16 is on when \texttt{AT+CPSI?} last contained CAT-M and the module reported the session open. If the bearer changed, the LED goes out, which is the fastest way to notice a silent fallback from across the bench.
+
+The module has a status LED of its own and it answers a different question, which is why this lab fits a second one rather than reading the first. NETLIGHT on module pin 52 drives a network indicator with four states defined in the hardware design document: 64 ms on and 800 ms off while no network is registered, 64 ms on and 3000 ms off once registration succeeds, 64 ms on and 300 ms off while data is moving, and off for power down or power saving. Useful, and silent on the one thing this chapter exists for: all three lit patterns look identical whether the bearer is Cat-M, NB-IoT or a GPRS fallback. The host LED reports the bearer and the session; the module's reports that a network exists. Watch both and the pair tells you which half failed.
 \end{steps}
 
 \subsection*{Acceptance test}
