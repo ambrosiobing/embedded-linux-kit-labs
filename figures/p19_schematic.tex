@@ -1,44 +1,55 @@
 \begin{circuitikz}[scale=0.9, every node/.style={transform shape}, font=\sffamily\small]
-% ---------------- Pi header block
+% ---------------- Pi header block, split into what the panel covers and what it leaves
 \draw[rounded corners=2pt, fill=hwcol] (0,1.4) rectangle (3.6,6.4);
 \node[font=\sffamily\bfseries\small] at (1.8,6.0) {Raspberry Pi 3};
 \node[font=\sffamily\scriptsize] at (1.8,5.65) {40-pin header};
 \foreach \y/\pin/\name in {5.0/1/3V3, 4.5/3/GPIO2 SDA, 4.0/5/GPIO3 SCL, 3.5/6/GND}{
-  \draw (3.6,\y) -- (4.2,\y);
-  \node[anchor=east, font=\sffamily\scriptsize] at (3.5,\y) {pin \pin\ \ \name};
+  \draw[black!40] (3.6,\y) -- (4.2,\y);
+  \node[anchor=east, font=\sffamily\scriptsize, text=black!55] at (3.5,\y) {pin \pin\ \ \name};
 }
-\node[anchor=east, font=\sffamily\scriptsize, text=black!60, align=right] at (3.5,2.4)
-  {SPI0 and the rest of\\the header: the LCD};
-% ---------------- the LCD HAT, seated over the header
-\draw[rounded corners=2pt, fill=extcol] (0,-2.4) rectangle (3.6,0.9);
+\draw[red!70!black, dashed, line width=0.8pt] (3.75,3.3) rectangle (4.05,5.2);
+\node[anchor=west, font=\sffamily\scriptsize, text=red!70!black, align=left] at (4.25,4.25)
+  {pins 1 to 26 are under the panel.\\No jumper reaches any of them,\\and pin 1 and pin 17 are the only\\3.3 V pins on the whole header};
+\node[anchor=east, font=\sffamily\scriptsize, align=right] at (3.5,2.6)
+  {pins 27 to 40 stay clear:\\GND on 30, 34, 39 and\\nine free GPIO lines};
+% ---------------- the LCD panel, seated over the first 26 pins
+\draw[rounded corners=2pt, fill=extcol] (0,-2.6) rectangle (3.6,0.9);
 \node[font=\sffamily\bfseries\small] at (1.8,0.5) {Waveshare 3.5 inch (A)};
 \node[font=\sffamily\scriptsize, align=center, text width=32mm] at (1.8,-0.35)
   {480x320 SPI panel,\\resistive touch};
-\node[font=\sffamily\scriptsize, align=center, text width=32mm] at (1.8,-1.5)
-  {seated on the 40-pin header,\\pins 1, 3, 5, 6 passed through};
+\node[font=\sffamily\scriptsize, align=center, text width=34mm] at (1.8,-1.6)
+  {mates with pins 1 to 26 only,\\no pass-through header on top.\\It declares pins 3 and 5 not\\connected, so the bus is free\\but buried};
 \draw[thick] (1.8,0.9) -- (1.8,1.4);
 \node[anchor=west, font=\sffamily\scriptsize] at (1.95,1.15) {seats here};
 % ---------------- ADXL345 breakout
-\draw[rounded corners=2pt, fill=usrcol] (7.0,2.6) rectangle (10.4,5.4);
-\node[font=\sffamily\bfseries\small] at (8.7,5.05) {SEN0032};
-\node[font=\sffamily\scriptsize] at (8.7,4.7) {ADXL345, 0x53};
-\node[font=\sffamily\scriptsize, text=black!60] at (8.7,4.42) {SDO open: 0x53};
+\draw[rounded corners=2pt, fill=usrcol] (8.8,2.6) rectangle (12.2,5.4);
+\node[font=\sffamily\bfseries\small] at (10.5,5.05) {SEN0032};
+\node[font=\sffamily\scriptsize] at (10.5,4.7) {ADXL345, 0x53};
+\node[font=\sffamily\scriptsize, text=black!60] at (10.5,4.42) {SDO open: 0x53};
 \foreach \y/\name in {4.05/VCC, 3.6/SDA, 3.15/SCL, 2.85/GND}{
-  \draw (6.4,\y) -- (7.0,\y);
-  \node[anchor=west, font=\sffamily\scriptsize] at (7.1,\y) {\name};
+  \draw (8.2,\y) -- (8.8,\y);
+  \node[anchor=west, font=\sffamily\scriptsize] at (8.9,\y) {\name};
 }
-% ---------------- routing through the pass-through pins
-\draw (4.2,5.0) -- (6.4,5.0) -- (6.4,4.05);
-\draw (4.2,4.5) -- (6.1,4.5) -- (6.1,3.6) -- (6.4,3.6);
-\draw (4.2,4.0) -- (5.8,4.0) -- (5.8,3.15) -- (6.4,3.15);
-\draw (4.2,3.5) -- (5.5,3.5) -- (5.5,2.85) -- (6.4,2.85);
-\draw (5.1,3.5) -- (5.1,3.05);
-\node[ground] at (5.1,3.05) {};
-\node[anchor=west, font=\sffamily\scriptsize, text=red!70!black] at (4.3,2.15)
-  {VCC goes to pin 1. Never pin 2.};
-\node[anchor=west, font=\sffamily\scriptsize, text=black!60, align=left] at (4.3,1.55)
-  {Confirm on the silkscreen that the HAT\\passes pins 1, 3, 5 and 6 through.};
+% ---------------- route A: a stacking header restores the printed wiring
+\node[draw=linecol, rounded corners=2pt, fill=white, text width=46mm, align=left,
+      font=\sffamily\scriptsize, anchor=north west] at (4.3,1.1)
+  {\textbf{Route A: a 2x20 stacking header.}\\Raises the panel, every pin returns, and the
+   wiring table is correct as printed. One small part, not on this bench.};
+% ---------------- route B: rails plus a bit-banged bus
+\node[draw=linecol, rounded corners=2pt, fill=white, text width=46mm, align=left,
+      font=\sffamily\scriptsize, anchor=north west] at (4.3,-0.9)
+  {\textbf{Route B: no purchase.}\\3.3 V from the POW-BB rail of P15, ground on pin 30, 34
+   or 39, and I2C bit-banged with the \texttt{i2c-gpio} overlay on two free GPIO lines.
+   Ample for tilt.};
+% ---------------- the supply that is not on the header any more
+\draw[rounded corners=2pt, fill=hwcol] (8.8,0.2) rectangle (12.2,1.8);
+\node[font=\sffamily\bfseries\small] at (10.5,1.4) {SBC-POW-BB};
+\node[font=\sffamily\scriptsize, align=center] at (10.5,0.75) {labelled 3.3 V rail,\\route B only};
+\draw[dashed] (10.5,1.8) -- (10.5,2.6);
+\node[anchor=west, font=\sffamily\scriptsize] at (10.6,2.2) {VCC};
+\node[anchor=west, font=\sffamily\scriptsize, text=red!70!black] at (8.9,-0.3)
+  {Never 5 V into VCC, on either route.};
 % ---------------- the exclusivity rule
-\node[anchor=west, font=\sffamily\scriptsize, text=red!70!black, align=left] at (4.3,0.1)
+\node[anchor=north west, font=\sffamily\scriptsize, text=red!70!black, align=left] at (4.3,-3.3)
   {The LCD owns the 40-pin header.\\This cannot share a Pi with P06 in the same sitting.};
 \end{circuitikz}

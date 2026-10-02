@@ -17,7 +17,7 @@ That absence is the lab. Every other display in this book is attached to somethi
 > [!NOTE]
 > **Kit from the bin**
 >
-> Pi 3, Waveshare 3.5 inch RPi LCD (A), SEN0032 ADXL345, jumpers to the HAT pass-through 3V3, GND, SDA and SCL.
+> Pi 3, Waveshare 3.5 inch RPi LCD (A), SEN0032 ADXL345, jumpers for the sensor. This panel has no pass-through, so read the wiring note before planning the sitting.
 
 > [!IMPORTANT]
 > **The LCD owns the 40-pin header**
@@ -30,7 +30,7 @@ That absence is the lab. Every other display in this book is attached to somethi
 
 *Figure 19.1. An instrument with no network side. SPI carries the panel, I2C carries the accelerometer, and the loop between them never leaves the board.*
 
-There are exactly two buses in this lab and both of them stay on the host. SPI drives the panel through the vendor overlay, which on Bookworm means the current Waveshare note for the 3.5 inch (A) rather than the flexfb recipes that circulated in 2016. I2C1 carries the ADXL345 at 0x53, wired to the pass-through pins the HAT leaves available. Between them sits one Python loop that reads six registers, computes two angles and paints two bars.
+There are exactly two buses in this lab and both of them stay on the host. SPI drives the panel through the vendor overlay, which on Bookworm means the current Waveshare note for the 3.5 inch (A) rather than the flexfb recipes that circulated in 2016. I2C1 carries the ADXL345 at 0x53, and reaching it is the difficulty of this lab rather than a detail of it, because the panel covers the pins the bus lives on. Between them sits one Python loop that reads six registers, computes two angles and paints two bars.
 
 Nothing else is present. There is no broker, no radio, no USB gadget and no second host. Confirm that a framebuffer exists before writing any drawing code, exactly as P06 does: either `/dev/fb0` or a DRM card, depending on what the vendor overlay gives you on your image.
 
@@ -41,9 +41,9 @@ Nothing else is present. There is no broker, no radio, no USB gadget and no seco
 
 ## Wiring and schematic
 
-![Figure 19.2. The LCD occupies the header and passes through the four pins the accelerometer needs.](../figures/p19_schematic.svg)
+![Figure 19.2. The panel covers the pins the sensor needs, and the two ways past that.](../figures/p19_schematic.svg)
 
-*Figure 19.2. The LCD occupies the header and passes through the four pins the accelerometer needs. SDO left floating selects 0x53, the same address the sensor uses in P01 and P09.*
+*Figure 19.2. The panel covers the pins the sensor needs, and the two ways past that. SDO left floating selects 0x53, the same address the sensor uses in P01 and P09.*
 
 | Signal | Pi header pin | BCM GPIO | Note |
 | --- | --- | --- | --- |
@@ -54,10 +54,23 @@ Nothing else is present. There is no broker, no radio, no USB gadget and no seco
 | ADXL345 SDO |  |  | Left floating, selects 0x53 |
 | LCD panel | 40-pin header |  | The HAT owns the header for the sitting |
 
-*Table 19.1. Wiring. Use the HAT pass-through for pins 1, 3, 5 and 6 if the board exposes them, which it usually does. Confirm on the silkscreen before forcing a jumper anywhere.*
+*Table 19.1. Wiring as the source gives it, which this panel cannot be wired to. The four rows above assume a pass-through, and the Waveshare 3.5 inch (A) has none. Read the note before touching a jumper.*
+
+> [!NOTE]
+> **This panel has no pass-through, and the lab is blocked until that is worked around**
+>
+> The source says to wire the sensor to pins 1, 3, 5 and 6 "if the LCD HAT pass-through exposes them (it usually does)". On this panel it does not. The board mates with the first 26 pins through a female header on its underside and carries no header on top, so that whole corner sits under the panel and no jumper reaches it.
+>
+> The arithmetic is worse than needing different pins. Hardware I2C1 exists only on pins 3 and 5, so there is no second I2C bus to move to. Pin 1 and pin 17 are the only 3.3 V pins on the header and both are inside the covered range, so with the panel seated there is no supply pin left either. What remains above pin 26 is grounds on 30, 34 and 39 and GPIOs on 29, 31, 32, 33, 35, 36, 37, 38 and 40, with pins 27 and 28 left alone as the identity EEPROM lines.
+>
+> One detail from the panel's own pinout is what makes a fix possible rather than impossible: it declares pins 3 and 5 not connected. The I2C bus is electrically free and only physically buried, so nothing is contending for it.
+>
+> **Two ways out, and the choice has not been made.** A 2x20 stacking or extension header raises the panel and restores every pin, after which the table above is correct as printed; that is one small part and it is not on this bench. Or the sensor takes its 3.3 V from the POW-BB rail that P15 already labels, grounds to pin 30, 34 or 39, and runs on a bit-banged bus through the `i2c-gpio` overlay on two of the free GPIOs, which is ample for tilt and costs nothing. The second also makes P15's rails load-bearing in a later lab rather than a one-off.
+>
+> Whichever is chosen, **check first whether the panel's PCB overhangs pins 27 to 40**. The header mates with only the first 26, but a board that covers the rest of the row leaves the second route with nowhere to put a jumper either, and then the stacking header is the only answer.
 
 ```text
-ADXL345                 Pi 40-pin (via the 3.5" LCD HAT pass-through)
+ADXL345                 Pi 40-pin (NOT reachable: the panel covers pins 1-26)
 VCC ------------------- pin 1  3V3      NEVER 5V
 GND ------------------- pin 6  GND
 SDA ------------------- pin 3  GPIO2
@@ -120,7 +133,7 @@ The other thing the diagram shows by omission is that there is no failure path w
 ls /dev/fb* /dev/dri/card* 2>/dev/null
 ```
 
-**Step 2.** **Wire the ADXL345** to pins 1, 3, 5 and 6 if the LCD HAT pass-through exposes them, which it usually does. Then confirm the address.
+**Step 2.** **Wire the ADXL345** by whichever of the two routes in the wiring note applies to the panel in front of you, because the printed pins 1, 3, 5 and 6 are underneath it. Then confirm the address.
 
 ```bash
 sudo apt-get install -y i2c-tools python3-smbus
@@ -172,7 +185,7 @@ Keep the instrument offline for the whole sitting. The value of this lab is that
 
 One 40-pin HAT per host, as everywhere in this book. The 3.5 inch LCD is the HAT here, so the Pi 3 cannot also carry the MCC 118, a cellular HAT or the Explorer700, and it cannot be running P06 at the same time. Power off before unseating the panel, and put the ADXL345 back in the bin with its jumpers rather than leaving it dangling from a stored board.
 
-The sensor is the same SEN0032 used in P01 and P09, and it is the same address and the same register sequence in all three. When it appears at 0x53 here, that is a part behaving as it has behaved twice already, and when it does not, the fault is almost always the pass-through rather than the chip.
+The sensor is the same SEN0032 used in P01 and P09, and it is the same address and the same register sequence in all three. When it appears at 0x53 here, that is a part behaving as it has behaved twice already, and when it does not, the fault is in how the bus was reached rather than in the chip.
 
 ## Pitfalls
 
@@ -180,7 +193,7 @@ The sensor is the same SEN0032 used in P01 and P09, and it is the same address a
 - **Writing drawing code before checking for a framebuffer.** Confirm `/dev/fb0` or a DRM card first, exactly as P06 does.
 - **Long jumpers to the sensor.** The assembly gets rotated during its own test. A sensor swinging on loose leads measures its own swing.
 - **5 V on the accelerometer.** The SEN0032 goes to pin 1, never pin 2.
-- **Assuming the pass-through exposes pins 1, 3, 5 and 6.** It usually does. Confirm on the silkscreen rather than forcing a jumper.
+- **Assuming a pass-through.** The source says one usually exists, and this panel has none, which is what blocked the lab. Read the board's own pinout before planning any wiring that depends on reaching a pin underneath it.
 - **Trying to run P06 on the same Pi in the same sitting.** Both labs want the LCD on the 40-pin header. Tear one down first.
 - **Leaving a subscriber running from an earlier lab.** The acceptance test says no MQTT client is running, and a forgotten `mosquitto_sub` in another terminal is still a client.
 - **Using the single-argument arctangent.** The sign of the angle is then lost across half the range, and one bar travels the wrong way.
