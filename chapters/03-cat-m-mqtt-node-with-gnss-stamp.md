@@ -65,8 +65,8 @@ The seating rules are the same as P01: one 40-pin HAT, jumpers set before power,
 | --- | --- | --- | --- |
 | HAT 5 V | 2 and 4 |  | Supplied through the header when the HAT is seated |
 | HAT GND | 6 | GND |  |
-| Yellow LED anode | 15 | GPIO22 | Cat-M confirmed and the session open |
-| LED return | 9 | GND | Through a series resistor |
+| Yellow module, S1 | 15 | GPIO22 | Cat-M confirmed and the session open. Lit when driven high |
+| Yellow module, G | 9 | GND | The return. The module's resistor is inside it |
 | VCCIO jumper |  |  | 3V3 |
 | PWR jumper |  |  | Auto-on, as in P01 |
 | LTE antenna |  |  | Main port on the HAT |

@@ -54,7 +54,7 @@ The consequence is that the Pi cannot ping anything over this link, and should n
 
 ## Wiring and schematic
 
-The electrical work is almost nothing. The HAT seats on the header and takes its power and its serial line from there. One green LED and one series resistor are the only parts on the breadboard. The configuration work, on the other hand, is the reason this section exists: on a Pi 3 the PL011 is wired to the Bluetooth controller by default, and the port that carries the AT dialogue only becomes `ttyAMA0` after the overlay moves Bluetooth out of the way.
+The electrical work is almost nothing. The HAT seats on the header and takes its power and its serial line from there. One LK-LED10 module is the only part on the breadboard, and it carries its own resistor, so nothing is added beside it. The configuration work, on the other hand, is the reason this section exists: on a Pi 3 the PL011 is wired to the Bluetooth controller by default, and the port that carries the AT dialogue only becomes `ttyAMA0` after the overlay moves Bluetooth out of the way.
 
 ![Figure 2.2. The HAT seats on the 40-pin header and reaches the Pi over the PL011 UART.](../figures/p02_schematic.svg)
 
@@ -66,8 +66,8 @@ The electrical work is almost nothing. The HAT seats on the header and takes its
 | UART TXD0 | 8 | GPIO14 | Pi transmit, to the module receive pin |
 | UART RXD0 | 10 | GPIO15 | Pi receive, from the module transmit pin |
 | HAT GND | 6 | GND |  |
-| Green LED anode | 13 | GPIO27 | CEREG registered, through a series resistor |
-| LED return | 9 | GND |  |
+| Green module, S1 | 13 | GPIO27 | CEREG registered. Lit when the pin is driven high |
+| Green module, G | 9 | GND | The return. The module's resistor is inside it |
 | NB antenna |  |  | On the NB port of the HAT, not a 4G antenna |
 
 *Table 2.2. Wiring. The HAT occupies the whole 40-pin header, so the LED goes on the pass-through pins the HAT exposes. Confirm the pass-through on the silkscreen before soldering anything permanent.*

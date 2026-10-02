@@ -1,36 +1,41 @@
 \begin{tikzpicture}[font=\sffamily\small]
 % ---------------- columns: user space, kernel, data hardware, power domain
-\node[user, text width=28mm] (blink) at (0,0) {blink script\\{\scriptsize three outputs, low = lit}};
-\node[user, text width=28mm] (book) at (0,-4.2) {lab book\\{\scriptsize three measured numbers}};
-\node[kern, text width=28mm] (gpio) at (3.9,0) {gpiochip0\\{\scriptsize GPIO27, GPIO22, GPIO23}};
-\node[hw, text width=28mm] (hdr) at (7.7,0) {header pins 13, 15, 16\\{\scriptsize 3.3 V logic}};
-\node[hw, text width=28mm] (leds) at (7.7,-2.2) {R/Y/G LEDs\\{\scriptsize cathodes sink to GPIO}};
+\node[user, text width=28mm] (blink) at (0,0) {blink script\\{\scriptsize three outputs, high = lit}};
+\node[user, text width=28mm] (book) at (0,-4.6) {lab book\\{\scriptsize what was measured, and what could not be}};
+\node[kern, text width=28mm] (gpio) at (3.9,0) {gpiochip0\\{\scriptsize GPIO17, GPIO27, GPIO22}};
+\node[hw, text width=28mm] (hdr) at (7.7,0) {header pins 11, 13, 15\\{\scriptsize 3.3 V logic, and the only source}};
+\node[hw, text width=28mm] (leds) at (7.7,-2.3) {LK-LED10 modules\\{\scriptsize own resistor, anode on the pin}};
+\node[hw, text width=28mm] (gnd) at (7.7,-4.6) {common ground\\{\scriptsize breadboard rail to pin 6}};
 \node[hw, text width=28mm] (rail5) at (13.0,0) {POW-BB 5V rail\\{\scriptsize labelled, no data pin}};
-\node[hw, text width=28mm] (rail3) at (13.0,-2.2) {POW-BB 3V3 rail\\{\scriptsize LED anodes}};
+\node[hw, text width=28mm] (rail3) at (13.0,-2.3) {POW-BB 3V3 rail\\{\scriptsize labelled, feeds no LED}};
 \node[ext, text width=28mm] (psu) at (13.0,2.2) {supply, 5 V};
-\node[ext, text width=28mm] (dmm) at (13.0,-4.2) {multimeter\\{\scriptsize 5 V, 3V3, GND}};
+\node[ext, text width=28mm] (dmm) at (13.0,-4.6) {voltmeter\\{\scriptsize not on this bench}};
 % ---------------- bands
 \begin{scope}[on background layer]
 \node[layer, fit=(blink)(book), inner ysep=9pt, inner xsep=5pt,
   label={[layerlabel, anchor=south west]north west:user space}] {};
 \node[layer, fit=(gpio), inner ysep=9pt, inner xsep=5pt,
   label={[layerlabel, anchor=south west]north west:kernel}] {};
-\node[layer, fit=(hdr)(leds), inner ysep=9pt, inner xsep=5pt,
+\node[layer, fit=(hdr)(leds)(gnd), inner ysep=9pt, inner xsep=5pt,
   label={[layerlabel, anchor=south west]north west:data domain}] {};
 \node[layer, fit=(psu)(rail5)(rail3), inner ysep=9pt, inner xsep=5pt,
   label={[layerlabel, anchor=south west]north west:power domain, carries no data}] {};
 \end{scope}
-% ---------------- power chain
+% ---------------- power chain, which stops before the LEDs
 \draw[flow] (psu) -- (rail5);
 \draw[flow] (rail5) -- node[lbl, left]{regulator} (rail3);
-\draw[flow] (rail3) -- node[lbl, below, pos=0.5]{series R} (leds);
-\draw[flow] (leds) -- node[lbl, right]{cathode} (hdr);
+% ---------------- the LED current, which comes out of the header pin
+\draw[flow] (hdr) -- node[lbl, right]{sources a few mA} (leds);
+\draw[flow] (leds) -- node[lbl, right]{cathode} (gnd);
 \draw[bus] (hdr) -- (gpio);
 \draw[bus] (gpio) -- (blink);
-% ---------------- measurement
+% ---------------- the one shared conductor
+\draw[dashed, draw=linecol] (rail3.south) -- ++(0,-1.15) -| node[lbl, below, pos=0.72]{the only shared conductor} (gnd.east);
+% ---------------- the measurement this bench cannot take
 \draw[dashed, draw=linecol] (dmm) -- (rail3);
-\draw[dashed, draw=linecol] (dmm.east) -- ++(8mm,0) |- (rail5.east);
-\draw[flow] (dmm) -- node[lbl, above]{5 V, 3.3 V and a common ground, written down} (book);
+\node[font=\sffamily\scriptsize, align=center, anchor=north] at (13.0,-5.6)
+  {the two rail voltages\\stay unmeasured, with\\the reason written down};
+\draw[flow] (gnd) -- node[lbl, above]{continuity, shown by the LEDs themselves} (book);
 % ---------------- the connection that must not exist
 \draw[red!70!black, dashed, line width=0.8pt] (hdr.east) -- (rail5.west);
 \draw[red!70!black, line width=1pt] (10.15,-0.25) -- (10.55,0.25);

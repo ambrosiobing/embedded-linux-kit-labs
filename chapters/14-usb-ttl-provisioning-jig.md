@@ -63,7 +63,7 @@ ESP8266-PROG: onboard USB-UART may already exist --- use ONE
               UART path, not both at once
 ```
 
-The red, yellow and green LEDs sit on the breadboard as jig status, driven from the host exactly as the semaphore of P15 is driven: anodes on the 3.3 V rail through a series resistor, cathodes sinking into GPIO. The source gives no dedicated pin assignment for this lab, so reuse the P15 wiring rather than inventing a second one.
+The LK-LED10 modules sit on the breadboard as jig status, driven from the host exactly as the semaphore of P15 is driven: the header pin feeds the module's signal pin, which is its anode side, and the module returns to the common ground rail, so a pin driven high is the lit state and each module's resistor is already inside it. The source gives no dedicated pin assignment for this lab, so reuse the P15 wiring rather than inventing a second one, and settle the polarity on one module first, as P15 does, because which way round the LED sits is not printed on the part.
 
 ## Bench layout
 
