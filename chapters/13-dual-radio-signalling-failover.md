@@ -57,8 +57,8 @@ The wiring is P01's and P02's. Nothing on either host changes for this lab, incl
 
 | Host | Attachment | Built in | Path used here |
 | --- | --- | --- | --- |
-| Pi 4 | SIM7600E-H HAT, LTE and GNSS antennas, ADXL345, LEDs on BCM 16/26/20 | P01, unchanged | Default route on usb0 or wwan0, a normal MQTT client |
-| Pi 3 | SIM7020E HAT, NB antenna, green LED on BCM26 | P02, unchanged | UDP socket inside the module, no route on the host |
+| Pi 4 | SIM7600E-H HAT, LTE and GNSS antennas, ADXL345, LEDs on BCM 16/20/21 | P01, unchanged | Default route on usb0 or wwan0, a normal MQTT client |
+| Pi 3 | SIM7020E HAT, NB antenna, green LED on BCM16 | P02, unchanged | UDP socket inside the module, no route on the host |
 | Pi 4 with the DSI panel | Official touchscreen and keyboard, Mosquitto | P12, unchanged | Broker and supervisor, on the LAN |
 
 *Table 13.2. The three attachments this lab borrows. It adds no wiring of its own, and it changes nothing on any of them.*

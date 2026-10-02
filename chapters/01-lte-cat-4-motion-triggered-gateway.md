@@ -22,7 +22,7 @@ The lab is a gateway, not a tracker and not a router. Two things are deliberatel
 > [!NOTE]
 > **Kit from the bin**
 >
-> Pi 4, SIM7600E-H with LTE and GNSS antennas and a micro-SIM, SEN0032 ADXL345, three LK-LED10 modules on BCM 16/26/20, a 3 A USB-C supply, keyboard.
+> Pi 4, SIM7600E-H with LTE and GNSS antennas and a micro-SIM, SEN0032 ADXL345, three LK-LED10 modules on BCM 16/20/21, a 3 A USB-C supply, keyboard.
 
 ## System architecture
 
@@ -49,8 +49,8 @@ The event path is independent of the network path. A Python loop reads six regis
 | ADXL345 SDO |  |  | Left floating, selects 0x53 |
 | ADXL345 INT1 | 11 | GPIO17 | Optional, not needed for the magnitude poll |
 | Green module, S1 | 36 | GPIO16 | CEREG registered. Lit when driven high |
-| Yellow module, S1 | 37 | GPIO26 | Default route on usb0 or wwan0 |
-| Red module, S1 | 38 | GPIO20 | Last shock event |
+| Yellow module, S1 | 38 | GPIO20 | Default route on usb0 or wwan0 |
+| Red module, S1 | 40 | GPIO21 | Last shock event |
 | Module grounds | 34 or 39 | GND | The breadboard ground rail, as in P15 |
 | Pins 13, 15, 16 |  | GPIO27, 22, 23 | Not free on this HAT. See the note below |
 
@@ -109,7 +109,7 @@ The publisher is a single loop with one piece of state, a cool-off timestamp. It
   |   |  yes -> mosquitto_pub ------------------> | usb0 / wwan0  (user)   |---> broker
   |   |  cool-off 2 s               |             |                        |
   |   v                             |   USB       | /dev/ttyUSB2  (AT) <--------+
-  | gpio: GRN 16  YEL 26  RED 20    |<===========>|                        |     |
+  | gpio: GRN 16  YEL 20  RED 21    |<===========>|                        |     |
   +---------------------------------+             +------------------------+     |
         ^                                                                        |
         +--- AT+CSQ every 60 s, AT+CEREG? for the green LED --------------------+

@@ -15,14 +15,14 @@
 
 ## Intent
 
-The SIM7020E sits on a Pi 3 as a power-saving NB-IoT endpoint. Every 10 minutes the node wakes, sends an approximately 20-byte CoAP/UDP datagram, and returns to idle. Acceptance is the duty cycle, not a continuous ping. A green LK-LED10 module on BCM26 reports one fact only, that `AT+CEREG?` says the module is registered on a cell.
+The SIM7020E sits on a Pi 3 as a power-saving NB-IoT endpoint. Every 10 minutes the node wakes, sends an approximately 20-byte CoAP/UDP datagram, and returns to idle. Acceptance is the duty cycle, not a continuous ping. A green LK-LED10 module on BCM16 reports one fact only, that `AT+CEREG?` says the module is registered on a cell.
 
 Nothing else belongs here. There is no default route on the Pi, because the UDP socket lives inside the module and is opened with `AT+CSOC`. There is no GNSS, because that is P03. There is no MQTT, because NB-IoT is not a phone network and the public broker is usually unreachable from an NB APN. Energy figures are measured in P10 with the PPK2, not estimated here.
 
 > [!NOTE]
 > **Kit from the bin**
 >
-> Pi 3, SIM7020E HAT with an NB antenna and an NB-IoT SIM, green LK-LED10 module on BCM26.
+> Pi 3, SIM7020E HAT with an NB antenna and an NB-IoT SIM, green LK-LED10 module on BCM16.
 
 > [!NOTE]
 > **Without a SIM**
@@ -66,7 +66,7 @@ The electrical work is almost nothing. The HAT seats on the header and takes its
 | UART TXD0 | 8 | GPIO14 | Pi transmit, to the module receive pin |
 | UART RXD0 | 10 | GPIO15 | Pi receive, from the module transmit pin |
 | HAT GND | 6 | GND |  |
-| Green module, S1 | 37 | GPIO26 | CEREG registered. Lit when the pin is driven high |
+| Green module, S1 | 36 | GPIO16 | CEREG registered. Lit when the pin is driven high |
 | Green module, G | 39 | GND | The return. The module's resistor is inside it |
 | Pin 13 |  | GPIO27 | The module's power key on this HAT. Not an indicator pin |
 | NB antenna |  |  | On the NB port of the HAT, not a 4G antenna |
@@ -85,7 +85,7 @@ HAT seated on Pi 3. UART jumper = Waveshare "B" (Pi controls modem).
 Disable Bluetooth to free PL011 ttyAMA0:
   /boot/firmware/config.txt   dtoverlay=disable-bt
   raspi-config -> Serial: login=OFF, hardware=ON
-LED GRN BCM26 = CEREG registered.
+LED GRN BCM16 = CEREG registered.
 Antenna on the NB port. No 4G antenna swap, the matching is different.
 ```
 
@@ -128,7 +128,7 @@ One consequence is worth stating plainly before the steps begin. Everything the 
   |     AT+CSOSEND=0,8,"50494E47"|<==========>| module (no Linux route)   |--> CoAP
   |   between sends: nothing     |  115200    |                           |    5683
   |                              |            | PSM: idle, radio off      |
-  | gpio: GRN BCM26 <- CEREG     |            |                           |
+  | gpio: GRN BCM16 <- CEREG     |            |                           |
   +------------------------------+            +---------------------------+
         ^                                             |
         +--- AT+CEREG? and AT+CSQ on each wake -------+
@@ -204,7 +204,7 @@ while True:
     time.sleep(600)
 ```
 
-**Step 7.** **Drive the LED from the registration state.** Green on BCM26 follows `AT+CEREG?` and nothing else. It is not a link light and not a transmit light, because on this radio neither of those is meaningful between wakes.
+**Step 7.** **Drive the LED from the registration state.** Green on BCM16 follows `AT+CEREG?` and nothing else. It is not a link light and not a transmit light, because on this radio neither of those is meaningful between wakes.
 
 **Step 8.** **Count the duty cycle at the endpoint, not on the Pi.** The product of this lab is a record on the receiving side. Leave the node running for an hour and count the datagrams that arrived.
 
