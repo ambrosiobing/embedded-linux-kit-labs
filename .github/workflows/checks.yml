@@ -109,11 +109,26 @@ jobs:
           fi
           echo "the rate check and the resting invariant both hold"
 
-      - name: No built artefacts committed
+      - name: No assembled volume and no PDF is published
         run: |
           set -e
-          if git ls-files | grep -E '\.(pdf|html|aux|log|toc|out|o|d|p04|lab)$|^p04/p04(-test)?$'; then
-            echo "built artefacts must not be committed; they are rebuilt from source"
+          if git ls-files | grep -E '\.(pdf|html|aux|log|toc|out)$'; then
+            echo "A PDF or an HTML file is committed, and neither is ever published."
+            echo "What this repository offers is one Markdown lab and one project"
+            echo "at a time, which is what mdbuild.py writes. There is deliberately no"
+            echo "assembled volume to download. The PDF and the HTML are for the"
+            echo "author's own proofreading and stay on the authoring machine."
             exit 1
           fi
-          echo "none committed, as intended"
+          echo "no PDF, no HTML, no assembled volume. Markdown labs only, as intended"
+
+      - name: No journal and no correspondence is published
+        run: |
+          set -e
+          if git ls-files | grep -iE '(^|/)(private_journal|correspondence)/|(^|/)DIARY[^/]*\.md$'; then
+            echo "A journal or a correspondence file is committed."
+            echo "These live in the catalogue, which is local only. A published"
+            echo "repository carries the work, never the running record of doing it."
+            exit 1
+          fi
+          echo "no journal, no correspondence, as intended"
