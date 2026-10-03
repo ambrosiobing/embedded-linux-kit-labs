@@ -22,6 +22,33 @@ So the signal pin is the anode side, the header pin sources the current, and the
 The supply pin was settled the same way. One of the four modules had its \texttt{U} pin wired and the other three did not, which is the kind of asymmetry a later reader assumes is deliberate. Pulling that jumper changed nothing: the module lit exactly as before. The released-line reading says why. A module whose LED sat between \texttt{U} and \texttt{S1} would pull a floating \texttt{S1} up towards the supply, and this one reads low, so \texttt{U} is not in the lit circuit and the module needs signal and ground only.
 \end{note}
 
+\begin{note}{What each module draws, measured with the PPK2 on Saturday 3 October 2026}
+The one instrument on this bench is a Power Profiler Kit II, and it answers the question a voltmeter cannot: how much current each module actually takes. Each module was taken off the Pi entirely, its \texttt{S1} wired to the PPK2's \texttt{VOUT} and its \texttt{G} to the PPK2's \texttt{GND}, and read in source-meter mode at 5.000 V and then at 3.300 V, with the averaging window placed on the lit stretch of the trace and not across the step. Two points per module solve two unknowns, because \texttt{I = (V - Vf) / R}.
+
+\begin{table}[H]\centering\small
+\begin{tabular}{p{34mm}p{18mm}p{18mm}p{18mm}p{18mm}}
+\toprule
+ & blue & green & yellow & red \\
+\midrule
+at 5.000 V & 9.81 mA & 15.98 mA & 13.10 mA & 13.16 mA \\
+at 3.300 V & 2.94 mA & 7.39 mA & 6.20 mA & 6.34 mA \\
+fraction kept at 3.3 V & 0.30 & 0.46 & 0.47 & 0.48 \\
+effective resistance & 247 ohm & 198 ohm & 246 ohm & 249 ohm \\
+derived forward voltage & 2.57 V & 1.84 V & 1.77 V & 1.72 V \\
+\bottomrule
+\end{tabular}
+\caption{Four LK-LED10 modules at the two supply voltages that matter here. The resistance is effective: a two-point fit lumps the fitted resistor with the diode's own slope, and two points cannot separate them.}
+\end{table}
+
+\textbf{The resistor sets the current at 5 V. The forward voltage sets how much of it survives at 3.3 V.} The fraction a module keeps is \texttt{(3.3 - Vf) / (5 - Vf)}, which contains no resistor, and it reproduces every measured fraction above to two places. So a module that is dim on a 3.3 V pin is not dim because its resistor was sized for 5 V, which is only why it is as bright as it is at 5 V. It is dim because its forward voltage eats most of the 3.3 V, and that is a property of the colour's chemistry rather than of the module's design.
+
+\textbf{Blue stands alone, and the prediction about green was wrong.} The expectation written before measuring was that blue and green would both lose most of their current at 3.3 V, because modern greens sit near 3 V like blue. This green does not: at 1.84 V it is the older low-forward-voltage type and it keeps 46 per cent, beside yellow and red. Blue keeps 30. A reader should not infer a forward voltage from a colour name, which is exactly what that prediction did.
+
+\textbf{Three modules share an effective resistance} within three ohms and green sits at 198. With three different forward voltages giving the same figure, that figure is mostly the fitted resistor rather than the diode slope, so green most likely carries a different resistor. Most likely is as far as two points go.
+
+\textbf{The semaphore on the Pi draws 16.5 mA at 3.3 V}, blue, green and yellow together, which is under what one pin may source and well under the budget for the whole header. The three lit at once in the earlier note were never near a limit.
+\end{note}
+
 \begin{note}{Where this lab sits in the order}
 The lab sequence in the appendix opens with P15 rails, and adds: do not skip. Everything after it assumes a labelled 5 V rail, a labelled 3.3 V rail and a ground that is common to the host, the breadboard and the supply. The jig of P14 and the sidecars of P16 and P17 are the next three labs, and each of them puts 3.3 V logic on a wire you can reach.
 \end{note}
@@ -188,7 +215,7 @@ Keep every I/O pin on this bench at 3.3 V: Pi, NanoPi and Nucleo I/O are 3.3 V, 
 \item \textbf{A 5 V pull-up on a GPIO.} The symptom ranges from an input that reads high and never changes to a pin that stops responding altogether. This is the one connection the lab exists to prevent.
 \item \textbf{An unlabelled rail.} Two red jumpers, two rails, one guess. Label the rails and the guess disappears.
 \item \textbf{Assuming the polarity instead of testing it.} This chapter asserted the sinking arrangement and the module turned out to source. The three controls take a minute, and without them a correct program shows the wrong colour on every LED and looks like a logic bug.
-\item \textbf{Adding a series resistor the module already has.} Two resistors in series make the LED dimmer than it should be, which reads as a weak pin or a bad contact. Check the module before adding anything, and note that a module whose resistor was sized for 5 V is dim at 3.3 V by design.
+\item \textbf{Adding a series resistor the module already has.} Two resistors in series make the LED dimmer than it should be, which reads as a weak pin or a bad contact. Check the module before adding anything. A module that is dim at 3.3 V is not a fault either, and the measured table in the note above says which colour loses most and why.
 \item \textbf{Ground not common.} If the POW-BB ground and the host ground are separate, the LED either stays dark or lights in a way that does not follow the program. Three dark together is the shared ground jumper; one dark alone is its own signal wire.
 \item \textbf{Driving the supply pin.} The module has a supply pin that this wiring leaves unconnected. If it is ever used, it goes to 3.3 V and never to 5 V, because a module that puts its LED between supply and signal leaves the signal pin sitting at the supply voltage whenever the pin is not driving.
 \item \textbf{The negative test left standing.} A 5 V pull-up that stays on the breadboard is a hazard to the next lab that borrows a jumper from the same row.
