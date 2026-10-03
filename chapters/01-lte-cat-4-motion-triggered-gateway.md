@@ -61,7 +61,7 @@ The event path is independent of the network path. A Python loop reads six regis
 >
 > The draft put the three indicators on header pins 13, 15 and 16. On the SIM7600E-H those are the modem's own control lines: GPIO27 is the ring indicator, GPIO22 is data terminal ready and GPIO23 is clear to send. An LED hung on any of them is a second driver on a line the modem is already using, and the failure it produces is not a dark LED but a modem that behaves oddly for reasons nothing in the log explains.
 >
-> This is not peculiar to one board. On the SIM7020E of P02, GPIO27 is the module's power key, which the vendor scripts pulse to boot it. An indicator there would switch the modem on and off every time it reported a change of state, so the lab would interfere with the thing it is reporting.
+> This board is the greedy one of the three. The SIM7020E of P02 and the SIM7070G of P03 both put the module's power key on header pin 7, BCM GPIO4, and leave GPIO27 free. An earlier version of this note said the SIM7020E used GPIO27 as its power key; that came from a secondhand note and the vendor's wiki contradicts it, so it is withdrawn here and in P02.
 >
 > So the triple is per lab rather than per book. The pins above are chosen from the high end of the header, where neither modem HAT documents a connection, with the module grounds going to pin 34 or 39. **Confirm them against the pinout of the HAT in front of you before wiring**, because this is a fact about one board and not about the Raspberry Pi. Some Waveshare HATs carry a jumper block that selects which Pi GPIO reaches each control line, and on a board that has one, removing three jumpers is the other way to free the original pins.
 

@@ -68,17 +68,29 @@ The electrical work is almost nothing. The HAT seats on the header and takes its
 | HAT GND | 6 | GND |  |
 | Green module, S1 | 36 | GPIO16 | CEREG registered. Lit when the pin is driven high |
 | Green module, G | 39 | GND | The return. The module's resistor is inside it |
-| Pin 13 |  | GPIO27 | The module's power key on this HAT. Not an indicator pin |
+| PWRKEY | 7 | GPIO4 | The HAT's own, by its PWR jumper. Never drive it from anything else |
+| Pin 13 |  | GPIO27 | The draft's choice. Free on this HAT, see the note |
 | NB antenna |  |  | On the NB port of the HAT, not a 4G antenna |
 
-*Table 2.2. Wiring. This HAT carries a full 40-pin pass-through stacking header, so every pin is reachable from above, and pin 9 is a ground that is safe to tap. What is not safe is pin 13.*
+*Table 2.2. Wiring. This HAT carries a full 40-pin pass-through stacking header, so every pin is reachable from above, and pin 9 is a ground that is safe to tap. The pin that is not free is 7, the module's power key, and the note below says how that was nearly recorded as 13.*
 
 > [!NOTE]
-> **Why the indicator is not on GPIO27 here**
+> **What this HAT claims on the header, and a correction to an earlier correction**
 >
-> The draft put it there, and on this HAT GPIO27 is the module's power key. The vendor's own initialisation scripts pulse that pin to boot the modem, so an indicator on it would toggle the module's power every time the registration state changed. The lab would be switching off the thing it reports on, and the symptom would read as a flaky modem rather than as a wiring decision.
+> The draft put the indicator on GPIO27. An earlier version of this note said that pin is the module's power key on this HAT and that an indicator there would pulse the modem's power. That claim came from a secondhand note, not from the vendor, and the vendor's own wiki says otherwise: PWRKEY is on header pin 7, BCM GPIO4, selected by the PWR jumper and on by default. **GPIO27 is free on this board.** The earlier sentence was wrong in exactly the way the LED cable claim was wrong, a note trusted over the page it should have been checked against.
 >
-> The pin moves to the high end of the header, which this HAT does not document a use for, with the module's ground on pin 39. P01 hits the same wall on a different board, where GPIO27, GPIO22 and GPIO23 are the ring indicator, data terminal ready and clear to send, so the rule generalises: a status indicator never shares a pin with a HAT's control line, and the pins are chosen per lab against the pinout of the board actually in front of you.
+> | HAT connection | Header pin | BCM GPIO | Note |
+> | --- | --- | --- | --- |
+> | PWRKEY | 7 | GPIO4 | PWR jumper, default on. The other position takes it off the Pi |
+> | UART | 8 and 10 | GPIO14, 15 | The AT dialogue, on the PL011 after the overlay |
+> | VCCIO select | none | none | 3.3 V or 5 V. Confirm it sits on 3.3 V before power |
+> | DTR, RI | breakout |  | Module pins on the control header; not routed to a Pi GPIO |
+>
+> *Table 2.3. What the SIM7020E HAT puts on the header, from the vendor's wiki.*
+>
+> The indicator stays on BCM16 anyway, and for the reason P03 gives rather than the one withdrawn here: one assignment that is safe on all four cellular labs is easier to hold than four, and the board that does claim GPIO27 is the SIM7600E-H of P01, where it is the ring indicator. BCM16 is free on every HAT checked.
+>
+> **The HAT's own NET LED is this lab's second instrument.** It shows 64 ms on and 800 ms off while no network is registered, 64 ms on and 3000 ms off once registered, 64 ms on and 300 ms off while data moves, and **off for power down or PSM sleep**. That last state is the one this chapter is about: a dark NET LED between wakes is the module doing what it was asked to, not a fault, and a NET LED that keeps blinking is the sign that power saving was requested and not granted. The slow blink is the cross-check for `AT+CEREG?`, and the host's own green module adds the one thing the NET LED cannot, which is a state the host decided rather than the module.
 
 ```text
 HAT seated on Pi 3. UART jumper = Waveshare "B" (Pi controls modem).
