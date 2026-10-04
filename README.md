@@ -26,6 +26,7 @@ self-contained `.html` with its four figures inlined.
 
 **Contents**
 [Read it](chapters/) ·
+[What has been run](STATUS.md) ·
 [What this is and is not](#what-this-is-and-is-not) ·
 [The rules the labs obey](#the-rules-the-labs-obey) ·
 [The twenty labs](#the-twenty-labs) ·
@@ -88,6 +89,12 @@ The numbering is the cookbook's own, so the labs appear here in reading order
 and keep their P-numbers. The parts are the cellular group, the instruments,
 the sensor shields on the microcontroller, the hosts and displays, and the
 rails, sidecars and fleet that close it.
+
+**Written is not run.** Every lab below ends in an acceptance test that can be
+failed, and [`STATUS.md`](STATUS.md) says which of them have actually been
+compiled, wired and passed, with the board revision and the date. At the time
+of writing one lab has been run on hardware and one has been exercised on
+synthetic data. Read that page before trusting any step here.
 
 | # | Lab | Host and exclusive part | Owns |
 |---|---|---|---|
@@ -179,6 +186,11 @@ to print, and a lab missing any part of its skeleton or any of its four
 figures. The workflow in `.github/workflows/` runs it on every push, checks
 that every lab has its four figures and its lab line, and checks that the
 Markdown edition is in step with the source rather than behind it.
+
+It also refuses a [`STATUS.md`](STATUS.md) that has lost a lab or grown a
+state. The four states are written, checked, run and passed, and a row whose
+state is anything else fails the run, because the usual way a status page rots
+is a new word invented in passing to avoid writing down one of the four.
 
 ## Repository layout
 
