@@ -16,6 +16,13 @@ its figures beside it. Start with
 [About this edition](chapters/00-about-this-volume.md), or take a lab from the
 table below.
 
+**Or search it.** [`PITFALLS.md`](PITFALLS.md) is every pitfall in the volume,
+193 of them, generated from the labs and sorted across them rather than within
+them. It is for the other direction of reading: a bench is misbehaving, and the
+lab that discussed the symptom is not the lab being built. Putting 5 V on an
+accelerometer is a pitfall in P01 and again in P19, and feeding 5 V into
+`SYS_3V3` is one in P09 and again in P17.
+
 **Or build it.** The PDF and a single self-contained HTML file come from the
 same source and stay local:
 
@@ -27,6 +34,7 @@ self-contained `.html` with its four figures inlined.
 **Contents**
 [Read it](chapters/) ·
 [What has been run](STATUS.md) ·
+[Every pitfall](PITFALLS.md) ·
 [What this is and is not](#what-this-is-and-is-not) ·
 [The rules the labs obey](#the-rules-the-labs-obey) ·
 [The twenty labs](#the-twenty-labs) ·
@@ -226,6 +234,7 @@ is a new word invented in passing to avoid writing down one of the four.
 | `SOURCE.md` | the cookbook this edition illustrates, transcribed |
 | `AUTHORING.md` | the contract every lab follows |
 | `CONTENTS.md` | the lab table, generated, which the table above follows |
+| `PITFALLS.md` | every pitfall in the volume, generated, alphabetical across labs |
 | `build/` | scratch output, ignored, safe to delete |
 
 Lab files use a `p` prefix so that a cross-reference or a copied figure can

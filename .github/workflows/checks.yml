@@ -77,15 +77,18 @@ jobs:
           exit $fail
 
       - name: The Markdown edition is in step with the source
+        # Everything mdbuild.py writes is checked, not only chapters/. The two
+        # generated tables at the root could drift silently before, which is
+        # the failure a generated file is supposed to make impossible.
         run: |
           set -e
           python mdbuild.py >/dev/null
-          if ! git diff --quiet -- chapters; then
-            echo "chapters/ is behind sections/; run python mdbuild.py and commit"
-            git --no-pager diff --stat -- chapters
+          if ! git diff --quiet -- chapters CONTENTS.md PITFALLS.md; then
+            echo "a generated file is behind sections/; run python mdbuild.py and commit"
+            git --no-pager diff --stat -- chapters CONTENTS.md PITFALLS.md
             exit 1
           fi
-          echo "chapters/ matches sections/"
+          echo "chapters/, CONTENTS.md and PITFALLS.md all match sections/"
 
       - name: The lab builds, with the warnings as errors
         run: |
