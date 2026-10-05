@@ -179,11 +179,27 @@ they are rebuilt from this source rather than carried in it.
 
 ## Checks
 
-    python lint.py                   house rules over every lab
+    python lint.py                   house rules over every lab, and the parts
+    python tests/test_inventory.py   the parts checker, broken seven ways
 
 The linter refuses dashes, non-ASCII inside a code block, a code line too long
 to print, and a lab missing any part of its skeleton or any of its four
-figures. The workflow in `.github/workflows/` runs it on every push, checks
+figures.
+
+It also reads [`inventory.json`](inventory.json), which is rules 2 to 5 of the
+front matter written as data rather than prose: every part with the header it
+fits, whether it claims that header exclusively, its logic voltage, and the
+labs that use it. From that the linter refuses a second board claiming one
+host's header, a 40-pin HAT on the NanoPi's 24-pin header, a voltage mismatch,
+two of the six instruments in one lab, and the two halves of the file
+disagreeing about which lab uses what. The suite breaks the file seven ways to
+prove the checker is awake, and five of those seven are pairings the front
+matter already lists as errors found in the 198-page blueprint.
+
+What it cannot decide is anything spatial, and P19 is the standing example.
+The panel claims the header once and the sensor claims nothing, so the file
+passes, and the lab is still blocked because the panel sits physically over the
+pins the sensor needs. A rule engine is not a bench. The workflow in `.github/workflows/` runs it on every push, checks
 that every lab has its four figures and its lab line, and checks that the
 Markdown edition is in step with the source rather than behind it.
 
@@ -203,7 +219,10 @@ is a new word invented in passing to avoid writing down one of the four.
 | `tikz_preamble.tex` | shared figure styles: blocks, UML, bench art |
 | `build.py` | figures to SVG, the PDF, and the single-file HTML |
 | `mdbuild.py` | the Markdown edition |
-| `lint.py` | house-style check |
+| `lint.py` | house-style check, and the parts check |
+| `inventory.json` | the bill of materials: parts, headers, voltages, exclusive claims |
+| `tests/test_inventory.py` | the parts checker broken seven ways, no framework |
+| `STATUS.md` | which labs have been written, checked, run and passed |
 | `SOURCE.md` | the cookbook this edition illustrates, transcribed |
 | `AUTHORING.md` | the contract every lab follows |
 | `CONTENTS.md` | the lab table, generated, which the table above follows |

@@ -28,8 +28,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: House rules over every lab
+      - name: House rules over every lab, and the bill of materials
         run: python lint.py
+
+      - name: The bill of materials still refuses the pairings the book rejects
+        # Checking a correct file proves nothing. This breaks it seven ways,
+        # five of them taken from the front matter's own list of errors found
+        # in the 198-page blueprint, and fails if the checker stays quiet.
+        run: python tests/test_inventory.py
 
       - name: Every lab has its four figures and a lab line
         run: |

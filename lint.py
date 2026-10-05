@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""House-style linter for the section sources.
+"""House-style linter for the section sources and the bill of materials.
 
-    python lint.py                 check every sections/*.tex
+    python lint.py                 check every sections/*.tex and inventory.json
     python lint.py sections/p07.tex
 
 Checks prose (everything outside verbatim code environments) for: em and en
@@ -14,6 +14,7 @@ words it forbids would put those words into the repository it protects, which
 is the opposite of what it is for, so that scan lives outside this repository
 and is run by hand before anything is published.
 """
+import json
 import re
 import sys
 from pathlib import Path
@@ -64,12 +65,90 @@ def check(path):
     return problems
 
 
+def check_inventory(path):
+    """Rules 2, 3, 4 and 5 of the front matter, as arithmetic over inventory.json.
+
+    What this can decide: that a board fits the header it is seated on, that no
+    host carries two boards which each claim its header, that logic voltages
+    match, that one lab holds at most one of the six instruments, and that the
+    parts block and the labs block tell the same story.
+
+    What it cannot decide is anything spatial. P19 is the standing example: the
+    panel claims the header once and the sensor claims nothing, so this passes,
+    and the lab is still blocked because the panel physically sits over the pins
+    the sensor needs. A rule engine is not a bench.
+    """
+    data = json.loads(path.read_text(encoding="utf-8"))
+    hosts, parts, labs = data["hosts"], data["parts"], data["labs"]
+    problems = []
+    used = {}
+
+    for n in range(1, 21):
+        if f"P{n:02d}" not in labs:
+            problems.append(f"no entry for lab P{n:02d}")
+    for lab in sorted(labs):
+        if not re.fullmatch(r"P(0[1-9]|1[0-9]|20)", lab):
+            problems.append(f"{lab} is not one of P01 to P20")
+
+    for lab, spec in sorted(labs.items()):
+        permitted = spec["hosts"]
+        for h in permitted:
+            if h not in hosts:
+                problems.append(f"{lab}: unknown host {h!r}")
+        for host, seated in sorted(spec["seated"].items()):
+            if host not in permitted:
+                problems.append(f"{lab}: seats parts on {host!r}, which its hosts list does not permit")
+            spec_host = hosts.get(host)
+            claimers = []
+            for pid in seated:
+                part = parts.get(pid)
+                if part is None:
+                    problems.append(f"{lab}: unknown part {pid!r} seated on {host}")
+                    continue
+                used.setdefault(pid, set()).add(lab)
+                if spec_host is not None:
+                    if part["fits"] != spec_host["header"]:
+                        problems.append(
+                            f"{lab}: {pid} fits the {part['fits']} header, and {host} has "
+                            f"the {spec_host['header']} header")
+                    if part["logic_volts"] != spec_host["logic_volts"]:
+                        problems.append(
+                            f"{lab}: {pid} is {part['logic_volts']} V logic on {host}, whose "
+                            f"header is {spec_host['logic_volts']} V")
+                if part["claims_header"]:
+                    claimers.append(pid)
+            if len(claimers) > 1:
+                problems.append(
+                    f"{lab}: {host} carries {len(claimers)} boards that each own its header, "
+                    f"and the rule is fit one: {', '.join(sorted(claimers))}")
+        for pid in spec["attached"]:
+            if pid not in parts:
+                problems.append(f"{lab}: unknown part {pid!r} attached")
+                continue
+            used.setdefault(pid, set()).add(lab)
+
+        fitted = [p for s in spec["seated"].values() for p in s] + spec["attached"]
+        instruments = sorted(p for p in fitted if parts.get(p, {}).get("instrument"))
+        if len(instruments) > 1:
+            problems.append(
+                f"{lab}: {len(instruments)} of the six instruments in one lab, and the rule is "
+                f"one: {', '.join(instruments)}")
+
+    for pid, part in sorted(parts.items()):
+        declared, actual = set(part["labs"]), used.get(pid, set())
+        for lab in sorted(actual - declared):
+            problems.append(f"{pid}: used by {lab}, which its own labs list does not name")
+        for lab in sorted(declared - actual):
+            problems.append(f"{pid}: claims {lab} uses it, and that lab does not list it")
+    return problems
+
+
 def main(argv):
     files = [Path(a) if Path(a).is_absolute() else ROOT / a for a in argv] or \
-            sorted((ROOT / "sections").glob("*.tex"))
+            sorted((ROOT / "sections").glob("*.tex")) + [ROOT / "inventory.json"]
     total = 0
     for f in files:
-        pr = check(f)
+        pr = check_inventory(f) if f.suffix == ".json" else check(f)
         total += len(pr)
         if pr:
             print(f"== {f.name}: {len(pr)} problems")
