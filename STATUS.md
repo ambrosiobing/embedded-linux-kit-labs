@@ -62,6 +62,46 @@ reach in one sitting, since the semaphore item asks for a program rather than
 the three `pinctrl` commands that have stood in for one so far. Only the rails
 item needs the instrument this bench lacks.
 
+## The build beside P04 that failed on every run, read on Tuesday 6 October 2026
+
+P04 is at **checked** on the strength of a build with `-Werror` and a suite that
+runs on synthetic data. Beside it sits a second build that had never passed.
+
+The `strict` target rebuilds the same sources with `-Wconversion`,
+`-Wsign-conversion` and `-Wdouble-promotion` added on top of that same
+`-Werror`. It exited 2 on every run. The workflow marks that step
+`continue-on-error: true`, which was deliberate and is not revisited here: the
+step is named "reported but not gating" and it did exactly that.
+
+What was not deliberate is that nobody read the report. A step marked
+`continue-on-error` is recorded as **success** when it fails, so each of those
+runs showed fifteen green steps, and the failure survived only as an annotation
+counted in a summary line. It sat there through three runs across Sunday 4
+October 2026 and Monday 5 October 2026, read as noise every time.
+
+Built on win11 skyhorizon's WSL, it turned out to be four findings, all of one
+kind, all on two adjacent lines:
+
+```
+tests/test_p04.c:202:38  implicit conversion from float to double
+tests/test_p04.c:202:62  to match other operand of binary expression
+tests/test_p04.c:203:38  [-Werror=double-promotion]
+tests/test_p04.c:203:62
+```
+
+Both lines compute a magnitude as `sqrt((double)re[8] * re[8] + ...)`. Only the
+first operand of each multiply carries the cast, so the second is promoted
+implicitly to match it. Casting both operands fixes all four and changes no
+arithmetic: the products were always computed in double, and now the source
+says so instead of leaving it to the promotion rules.
+
+Two things worth keeping from that. **Nothing in `src/` was flagged at all**, so
+the library code is already clean under `-Wconversion` and `-Wsign-conversion`,
+which is the pair that matters for a lab whose discipline is samples staying
+`int16_t` until the one place they become floats. And the failure was never
+subtle or large. It was four casts, invisible for three runs purely because the
+step that found them was allowed to pass.
+
 ## What is missing from the evidence column, and should not be next time
 
 Neither bench sitting recorded the OS image. The board revision is there,

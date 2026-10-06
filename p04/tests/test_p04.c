@@ -199,8 +199,8 @@ static void test_determinism(void)
         im[i] = 0.0f;
     }
     ok(p04_fft(re, im, 64) == P04_OK, "a 64 point transform runs");
-    double mag8 = sqrt((double)re[8] * re[8] + (double)im[8] * im[8]);
-    double mag9 = sqrt((double)re[9] * re[9] + (double)im[9] * im[9]);
+    double mag8 = sqrt((double)re[8] * (double)re[8] + (double)im[8] * (double)im[8]);
+    double mag9 = sqrt((double)re[9] * (double)re[9] + (double)im[9] * (double)im[9]);
     ok(mag8 > 20.0 * mag9, "a tone at a bin centre stays in that bin");
 
     ok(p04_fft(re, im, 63) == P04_E_RANGE, "a length that is not a power of two is refused");
