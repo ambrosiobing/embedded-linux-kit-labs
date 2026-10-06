@@ -35,6 +35,7 @@ self-contained `.html` with its four figures inlined.
 [Read it](chapters/) ·
 [What has been run](STATUS.md) ·
 [Every pitfall](PITFALLS.md) ·
+[The three ways to damage this kit](chapters/00-about-this-volume.md#the-three-ways-to-damage-this-kit) ·
 [What this is and is not](#what-this-is-and-is-not) ·
 [The rules the labs obey](#the-rules-the-labs-obey) ·
 [The twenty labs](#the-twenty-labs) ·
@@ -103,6 +104,25 @@ failed, and [`STATUS.md`](STATUS.md) says which of them have actually been
 compiled, wired and passed, with the board revision and the date. At the time
 of writing one lab has been run on hardware and one has been exercised on
 synthetic data. Read that page before trusting any step here.
+
+**Three ways in, rather than twenty equal doors.** The appendix carries the full
+order for someone starting from bare boards and intending to build all twenty.
+These three are subsets of that order, for a reader who owns part of the bin or
+has one weekend, and they keep its relative sequence.
+
+| Route | Order | What it needs |
+| --- | --- | --- |
+| **Cellular** | P01, P03, P02, then P13 | A Pi 4, a Pi 3B+ and a Pi 3, one modem HAT each, and antennas. A data SIM is assumed; without one each lab stops at AT bring-up, **which is still a pass**. P13 is last because it wants two Pis and two modems seated at once |
+| **One weekend, one Pi 4, no SIM** | P15, then P16, P12, P05, P04 | A Pi 4, the POW-BB, the official display and keyboard, the MCC 118, an ESP32 and the STWIN.box. P15 first because P16 and P05 both draw on the labelled rails |
+| **Nucleo** | P07, P08, then P18 | A Nucleo-H7A3ZI-Q, the IKS4A1 and IKS5A1 fitted one at a time, and a Pi to record. None of the three touches the POW-BB, so P15 is not a prerequisite here |
+
+P15 appears first in the weekend route and not in the other two for a reason the
+repository can check rather than assert: [`inventory.json`](inventory.json)
+records which labs use the POW-BB, and they are P05, P10, P15 and P16.
+
+**No lab records how long it takes**, and that is a gap rather than an
+omission here. Until a sitting is actually timed, any figure in this table would
+be invention, and [`STATUS.md`](STATUS.md) says how few sittings there have been.
 
 | # | Lab | Host and exclusive part | Owns |
 |---|---|---|---|

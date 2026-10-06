@@ -32,6 +32,17 @@ Hosts run Raspberry Pi OS Bookworm; the NanoPi runs FriendlyElec Ubuntu.
 
 Build one lab at a time. Tear the 40-pin HAT off before the next lab.
 
+## The three ways to damage this kit
+
+Each of these is stated again inside the lab that owns it. They are repeated here because the labs are written to be opened one at a time from a table, and a reader who starts at P05 has not read P15. No other mistake in this volume costs a part.
+
+> [!IMPORTANT]
+> **Read this before powering anything**
+>
+> 1. **A 5 V rail on a 3.3 V header pin.** Pi, NanoPi and Nucleo I/O are 3.3 V, and the POW-BB presents both rails side by side on the same breadboard. No jumper runs from the 5 V rail to any header pin, on any host, at any point in any lab. P15 is the lab that proves the two rails are told apart by reading rather than by guessing, and it is the one lab the appendix marks do not skip.
+> 2. **More than <span class="math">±</span>10.1 V on an MCC 118 input.** That is the converter's limit on any channel. The 5 V rail is acceptable on CH1 only because 5 is less than 10.1. A Pi header pin is not an analog source: it is a digital output with a series impedance you do not control, so never wire one into a screw terminal to generate a test voltage. P05 owns this.
+> 3. **A cellular modem powered with no antenna fitted.** Transmitting into an open port stresses the module's own power amplifier. Fit every antenna the HAT expects, and the SIM, before applying power, because a SIM inserted under power is not detected until the next boot either. This applies to the SIM7600E-H of P01, the SIM7020E of P02, the SIM7070G of P03 and both modems of P13, and the appendix repeats it for teardown: refit antennas before the next transmission.
+
 ## The audit
 
 Every lab in this book was checked against the parts that actually exist in the bin. The verdict table is the result. A status of Buildable means the wiring closes with the kit in hand, not that the lab is easy.
