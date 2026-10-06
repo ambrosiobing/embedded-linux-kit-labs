@@ -131,7 +131,7 @@ STM32_Programmer_CLI -c port=USB1 -w firmware.bin 0x08000000
 **Step 2.** **Isolate a core** so the scheduler does not migrate the FFT thread.
 
 ```bash
-# /boot/firmware/cmdline.txt append:
+# append to /boot/firmware/cmdline.txt:
 #   isolcpus=3 nohz_full=3
 sudo reboot
 ls /dev/ttyACM*

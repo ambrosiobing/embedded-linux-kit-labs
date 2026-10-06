@@ -37,6 +37,13 @@ jobs:
         # in the 198-page blueprint, and fails if the checker stays quiet.
         run: python tests/test_inventory.py
 
+      - name: Every command the labs print is parsed
+        # --require-shellcheck so this can never quietly become a Python-only
+        # check on a runner that has no shellcheck. A loud failure is the
+        # intended behaviour there: the alternative is a step that passes while
+        # checking half of what its name claims.
+        run: python checkcode.py --require-shellcheck
+
       - name: Every lab has its four figures and a lab line
         run: |
           set -e
