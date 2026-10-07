@@ -384,6 +384,8 @@ setting used throughout.
 
 ### The LK-LED10 modules, where vendor and measurement disagree pleasantly
 
+![The LK-LED10 module drawn with its four pins S1, S2, U and G and its fitted resistor R1, the two-wire connection showing the header pin sourcing current into S1 and returning through G, the four measured currents for blue, green, yellow and red at 5.000 V and 3.300 V with their effective resistances and derived forward voltages, and a note on why one sibling volume needed rewiring and the other did not](boards/led-module-wiring.svg)
+
 The module has four pins, S1, S2, U and G, with R1 the fitted resistor, all
 printed on the silkscreen. It carries a 2.54 mm male header beside the white
 2.0 mm LinkerKit socket, **so ordinary Dupont jumpers mate with it** (measured).

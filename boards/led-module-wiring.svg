@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="700" viewBox="0 0 860 700" font-family="DejaVu Sans, Verdana, sans-serif">
+  <rect x="0" y="0" width="860" height="700" fill="#ffffff"/>
+  <text x="30" y="32" font-size="19" font-weight="bold" fill="#111111">The LK-LED10 module: two wires, and which way round</text>
+  <text x="30" y="54" font-size="12.5" fill="#444444">Measured on a Raspberry Pi 3 Model B Rev 1.2 on Friday 2 October 2026, and on the PPK2 on Saturday 3 October 2026.</text>
+
+  <text x="30" y="92" font-size="14" font-weight="bold" fill="#5b2d82">What the module has, and what it needs</text>
+
+  <rect x="40" y="110" width="300" height="150" fill="#f7f9fb" stroke="#333333" stroke-width="1.5" rx="4"/>
+  <text x="190" y="132" font-size="12.5" font-weight="bold" fill="#111111" text-anchor="middle">Joy-it LK-LED10, 10 mm</text>
+
+  <circle cx="110" cy="180" r="22" fill="#e6f4ea" stroke="#2e7d32" stroke-width="2"/>
+  <text x="110" y="185" font-size="11" fill="#2e7d32" text-anchor="middle">LED</text>
+  <rect x="160" y="166" width="46" height="26" fill="#fdf0d5" stroke="#b7791f"/>
+  <text x="183" y="183" font-size="11" fill="#111111" text-anchor="middle">R1</text>
+  <text x="183" y="208" font-size="10.5" fill="#666666" text-anchor="middle">already fitted</text>
+
+  <g font-size="11.5">
+    <rect x="236" y="130" width="22" height="18" fill="#e6f4ea" stroke="#2e7d32"/><text x="247" y="143" text-anchor="middle" fill="#111111">S1</text>
+    <rect x="236" y="154" width="22" height="18" fill="#f2f2f2" stroke="#999999"/><text x="247" y="167" text-anchor="middle" fill="#111111">S2</text>
+    <rect x="236" y="178" width="22" height="18" fill="#f2f2f2" stroke="#999999"/><text x="247" y="191" text-anchor="middle" fill="#111111">U</text>
+    <rect x="236" y="202" width="22" height="18" fill="#ededed" stroke="#777777"/><text x="247" y="215" text-anchor="middle" fill="#111111">G</text>
+    <text x="266" y="143" fill="#2e7d32">signal, the anode side</text>
+    <text x="266" y="167" fill="#888888">unused in this volume</text>
+    <text x="266" y="191" fill="#888888">supply, not needed</text>
+    <text x="266" y="215" fill="#333333">ground</text>
+  </g>
+
+  <text x="40" y="282" font-size="11.5" fill="#333333">A 2.54 mm male header sits beside the white 2.0 mm LinkerKit socket, so ordinary</text>
+  <text x="40" y="298" font-size="11.5" fill="#333333">Dupont jumpers mate with it. Believing otherwise deferred work in three projects.</text>
+
+  <text x="470" y="92" font-size="14" font-weight="bold" fill="#5b2d82">The wiring, and the direction of the current</text>
+
+  <rect x="470" y="110" width="110" height="150" fill="#f7f9fb" stroke="#333333" stroke-width="1.5" rx="4"/>
+  <text x="525" y="132" font-size="12" font-weight="bold" fill="#111111" text-anchor="middle">Raspberry Pi</text>
+  <rect x="486" y="150" width="78" height="22" fill="#e6f4ea" stroke="#2e7d32"/>
+  <text x="525" y="165" font-size="11" fill="#111111" text-anchor="middle">header pin</text>
+  <rect x="486" y="206" width="78" height="22" fill="#ededed" stroke="#777777"/>
+  <text x="525" y="221" font-size="11" fill="#111111" text-anchor="middle">GND</text>
+
+  <line x1="580" y1="161" x2="690" y2="161" stroke="#2e7d32" stroke-width="2"/>
+  <polygon points="690,161 680,157 680,165" fill="#2e7d32"/>
+  <text x="635" y="152" font-size="11" fill="#2e7d32" text-anchor="middle">to S1</text>
+  <text x="635" y="178" font-size="10.5" fill="#2e7d32" text-anchor="middle">the pin sources</text>
+
+  <line x1="690" y1="217" x2="580" y2="217" stroke="#777777" stroke-width="2"/>
+  <polygon points="580,217 590,213 590,221" fill="#777777"/>
+  <text x="635" y="209" font-size="11" fill="#555555" text-anchor="middle">from G</text>
+
+  <rect x="690" y="140" width="110" height="98" fill="#f7f9fb" stroke="#333333" rx="4"/>
+  <text x="745" y="196" font-size="11.5" fill="#111111" text-anchor="middle">module</text>
+
+  <g font-size="12">
+    <text x="470" y="284" font-weight="bold" fill="#111111">high is lit</text>
+    <text x="560" y="284" fill="#333333">low is dark</text>
+    <text x="660" y="284" fill="#333333">released is dark, and reads low</text>
+  </g>
+  <text x="470" y="304" font-size="11.5" fill="#666666">Which way round the LED sits is not printed on the board. Test one with those three controls before wiring three.</text>
+
+  <line x1="30" y1="324" x2="830" y2="324" stroke="#dddddd"/>
+
+  <text x="30" y="352" font-size="14" font-weight="bold" fill="#5b2d82">What each colour draws, measured alone on the PPK2 source meter</text>
+  <text x="30" y="372" font-size="11.5" fill="#444444">S1 to VOUT, G to GND, window on the lit stretch. Saturday 3 October 2026.</text>
+
+  <g font-size="11.5">
+    <rect x="40" y="386" width="150" height="24" fill="#f2f2f2" stroke="#999999"/><text x="48" y="402" fill="#111111">measured</text>
+    <rect x="190" y="386" width="110" height="24" fill="#e8eef7" stroke="#1f4e79"/><text x="245" y="402" text-anchor="middle" fill="#111111">blue</text>
+    <rect x="300" y="386" width="110" height="24" fill="#e6f4ea" stroke="#2e7d32"/><text x="355" y="402" text-anchor="middle" fill="#111111">green</text>
+    <rect x="410" y="386" width="110" height="24" fill="#fdf6d5" stroke="#b7791f"/><text x="465" y="402" text-anchor="middle" fill="#111111">yellow</text>
+    <rect x="520" y="386" width="110" height="24" fill="#fdecea" stroke="#c0392b"/><text x="575" y="402" text-anchor="middle" fill="#111111">red</text>
+
+    <rect x="40" y="410" width="150" height="24" fill="#ffffff" stroke="#cccccc"/><text x="48" y="426" fill="#111111">at 5.000 V</text>
+    <rect x="190" y="410" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="245" y="426" text-anchor="middle" fill="#111111">9.81 mA</text>
+    <rect x="300" y="410" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="355" y="426" text-anchor="middle" fill="#111111">15.98 mA</text>
+    <rect x="410" y="410" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="465" y="426" text-anchor="middle" fill="#111111">13.10 mA</text>
+    <rect x="520" y="410" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="575" y="426" text-anchor="middle" fill="#111111">13.16 mA</text>
+
+    <rect x="40" y="434" width="150" height="24" fill="#ffffff" stroke="#cccccc"/><text x="48" y="450" fill="#111111">at 3.300 V</text>
+    <rect x="190" y="434" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="245" y="450" text-anchor="middle" fill="#111111">2.94 mA</text>
+    <rect x="300" y="434" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="355" y="450" text-anchor="middle" fill="#111111">7.39 mA</text>
+    <rect x="410" y="434" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="465" y="450" text-anchor="middle" fill="#111111">6.20 mA</text>
+    <rect x="520" y="434" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="575" y="450" text-anchor="middle" fill="#111111">6.34 mA</text>
+
+    <rect x="40" y="458" width="150" height="24" fill="#ffffff" stroke="#cccccc"/><text x="48" y="474" fill="#111111">effective R</text>
+    <rect x="190" y="458" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="245" y="474" text-anchor="middle" fill="#111111">247 ohm</text>
+    <rect x="300" y="458" width="110" height="24" fill="#fdf0d5" stroke="#b7791f"/><text x="355" y="474" text-anchor="middle" fill="#111111">198 ohm</text>
+    <rect x="410" y="458" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="465" y="474" text-anchor="middle" fill="#111111">246 ohm</text>
+    <rect x="520" y="458" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="575" y="474" text-anchor="middle" fill="#111111">249 ohm</text>
+
+    <rect x="40" y="482" width="150" height="24" fill="#ffffff" stroke="#cccccc"/><text x="48" y="498" fill="#111111">derived Vf</text>
+    <rect x="190" y="482" width="110" height="24" fill="#e8eef7" stroke="#1f4e79"/><text x="245" y="498" text-anchor="middle" fill="#111111">2.57 V</text>
+    <rect x="300" y="482" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="355" y="498" text-anchor="middle" fill="#111111">1.84 V</text>
+    <rect x="410" y="482" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="465" y="498" text-anchor="middle" fill="#111111">1.77 V</text>
+    <rect x="520" y="482" width="110" height="24" fill="#ffffff" stroke="#cccccc"/><text x="575" y="498" text-anchor="middle" fill="#111111">1.72 V</text>
+  </g>
+
+  <text x="650" y="402" font-size="11.5" fill="#5b2d82">The fraction kept at 3.3 V is</text>
+  <text x="650" y="420" font-size="11.5" fill="#5b2d82">(3.3 - Vf) / (5 - Vf), and it</text>
+  <text x="650" y="438" font-size="11.5" fill="#5b2d82">matches all four.</text>
+  <text x="650" y="462" font-size="11.5" fill="#b7791f">Green's resistor differs from</text>
+  <text x="650" y="480" font-size="11.5" fill="#b7791f">the other three.</text>
+  <text x="650" y="504" font-size="11.5" fill="#1f4e79">Blue keeps 30 per cent, the</text>
+  <text x="650" y="522" font-size="11.5" fill="#1f4e79">rest about half.</text>
+
+  <text x="30" y="546" font-size="11.5" fill="#333333">This green is the old low-forward-voltage type rather than an InGaN green, so it sits with yellow and red. A prediction that put</text>
+  <text x="30" y="564" font-size="11.5" fill="#333333">it beside blue was wrong, and P15 records it as wrong. Three modules on the Pi together draw 16.5 mA at 3.3 V.</text>
+
+  <line x1="30" y1="584" x2="830" y2="584" stroke="#dddddd"/>
+  <text x="30" y="610" font-size="13" font-weight="bold" fill="#111111">Why one sibling volume needed rewiring and the other did not</text>
+  <text x="30" y="632" font-size="12" fill="#333333">The twenty-projects volume already had the anode on the GPIO and the cathode on ground, which is what the bench then</text>
+  <text x="30" y="650" font-size="12" fill="#333333">measured, so its correction changed a parts list and not one wire. This volume had the polarity the other way round and</text>
+  <text x="30" y="668" font-size="12" fill="#333333">needed a real correction. Same parts, two volumes: one was wrong about components, the other about physics.</text>
+  <text x="30" y="690" font-size="11" fill="#666666">Drawn for this volume. No vendor artwork is reproduced here. Measurements and their dates are in STATUS.md and P15.</text>
+</svg>
