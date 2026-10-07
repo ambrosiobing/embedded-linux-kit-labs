@@ -289,6 +289,12 @@ withdrawn claims in this volume already. So it stays marked open, and the
 settling measurement is deliberately trivial: lay a ruler along the long edge of
 the green carrier board, not the glass. About 85 mm means it covers them.
 
+![P19's open question drawn two ways: a plan view of the Raspberry Pi with the 40-pin header split into pins 1 to 26 and 27 to 40 and the panel's outline dashed because it is unmeasured, and two side elevations showing what follows if the carrier board overhangs and if it stops at pin 26](boards/lcd-overhang-question.svg)
+
+In that drawing, solid lines are measured or vendor-stated and dashed lines are
+unmeasured. The panel's own outline is one of the dashed ones, which is the whole
+difficulty in a single stroke.
+
 **Why anyone cares.** The socket mates pins 1 to 26, so with the panel seated,
 pins 1, 3, 5 and 6 are underneath it. Since pins 1 and 17 are the only 3.3 V pins
 on the whole header and both are inside the covered range, a sensor on that host
