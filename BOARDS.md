@@ -130,20 +130,29 @@ connector and not the header at all.
 
 ### SIM7600E-H 4G HAT (P01, P13)
 
-**The greedy one of the three modems, and the reason the indicator pins moved.**
+**The reason the indicator pins moved, and the board whose claim is now in
+question.** Read Part 7a before relying on the first three rows.
 
 | What | Header pin | BCM | Mark |
 |---|---|---|---|
-| Ring indicator | 13 | GPIO27 | vendor |
-| Data terminal ready | 15 | GPIO22 | vendor |
-| Clear to send | 16 | GPIO23 | vendor |
+| UART, module TXD to Pi RXD | 10 | GPIO15 | vendor, manual Table 1 |
+| UART, module RXD to Pi TXD | 8 | GPIO14 | vendor, manual Table 1 |
+| PWR, powers the module up | 31 | GPIO6 | vendor, manual Table 1, printed there as wiringPi 22 |
+| FLIGHTMODE, pull high to enable | 7 | GPIO4 | vendor, manual Table 1, printed there as wiringPi 7 |
+| VCCIO select, 3.3 V or 5 V | jumper | | vendor. **Confirm 3.3 V before power** |
+| UART select, positions A, B, C | jumper | | vendor. **B is the position that lets the Pi drive the modem** |
+| Antenna connectors | MAIN, AUX, GNSS | | vendor. Three, not two |
 | Full 40-pin pass-through | all | | vendor, and checked: pins 3 and 5 stay reachable |
+| Ring indicator | 13 | GPIO27 | **open, see Part 7a** |
+| Data terminal ready | 15 | GPIO22 | **open, see Part 7a** |
+| Clear to send | 16 | GPIO23 | **open, see Part 7a** |
 
-Those first three are exactly the pins an earlier draft had chosen for status
-indicators. Hanging an LED on any of them puts a second driver on a line the
-modem is already using, and the result is not a dark LED. It is a modem that
-behaves oddly for reasons nothing in the log explains, which is a far more
-expensive afternoon.
+Those last three are exactly the pins an earlier draft had chosen for status
+indicators, and the stated reason for moving them was that hanging an LED on any
+of them puts a second driver on a line the modem is already using. That reasoning
+is sound and the premise is now in doubt: the manual's own table of control pins
+does not list them. The wiring stays where it is while the question is open, for
+the reason given in Part 7.
 
 This board does carry a full pass-through, so the I2C corner remains available,
 which is what lets P01 run an accelerometer and a modem on one host.
@@ -494,6 +503,135 @@ not fit.
 
 ---
 
+## Part 7a: What changed when the datasheets were read in full
+
+Everything above Part 7 was assembled from facts already in the chapters. On
+**Wednesday 7 October 2026** two of the source documents were opened and read
+end to end rather than cited. This section records what that found, including one
+result that puts a load-bearing claim of this volume in doubt.
+
+### The MCC 118, in the detail the chapters never carried
+
+From the [electrical specification](https://mccdaq.github.io/daqhats/_static/esmcc118.pdf),
+revision 1.1, dated 10/09/19. Everything here is **vendor**.
+
+| Parameter | Specification |
+|---|---|
+| Converter | Successive approximation, 12 bits, 8 single-ended |
+| Input voltage range | plus or minus 10 V |
+| **Maximum working voltage** | **plus or minus 10.1 V relative to AGND** |
+| **Absolute maximum input** | **plus or minus 25 V, power on or power off** |
+| Input impedance | 1 Mohm, power on or power off |
+| Input bias current | 12 uA at 10 V, 2 uA at 0 V, 12 uA at minus 10 V |
+| Input bandwidth | 150 kHz small signal, minus 3 dB |
+| Crosstalk | minus 75 dB, adjacent channels, DC to 10 kHz |
+| **Recommended warm-up** | **1 minute minimum** |
+| Internal scan clock | 0.004 S/s to 100 kS/s, software-selectable |
+| Conversion time | 8 us per channel |
+| Channel queue | up to eight unique, **ascending** channels |
+| Data FIFO | 7 K, that is 7168 analog input samples |
+| Supply current from 3.3 V | 35 mA typical, 55 mA maximum |
+| SPI | slave, CE0 chip select, **mode 1**, 10 MHz maximum |
+| Pi GPIO used | GPIO8, 9, 10, 11 for SPI; ID_SD and ID_SC; **GPIO12, GPIO13, GPIO26** for board address |
+| Dimensions | 65 x 56.5 x 12 mm maximum |
+
+**Two corrections of emphasis, not of fact.** This volume has been saying "never
+exceed plus or minus 10.1 V", which is right as a working rule and was slightly
+wrong about what kind of limit it is. 10.1 V is the *maximum working voltage*.
+The *absolute maximum* before the input stage is at risk is plus or minus 25 V,
+power on or off. Keep obeying 10.1; now you also know that a slip to 12 V is a
+reading you cannot trust rather than a part you have lost. And the GPIO claim the
+chapters make is confirmed exactly, GPIO12, GPIO13 and GPIO26, which is pleasant
+because that is the claim that sent the indicators to BCM16, 20 and 21.
+
+**Three figures that settle questions P05 left open.** The accuracy table gives,
+for the plus or minus 10 V range, gain error 0.098 per cent of reading, offset
+error 11 mV, absolute accuracy at full scale 20.8 mV. So at a 3.3 V reading the
+converter's own worst-case error is roughly 14 mV, comfortably inside P05's
+acceptance band of plus or minus 0.05 V. **That acceptance test was set before
+anyone had read this table, and it turns out to be a fair test rather than a
+generous or an impossible one.** The 7168-sample FIFO is the number that explains
+why a scan read of 20000 samples must be drained in blocks. And the one-minute
+warm-up the chapter already instructs is the vendor's own recommended minimum.
+
+**One footnote worth knowing.** The throughput table notes that the highest
+throughput "may be achieved by using a Raspberry Pi 3 B+". This volume puts the
+MCC 118 on the Pi 4. Nothing here says the Pi 4 is worse, and the note is from
+2019, so this is **open** rather than a correction: if P05 ever misses its sample
+count, the host is a thing to vary.
+
+### The SIM7600E-H, where the manual and this volume disagree
+
+From the [HAT user manual](https://www.waveshare.com/w/upload/6/6d/SIM7600E-H-4G-HAT-Manual-EN.pdf),
+Rev1.0, dated June 8, 2018.
+
+**First, three facts this volume did not have.**
+
+**This board also carries a 3.3 V / 5 V selection jumper**, item 20 in the
+manual's board diagram: "Operating voltage selection jumper: VCCIO - 3.3V: set
+operating voltage as 3.3V; VCCIO - 5V: set operating voltage as 5V". The chapters
+name that hazard on the SIM7020E and the SIM7070G and say nothing about it here.
+**All three modem HATs in this bin can be jumpered to 5 V logic**, and that is a
+stronger statement than any single chapter was making. Confirm it sits on 3.3 V
+before power, on every one of the three.
+
+**It carries three antenna connectors, not two**: MAIN, AUX and GNSS. The kit
+lines say "LTE and GNSS antennas". AUX is a diversity receive input, and whether
+this bin has a third antenna is **open**.
+
+**The UART selection jumper has three positions**, A to access the Raspberry Pi
+via the onboard USB to UART, B to control the SIM7600 from the Raspberry Pi, and
+C to control it via USB to UART. **Position B is the one P01 needs.** The manual
+also notes the console device differs by host: `ttyAMA0` on the Pi 2B and Zero,
+`ttyS0` on the Pi 3B.
+
+**Now the disagreement, and please read this one carefully.**
+
+The manual's Table 1 is captioned "The relationship between SIM7600 control pins
+and Raspberry Pi IOs" and lists **six** rows, and only six:
+
+| SIM7600 | IO of Raspberry Pi B+ | Description |
+|---|---|---|
+| 5V | 5V | Power supply (5V) |
+| GND | GND | Ground |
+| TXD | RXD (BCM P15) | UART pin |
+| RXD | TXD (BCM P14) | UART pin |
+| PWR | P22 (BCM P6) | Power up the module |
+| FLIGHTMODE | P7 (BCM P4), pull high enable flight mode | Flight mode |
+
+**RI, DTR and CTS do not appear.** This volume states, in P01, in P03 and in the
+appendix, that the SIM7600E-H drives GPIO27, GPIO22 and GPIO23 as ring indicator,
+data terminal ready and clear to send, and **that claim is the entire reason the
+indicator pins were moved off header pins 13, 15 and 16**. The manual does not
+support it. What it shows instead is a separate "SIM7600 control interface" on
+the board, item 8, described as being for host boards like Arduino or STM32,
+which is the same arrangement the SIM7020E has: the module's control lines live
+on their own header rather than on Pi GPIOs.
+
+**This is marked open, not corrected, and the distinction matters.** One document
+is not a refutation any more than one secondhand note was a confirmation, and
+there are honest reasons the manual might be incomplete: it is Rev1.0 from June
+2018, board revisions change, and a wiki page may carry a fuller table. But the
+volume's claim now rests on something that the vendor's own manual does not say,
+which is exactly the position the SIM7020E power-key claim was in before it was
+withdrawn. **It is the third time this failure mode has appeared in this bin.**
+
+What settles it, in order of effort: read the product wiki's pinout table; look at
+the board's silkscreen next to the 40-pin header; or, decisively, seat the HAT,
+drive each of GPIO27, GPIO22 and GPIO23 as an input and watch whether anything
+moves while the modem registers.
+
+**The wiring does not change while this is open**, and the reason is the same one
+given in Part 7: BCM16, 20 and 21 are free on every board checked, and a uniform
+assignment across four cellular labs is worth more than reclaiming three pins. If
+the claim falls, what changes is a justification in three files, not a wire.
+
+Two more rows for the record, both **vendor** and both new: the manual gives PWR
+as wiringPi 22, BCM GPIO6, and FLIGHTMODE as wiringPi 7, BCM GPIO4. **GPIO4 again**,
+the same pin the SIM7020E and SIM7070G use for PWRKEY, and spelled in the same
+wiringPi-without-saying-so style this page warns about in its opening. Neither
+pin collides with BCM16, 20 or 21.
+
 ## Part 8: Where to check any of this
 
 Every **vendor** mark above points at one of the documents below. They are listed
@@ -554,25 +692,25 @@ the document wins and the line is wrong.
 Please add any of these the moment a claim here starts depending on one.
 
 - **BCM2711 and BCM2835 peripherals manuals.** Nothing on this page makes a
-  register-level claim. They are the right source the moment one does.
+ register-level claim. They are the right source the moment one does.
 - **STM32H7A3 datasheet and RM0455.** Same reason. This volume treats the Nucleo
-  as a host that speaks over USB; the part's internals belong to the firmware
-  volume, where RM0455 is load-bearing.
+ as a host that speaks over USB; the part's internals belong to the firmware
+ volume, where RM0455 is load-bearing.
 - **Allwinner H3 datasheet.** The NEO Air's schematic answers every header
-  question asked here without going to the SoC.
+ question asked here without going to the SoC.
 - **The SIM7600E-H module manual.** The HAT manual answers the carrier question,
-  and the carrier question is the one that decides wiring. The SIM7070G is the
-  exception above precisely because its module document was needed to show what
-  the carrier page leaves out.
+ and the carrier question is the one that decides wiring. The SIM7070G is the
+ exception above precisely because its module document was needed to show what
+ the carrier page leaves out.
 - **The ILI9486 datasheet.** The panel drawing names an ILI9486**L**, and treating
-  a datasheet for the unsuffixed part as the source for the suffixed one is the
-  kind of near-enough that this page exists to avoid.
+ a datasheet for the unsuffixed part as the source for the suffixed one is the
+ kind of near-enough that this page exists to avoid.
 - **Individual IKS4A1 sensor datasheets, the remaining IKS5A1 and STWIN.box
-  sensors, and the Explorer700's four parts.** Their addresses come from the
-  shield or board document already listed. The individual datasheets become the
-  right source when a lab starts caring about a register, a range or a rate.
+ sensors, and the Explorer700's four parts.** Their addresses come from the
+ shield or board document already listed. The individual datasheets become the
+ right source when a lab starts caring about a register, a range or a rate.
 - **ESP32 and ESP8266EX datasheets.** This page claims nothing about either part
-  beyond how it connects, and the AT command set is firmware rather than silicon.
+ beyond how it connects, and the AT command set is firmware rather than silicon.
 
 ## Part 9: What is still open
 
