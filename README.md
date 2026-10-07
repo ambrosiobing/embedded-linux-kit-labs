@@ -16,6 +16,12 @@ its figures beside it. Start with
 [About this edition](chapters/00-about-this-volume.md), or take a lab from the
 table below.
 
+**Or check a pin.** [`BOARDS.md`](BOARDS.md) gathers what every board in the bin
+claims on the header, with each fact marked as read from the vendor, measured on
+this bench with a date, or still open. It carries the decisions taken before any
+wiring, and an account of the three times the indicator pins moved, including the
+move whose stated reason later turned out to be false.
+
 **Or search it.** [`PITFALLS.md`](PITFALLS.md) is every pitfall in the volume,
 193 of them, generated from the labs and sorted across them rather than within
 them. It is for the other direction of reading: a bench is misbehaving, and the
@@ -35,6 +41,7 @@ self-contained `.html` with its four figures inlined.
 [Read it](chapters/) ·
 [What has been run](STATUS.md) ·
 [Every pitfall](PITFALLS.md) ·
+[What every board claims](BOARDS.md) ·
 [The three ways to damage this kit](chapters/00-about-this-volume.md#the-three-ways-to-damage-this-kit) ·
 [What this is and is not](#what-this-is-and-is-not) ·
 [The rules the labs obey](#the-rules-the-labs-obey) ·
@@ -255,6 +262,7 @@ is a new word invented in passing to avoid writing down one of the four.
 | `AUTHORING.md` | the contract every lab follows |
 | `CONTENTS.md` | the lab table, generated, which the table above follows |
 | `PITFALLS.md` | every pitfall in the volume, generated, alphabetical across labs |
+| `BOARDS.md` | what each board's own documentation claims, what was measured, what is open |
 | `build/` | scratch output, ignored, safe to delete |
 
 Lab files use a `p` prefix so that a cross-reference or a copied figure can
