@@ -79,6 +79,18 @@ and the appendix marks it the one lab not to skip.
 
 ### The Raspberry Pi 40-pin header, and the three groups that matter
 
+![The Raspberry Pi 40-pin header with every claim in this bin marked: power, ground, the I2C, UART, SPI0 and ID EEPROM buses, the pins claimed by individual boards, the three disputed SIM7600E-H lines drawn dashed, and the three indicator pins](boards/header-claims.svg)
+
+**About that drawing, and about every drawing on this page.** It is original work,
+made for this volume, and it contains no vendor artwork. That is deliberate: a
+board photograph or a datasheet figure belongs to the company that drew it, and
+republishing one here would put their material under this repository's licence
+without their agreement. What a diagram of our own can do, and a borrowed one
+cannot, is show **our** claims and **our** uncertainty: the dashed boxes are the
+three lines whose status is open, and no vendor figure would ever mark them that
+way. The sources for every fact in it are in Part 8, and the pin functions follow
+the volume's appendix.
+
 The full pin table is in the volume's appendix. Three groups carry nearly all the
 traffic in these labs, and it is worth knowing which is which before you plan any
 wiring.
