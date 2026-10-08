@@ -22,6 +22,12 @@ this bench with a date, or still open. It carries the decisions taken before any
 wiring, and an account of the three times the indicator pins moved, including the
 move whose stated reason later turned out to be false.
 
+**Or read how it went wrong.** [`journal/`](journal/) is the working record, one
+file per lab that has one. The chapters tell you what is true; these tell you
+what was believed first, and what it took to stop believing it. Four claims in
+this volume turned out to be false and all four had looked exactly like the ones
+that were right, so the route matters as much as the conclusion.
+
 **Or search it.** [`PITFALLS.md`](PITFALLS.md) is every pitfall in the volume,
 193 of them, generated from the labs and sorted across them rather than within
 them. It is for the other direction of reading: a bench is misbehaving, and the
@@ -50,6 +56,7 @@ self-contained `.html` with its four figures inlined.
 **Contents**
 [Read it](chapters/) ·
 [What has been run](STATUS.md) ·
+[The working record](journal/) ·
 [Every pitfall](PITFALLS.md) ·
 [What every board claims](BOARDS.md) ·
 [The three ways to damage this kit](chapters/00-about-this-volume.md#the-three-ways-to-damage-this-kit) ·
@@ -261,6 +268,7 @@ is a new word invented in passing to avoid writing down one of the four.
 | `figures/` | the SVG of every figure. Its TikZ source is not published |
 | `build.py` | figures to SVG, the PDF, and the single-file HTML |
 | `mdbuild.py` | the Markdown edition |
+| `journal/` | the working record, one file per lab that has one |
 | `prepublish.py` | the four checks the workflow lost, run before pushing |
 | `lint.py` | house-style check, and the parts check |
 | `inventory.json` | the bill of materials: parts, headers, voltages, exclusive claims |
