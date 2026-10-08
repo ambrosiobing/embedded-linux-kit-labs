@@ -80,7 +80,7 @@ The seating rules are the same as P01: one 40-pin HAT, jumpers set before power,
 > [!NOTE]
 > **What this HAT claims, and the three ways its vendor spells one pin**
 >
-> The draft put the indicator on GPIO22. On the SIM7600E-H of P01 the draft's indicator pins turned out to be modem control lines, GPIO27, GPIO22 and GPIO23 for ring indicator, data terminal ready and clear to send. The SIM7020E of P02 was at first recorded as claiming GPIO27 for its power key; the vendor's wiki puts that key on GPIO4 like this board's, and that record is withdrawn in P02. This board was read next, and it and the SIM7020E are the two that leave the draft's pin alone.
+> The draft put the indicator on GPIO22, and the reason this book gave for moving it has since been withdrawn twice over. P01 recorded that on the SIM7600E-H those pins were modem control lines, GPIO27, GPIO22 and GPIO23 for ring indicator, data terminal ready and clear to send; that was withdrawn on Thursday 8 October 2026, because the vendor's schematic shows all three are header pass-through with no net leaving the header. P02 recorded that the SIM7020E claimed GPIO27 for its power key; that was withdrawn too, because the vendor's wiki puts that key on GPIO4 like this board's. **No modem HAT in this bin claims the draft's three pins.** They were free the whole time.
 >
 > The module's own hardware design document settles only half the question. It confirms the SIM7070G has that family of lines to route, PWRKEY on module pin 1, UART1\_DTR on 3, UART1\_RI on 4, UART1\_DCD on 5, UART1\_CTS on 7 and UART1\_RTS on 8, plus STATUS on 66 and NETLIGHT on 52. Which Raspberry Pi header pin each reaches is the carrier board's decision, so the HAT's own pages are what answer it.
 >

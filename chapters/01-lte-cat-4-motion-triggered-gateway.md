@@ -52,18 +52,30 @@ The event path is independent of the network path. A Python loop reads six regis
 | Yellow module, S1 | 38 | GPIO20 | Default route on usb0 or wwan0 |
 | Red module, S1 | 40 | GPIO21 | Last shock event |
 | Module grounds | 34 or 39 | GND | The breadboard ground rail, as in P15 |
-| Pins 13, 15, 16 |  | GPIO27, 22, 23 | Not free on this HAT. See the note below |
+| Pins 13, 15, 16 |  | GPIO27, 22, 23 | Free. Pass-through only on this HAT, see the note |
 
 *Table 1.1. Wiring. The HAT carries a full 40-pin pass-through, so the accelerometer and the modem coexist on one header and pins 3 and 5 are untouched by the HAT. The indicator pins are not the ones the draft used; the note below says why.*
 
 > [!NOTE]
 > **The status triple cannot sit on BCM 27, 22 and 23 under this HAT**
 >
-> The draft put the three indicators on header pins 13, 15 and 16. On the SIM7600E-H those are the modem's own control lines: GPIO27 is the ring indicator, GPIO22 is data terminal ready and GPIO23 is clear to send. An LED hung on any of them is a second driver on a line the modem is already using, and the failure it produces is not a dark LED but a modem that behaves oddly for reasons nothing in the log explains.
+> **Withdrawn on Thursday 8 October 2026, and this is the third withdrawal of its kind in this book.** Earlier versions of this note said that on the SIM7600E-H header pins 13, 15 and 16 are the modem's own control lines, GPIO27 the ring indicator, GPIO22 data terminal ready and GPIO23 clear to send, and that an LED hung on any of them would be a second driver on a line the modem was already using. **That is not true.** On this HAT those three pins are header pass-through and nothing else: no net leaves the header from them, they do not reach the module, the level translator, the USB bridge, the power jumper or the flight-mode jumper, and the board puts no pull on them. Driving them as inputs or outputs from the Pi contends with nothing.
 >
-> This board is the greedy one of the three. The SIM7020E of P02 and the SIM7070G of P03 both put the module's power key on header pin 7, BCM GPIO4, and leave GPIO27 free. An earlier version of this note said the SIM7020E used GPIO27 as its power key; that came from a secondhand note and the vendor's wiki contradicts it, so it is withdrawn here and in P02.
+> What the HAT actually attaches to the header is shorter than its own pin table suggests, and the table is part of the problem. That table lists six lines: 5 V, ground, the module's RXD to BCM GPIO14, its TXD to BCM GPIO15, PWR to BCM GPIO6 and FLIGHTMODE to BCM GPIO4, and it even says flight mode is wired to a pull-up. **The same wiki's configuration section contradicts its own table.** The jumpers arrived with the late-2021 board, and on that board neither net reaches a GPIO unless a jumper is moved: PWR ships shorted to 3V3 so the module auto-starts and GPIO6 stays open, and Flight ships not connected so GPIO4 stays open. The older board had no such jumpers at all and was button-controlled, where auto-on meant a wire from PWR to ground on the breakout rather than a strap to any Pi pin.
 >
-> So the triple is per lab rather than per book. The pins above are chosen from the high end of the header, where neither modem HAT documents a connection, with the module grounds going to pin 34 or 39. **Confirm them against the pinout of the HAT in front of you before wiring**, because this is a fact about one board and not about the Raspberry Pi. Some Waveshare HATs carry a jumper block that selects which Pi GPIO reaches each control line, and on a board that has one, removing three jumpers is the other way to free the original pins.
+> So the honest list of what is attached with the module seated and the jumpers as shipped is this, and it is worth reading carefully because two entries are easy to miss.
+>
+> - **5 V and ground, always.** The 5 V pins feed the HAT's regulators.
+> - **The 3.3 V pin, also always.** VCCIO is soldered to 3.3 V on this board, and that rail is the high side of the level translator. The HAT draws on the Pi's 3.3 V rail whether or not anything else is configured, which belongs in any power budget for this lab.
+> - **GPIO14 and GPIO15, only while the UART jumper sits in position B.** B is the position in which the Pi controls the module. A connects the onboard USB bridge to the Pi's console and C connects that bridge to the module, and in either of those the two UART lines are not on the SIM7600 at all. **The manual never states the factory position**, so this is the first thing to check at the bench rather than the last.
+>
+> GPIO27, GPIO22 and GPIO23 appear in none of those nets, on either board revision. As inputs they simply float, so if this lab ever wants them pulled, the pull has to come from the Pi.
+>
+> **The consequence is uncomfortable and is stated rather than buried: the draft's pins were free all along, and this move was never necessary.** It is kept anyway, and the reason is the one in the next paragraph rather than the one withdrawn here. The SIM7020E of P02 and the SIM7070G of P03 also put their power key on header pin 7, BCM GPIO4, and an earlier version of this note had the SIM7020E's power key on GPIO27, which the vendor's wiki contradicted and which was withdrawn in P02. Of the three reasons this book has given for moving the indicators, two were false and only the MCC 118's claim on BCM26 was real.
+>
+> One trap the vendor's own pages set, and the reason every pin in this book carries two numbers: the silkscreen naming on this board changed from wiringPi to BCM. On the older sheet `P4` means BCM GPIO4, not GPIO23, and `P22` means BCM GPIO6, not GPIO25. A reader who takes those as physical pin numbers wires the power key to the wrong conductor.
+>
+> The pins above are chosen from the high end of the header, where no modem HAT in this bin documents a connection, with the module grounds going to pin 34 or 39. **Confirm them against the pinout of the HAT in front of you before wiring**, because this is a fact about one board and not about the Raspberry Pi, and because this chapter has now been wrong about exactly that twice. An earlier version of this paragraph also offered removing jumpers as a way to free the draft's three pins; there was never anything to free, so that sentence is withdrawn with the rest.
 
 ```text
 ADXL345                 Pi 40-pin (HAT pass-through pins 1/3/5/6 still available)
