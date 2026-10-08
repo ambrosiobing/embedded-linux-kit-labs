@@ -29,8 +29,18 @@ lab that discussed the symptom is not the lab being built. Putting 5 V on an
 accelerometer is a pitfall in P01 and again in P19, and feeding 5 V into
 `SYS_3V3` is one in P09 and again in P17.
 
+**The sources are not here, and that is deliberate.** A chapter is a `.md` file,
+and the `.tex` that generates it stays on the authoring machine along with the
+81 TikZ figure sources. GitHub renders Markdown and renders neither LaTeX nor a
+PDF, so publishing the sources would offer a reader raw markup instead of a
+chapter. What is published is the Markdown edition, the SVG of every figure, the
+labs' own software, and the reference pages. One consequence is worth knowing:
+`lint.py`, `checkcode.py` and `mdbuild.py` have nothing to read in a fresh
+clone, which is why [`prepublish.py`](prepublish.py) exists and why the workflow
+no longer tries to run them.
+
 **Or build it.** The PDF and a single self-contained HTML file come from the
-same source and stay local:
+same source, which lives on the authoring machine, and both stay local:
 
     python build.py --chapter 5
 
@@ -214,7 +224,7 @@ they are rebuilt from this source rather than carried in it.
 
 ## Checks
 
-    python lint.py                   house rules over every lab, and the parts
+    python prepublish.py             everything the workflow can no longer see
     python tests/test_inventory.py   the parts checker, broken seven ways
 
 The linter refuses dashes, non-ASCII inside a code block, a code line too long
@@ -248,12 +258,10 @@ is a new word invented in passing to avoid writing down one of the four.
 | Path | What it is |
 |---|---|
 | `chapters/` | the Markdown edition, one file per lab, generated |
-| `figures/` | one TikZ or circuitikz source per figure, and its SVG |
-| `sections/` | the LaTeX source, one file per lab |
-| `main.tex` | preamble, the lab macro, the callout boxes, part structure |
-| `tikz_preamble.tex` | shared figure styles: blocks, UML, bench art |
+| `figures/` | the SVG of every figure. Its TikZ source is not published |
 | `build.py` | figures to SVG, the PDF, and the single-file HTML |
 | `mdbuild.py` | the Markdown edition |
+| `prepublish.py` | the four checks the workflow lost, run before pushing |
 | `lint.py` | house-style check, and the parts check |
 | `inventory.json` | the bill of materials: parts, headers, voltages, exclusive claims |
 | `tests/test_inventory.py` | the parts checker broken seven ways, no framework |

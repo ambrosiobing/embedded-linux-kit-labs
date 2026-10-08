@@ -57,3 +57,14 @@ speech.txt
 private_journal/
 correspondence/
 DIARY*.md
+
+# The authoring sources are not published. Only the Markdown edition is, with
+# its SVG figures beside it. A reader takes one chapter, not a book, and a
+# chapter is a .md file. The .tex that generates it stays on the authoring
+# machine, which is why lint.py, checkcode.py and mdbuild.py have nothing to
+# read in a fresh clone and why prepublish.py exists to run them locally.
+#
+# This is a blanket rule rather than named folders, so a new source file
+# cannot slip through: sections/, figures/*.tex, main.tex and the preamble are
+# all covered by the one line.
+*.tex

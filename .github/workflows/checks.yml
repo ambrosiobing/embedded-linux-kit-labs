@@ -1,13 +1,17 @@
 name: checks
 
-# The house rules and the Markdown check need a Python interpreter; the lab's
-# own program needs a C compiler, and the runner has both. Building the volume
-# itself needs a TeX installation and is done locally, so the Markdown check
-# regenerates the chapters only, not the figures.
+# What this job can and cannot see.
 #
-# This job is where the C is compiled for the first time. The authoring laptop
-# has no compiler, so a red run here is the expected way to find out what it
-# has to say, rather than a surprise.
+# The authoring sources are not published. There is no sections/ and no
+# figures/*.tex in a clone, so the four checks that read them cannot run here:
+# the house rules, the command-block parser, the per-lab figure check, and the
+# regeneration check. They run in prepublish.py on the authoring machine
+# instead, and this job gained a guard that the sources stay unpublished.
+#
+# What remains here is everything that reads only what is published: the parts
+# file and its suite, the status ladder, the publishing guards, and the lab's
+# own C program. This job is still where that C is compiled for the first time,
+# because the authoring laptop has no compiler it may use.
 
 on:
   push:
@@ -28,37 +32,27 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: House rules over every lab, and the bill of materials
-        run: python lint.py
-
       - name: The bill of materials still refuses the pairings the book rejects
         # Checking a correct file proves nothing. This breaks it seven ways,
         # five of them taken from the front matter's own list of errors found
         # in the 198-page blueprint, and fails if the checker stays quiet.
         run: python tests/test_inventory.py
 
-      - name: Every command the labs print is parsed
-        # --require-shellcheck so this can never quietly become a Python-only
-        # check on a runner that has no shellcheck. A loud failure is the
-        # intended behaviour there: the alternative is a step that passes while
-        # checking half of what its name claims.
-        run: python checkcode.py --require-shellcheck
-
-      - name: Every lab has its four figures and a lab line
+      - name: No authoring source is published
+        # The sources moved off the published tree deliberately: a reader takes
+        # one Markdown chapter, not a book, and .tex shows raw markup. The four
+        # checks that used to read sections/ now run in prepublish.py on the
+        # authoring machine, because they cannot run here any more. What this
+        # job can still do is make sure the rule holds.
         run: |
           set -e
-          fail=0
-          for n in $(seq -w 1 20); do
-            test -f "sections/p${n}.tex" || { echo "missing sections/p${n}.tex"; fail=1; }
-            grep -q 'project{' "sections/p${n}.tex" || { echo "p${n}: no lab line"; fail=1; }
-            for f in arch schematic bench uml; do
-              test -f "figures/p${n}_${f}.tex" || { echo "missing figures/p${n}_${f}.tex"; fail=1; }
-            done
-          done
-          test -f sections/front.tex
-          test -f sections/appendix.tex
-          test -f figures/front_map.tex
-          exit $fail
+          if git ls-files | grep -E '\.tex$'; then
+            echo "A .tex file is committed, and the authoring sources are never published."
+            echo "Only the Markdown edition and its SVG figures are. The sources stay on"
+            echo "the authoring machine, and prepublish.py runs the checks that need them."
+            exit 1
+          fi
+          echo "no .tex in the published tree, as intended"
 
       - name: Every lab has a state, and only the four states exist
         # A status page is worth having only if it cannot drift. This refuses a
@@ -82,20 +76,6 @@ jobs:
             esac
           done
           exit $fail
-
-      - name: The Markdown edition is in step with the source
-        # Everything mdbuild.py writes is checked, not only chapters/. The two
-        # generated tables at the root could drift silently before, which is
-        # the failure a generated file is supposed to make impossible.
-        run: |
-          set -e
-          python mdbuild.py >/dev/null
-          if ! git diff --quiet -- chapters CONTENTS.md PITFALLS.md; then
-            echo "a generated file is behind sections/; run python mdbuild.py and commit"
-            git --no-pager diff --stat -- chapters CONTENTS.md PITFALLS.md
-            exit 1
-          fi
-          echo "chapters/, CONTENTS.md and PITFALLS.md all match sections/"
 
       - name: The lab builds, with the warnings as errors
         run: |
@@ -161,13 +141,20 @@ jobs:
           fi
           echo "no PDF, no HTML, no assembled volume. Markdown labs only, as intended"
 
-      - name: No journal and no correspondence is published
+      - name: No private journal and no correspondence is published
+        # A per-chapter working record IS publishable now, with machine names
+        # removed. What stays local is the private journal kept in the
+        # catalogue, which names hosts and paths, and correspondence, which is
+        # never anyone else's to read. The guard narrowed from "no journal" to
+        # those two by name, so that a public per-lab record is not blocked by
+        # a rule written before it was wanted.
         run: |
           set -e
           if git ls-files | grep -iE '(^|/)(private_journal|correspondence)/|(^|/)DIARY[^/]*\.md$'; then
-            echo "A journal or a correspondence file is committed."
-            echo "These live in the catalogue, which is local only. A published"
-            echo "repository carries the work, never the running record of doing it."
+            echo "A private journal or a correspondence file is committed."
+            echo "The private journal lives in the catalogue because it names machines"
+            echo "and local paths. A public per-chapter record is welcome; that is not"
+            echo "the same file."
             exit 1
           fi
-          echo "no journal, no correspondence, as intended"
+          echo "no private journal, no correspondence, as intended"
