@@ -38,7 +38,7 @@ be half held is a state that means nothing.
 | P16 | written | the pairing audit | the ESP32 on the Pi 4 |
 | P17 | written | the pairing audit | the ESP8266 on the NanoPi |
 | P18 | written | the pairing audit | a bare Nucleo on the Pi 4 over USB |
-| P19 | written | the pairing audit | one measurement, before anything else: whether the LCD's carrier PCB overhangs header pins 27 to 40. A ruler along the green board's long edge settles it, and about 85 mm means it does. The lab is blocked until then, and its chapter says why |
+| P19 | written | the pairing audit | **one part, no longer one question.** The carrier schematic settled on Thursday 8 October 2026 that the board covers header pins 27 to 40, so the free bit-banged route is closed. The lab needs a 2x20 stacking header, or a tall header whose pins 27 to 40 clear the 26-pin socket, and this bin has neither |
 | P20 | written | the pairing audit | the other nineteen, or at least four hosts reachable at once |
 
 ## Two things this table says that are worth reading twice

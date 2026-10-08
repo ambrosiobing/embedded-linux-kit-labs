@@ -275,25 +275,46 @@ gets the longest entry.
 | Panel outline | 54.94 plus or minus 0.15 mm across, active area 49.76 mm | vendor drawing |
 | Panel long dimension | about 85 mm, active area 74.24 mm | vendor drawing, read with difficulty |
 | Board size | "Same size as your Raspberry Pi 3 / 4 / 5" | vendor wiki, exact words |
-| **Carrier PCB overhang of pins 27 to 40** | | **open** |
+| **Carrier outline** | **85.06 x 56.21 mm**, against the Pi's 85 x 56 mm | vendor dimension drawing |
+| **Carrier covers pins 27 to 40** | **yes** | **vendor, settled Thursday 8 October 2026** |
+| ICs on the carrier | XPT2046 touch controller, 74HC4040 counter, two 74HC4049, 74HC04D, AMS1117-3.3 and CAT6219 regulators | vendor schematic |
 
-**Why that last row is still open, and why this page will not close it.** The
-reasoning available is: the glass panel is roughly 55 by 85 mm, a carrier board
-cannot be smaller than the glass it carries, a Pi 3 Model B is 56 by 85 mm, and
-the 40-pin header runs along the long edge well inside that footprint. That chain
-suggests the board covers the whole header row, pins 27 to 40 included.
+**This row used to say open, and it is now settled. Here is what settled it**,
+because the evidence is a better lesson than the answer.
 
-It is also an inference drawn from a marketing sentence plus a dimension drawing
-**of a different part**, which is the exact shape of reasoning that produced two
-withdrawn claims in this volume already. So it stays marked open, and the
-settling measurement is deliberately trivial: lay a ruler along the long edge of
-the green carrier board, not the glass. About 85 mm means it covers them.
+The carrier schematic is the document that answers it, and it answers it without
+any measuring at all. Its Raspberry Pi connector symbol, `Pi_1`, is drawn as
+thirteen rows of two, numbered 1 and 2 down to **25 and 26**, and it stops there.
+The netlist carries pads `PIH0Pi01` through `PIH0Pi026` and nothing above. **Pins
+27 to 40 are not contacts on this board and are not listed even as "not
+connected".** Waveshare's own connection note says the same thing in words: the
+Pi has 40 pins, this screen has 26, and the socket is lined up with pins 1 to 26.
 
-![P19's open question drawn two ways: a plan view of the Raspberry Pi with the 40-pin header split into pins 1 to 26 and 27 to 40 and the panel's outline dashed because it is unmeasured, and two side elevations showing what follows if the carrier board overhangs and if it stops at pin 26](boards/lcd-overhang-question.svg)
+The mechanical half follows from the outline. The carrier is 85.06 by 56.21 mm
+against the Pi's 85 by 56 mm, so it is the same board outline. Pin 1 of the
+26-pin socket sits at the SD card and power end of the header, which puts pins 27
+to 40 roughly 15 mm further along toward the USB end, at 2.54 mm pitch, with the
+carrier continuing over the remainder of its 85 mm. **Those pins end up under the
+PCB.** There is no pass-through header on this carrier.
 
-In that drawing, solid lines are measured or vendor-stated and dashed lines are
-unmeasured. The panel's own outline is one of the dashed ones, which is the whole
-difficulty in a single stroke.
+So the position is: electrically those fourteen pins are untouched, and
+mechanically they are buried the moment the panel is seated. **A stacking header,
+or an extra-tall header whose pins 27 to 40 clear the 26-pin socket, is what gets
+them back.**
+
+**What this says about the reasoning that preceded it.** The earlier inference
+pointed at the same answer and was still refused, because it rested on a
+marketing sentence plus a dimension drawing of the glass panel rather than the
+carrier. Being right by luck is not the same as being right, and the page would
+have carried a true sentence resting on a false method. The schematic made it a
+fact. The ruler was never needed, which is itself worth noting: **the cheapest
+measurement is often a document nobody had opened.**
+
+![The settled answer: a plan view of the Raspberry Pi with the 40-pin header split into the twenty-six pins the carrier's socket mates and the fourteen it covers, the carrier outline drawn solid at 85.06 by 56.21 mm, and a side elevation showing pins 27 to 40 buried under the board with a stacking header as the only way to reach them](boards/lcd-overhang-question.svg)
+
+The drawing was redrawn on Thursday 8 October 2026 when the question closed. The
+carrier outline that used to be dashed is now a solid line, and the two
+side-by-side outcomes have become one.
 
 **Why anyone cares.** The socket mates pins 1 to 26, so with the panel seated,
 pins 1, 3, 5 and 6 are underneath it. Since pins 1 and 17 are the only 3.3 V pins
@@ -303,21 +324,29 @@ is no second I2C bus to move to either. What remains above pin 26 is grounds on
 30, 34 and 39, and GPIOs on 29, 31, 32, 33, 35, 36, 37, 38 and 40, with 27 and 28
 reserved for the ID EEPROM.
 
-That leaves P19 with two routes, and the open row above decides between them. A
-2x20 stacking header raises the panel and restores every pin, which is one small
-part that is not in this bin. Or the sensor takes 3.3 V from the POW-BB rail that
-P15 labels, grounds to pin 30, 34 or 39, and runs on a bit-banged bus through the
-`i2c-gpio` overlay on two free GPIOs, which costs nothing. **If the PCB does
-overhang, the second route has nowhere to put a jumper and the stacking header
-becomes the only answer**, on the following clearance argument.
+**P19 had two candidate routes, and this closes one of them.** The volume used to
+offer a choice: a 2x20 stacking header to raise the panel and restore every pin,
+or the sensor taking 3.3 V from the POW-BB rail, grounding above pin 26, and
+running on a bit-banged bus through the `i2c-gpio` overlay. The second was the
+attractive one because it costs nothing.
 
-That argument is **open**, not vendor and not measured, and it is spelled out so
-you can check it rather than take it: a 26-pin socket of the usual height holds
-the panel roughly a header pin's height above the Pi's board, which would leave
-the pin tips close against the panel's underside and nowhere near the clearance a
-Dupont shell needs. Every number in that sentence is generic header geometry
-rather than a figure from this panel's documentation, so if the overhang turns
-out to be real, measure the gap before concluding the route is closed.
+**It is not available.** Those GPIOs are under the carrier once the panel is
+seated, so there is nowhere to attach a jumper to them. A seated board leaves no
+free bit-bang bus, and no amount of overlay configuration changes where a
+connector physically fits. P19 therefore needs **one small part that this bin
+does not contain**: a stacking header, or a tall header whose pins 27 to 40 clear
+the 26-pin socket.
+
+That is a cleaner position than the volume had before. The lab is not blocked on
+an unknown any more; it is blocked on a purchase, and it can say which one.
+
+**A note for anyone holding a different revision.** The (A) is the carrier in
+this bin: 480 x 320, SPI, resistive touch, green carrier, no pass-through. The
+(B), (C) and (G) are different boards. The (G) schematic, dated Saturday
+28 March 2025, draws a full 40-pin header and still has no pass-through, so the
+same physical conclusion applies to it unless someone measures a cut-back edge on
+that revision. The official 7 inch DSI panel is not this carrier at all and does
+not touch the GPIO header.
 
 ---
 
@@ -690,7 +719,12 @@ the document wins and the line is wrong.
 | SIM7070G module | [SIM7000 series documents](https://simcom.ee/documents?dir=SIM7000x) | The module-side pin numbers: PWRKEY 1, DTR 3, RI 4, DCD 5, CTS 7, RTS 8, STATUS 66, NETLIGHT 52. Note it answers the module question and **not** the carrier question |
 | MCC 118 | [Electrical specification](https://mccdaq.github.io/daqhats/_static/esmcc118.pdf) | Plus or minus 10.1 V, 12-bit, 100 kS/s aggregate, 8 single-ended inputs, the address jumpers |
 | Explorer700 | [RB-Explorer700 manual](https://www.joy-it.net/files/files/Produkte/RB-Explorer700/RB-Explorer700-Manual-16.11.2020.pdf) | The DS3231, BMP280, PCF8591 and PCF8574 and their addresses |
-| 3.5 inch LCD (A) | [Waveshare wiki](https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(A)) | 480 x 320, SPI, the 26-pin socket, the absence of a pass-through, and the exact words "Same size as your Raspberry Pi 3 / 4 / 5". **It does not answer the overhang question** |
+| 3.5 inch LCD (A) | [Waveshare wiki](https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(A)) | 480 x 320, SPI, the 26-pin socket, the absence of a pass-through, the carrier outline of 85.06 x 56.21 mm, and the exact words "Same size as your Raspberry Pi 3 / 4 / 5" |
+| 3.5 inch LCD (A) carrier | [Schematic](https://www.waveshare.com/w/upload/f/fb/3.5inch-RPi-LCD-A-Schematic.pdf) | **The document that settled P19.** Its `Pi_1` connector symbol runs 1 and 2 down to 25 and 26 and stops, and the netlist has pads 1 to 26 and nothing above |
+| XPT2046 | [Datasheet](https://www.waveshare.com/w/upload/f/f7/XPT2046.pdf) | The resistive touch controller on that carrier, sharing SPI0 with the display |
+| 74HC4040, 74HC4049 | [CD74HC4040](https://www.ti.com/lit/ds/symlink/cd74hc4040.pdf), [CD74HC4049](https://www.ti.com/lit/ds/symlink/cd74hc4049.pdf) | The counter and inverters that turn the Pi's serial clock into the panel's parallel bus, which is why this carrier is not a plain SPI display |
+| AMS1117-3.3, CAT6219-330 | [AMS1117](https://www.advanced-monolithic.com/pdf/ds1117.pdf), [CAT6219](https://www.onsemi.com/download/data-sheet/pdf/cat6219-d.pdf) | The two regulators on the carrier, for anyone budgeting its draw |
+| Other 3.5 inch revisions | [(B)](https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(B)), [(C)](https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(C)), [(G) schematic](https://www.waveshare.net/w/upload/6/63/3.5inch_RPi_LCD_%28G%29.pdf) | Listed so nobody applies this page's conclusion to the wrong board. The (G) draws a full 40-pin header and still has no pass-through |
 
 ### Shields and instruments
 
@@ -739,7 +773,7 @@ a real gap.
 
 | Open question | How to settle it |
 |---|---|
-| Does the 3.5 inch LCD's carrier PCB overhang pins 27 to 40? | A ruler along the green board's long edge. About 85 mm means yes |
+| ~~Does the LCD's carrier cover pins 27 to 40?~~ | **Closed Thursday 8 October 2026: yes.** The carrier schematic's connector stops at pin 26 and the outline is 85.06 x 56.21 mm. P19 needs a stacking header |
 | What voltage are the rails actually at? | A multimeter. There is none on this bench, which is the single purchase that unblocks the most acceptance tests |
 | Is the Renkforce cable's logic really 3.3 V? | Documented by the vendor, never measured here |
 | Which OS image and kernel were the measurements taken on? | `cat /etc/os-release`, `uname -a` and `cat /proc/device-tree/model`, recorded together next time |
