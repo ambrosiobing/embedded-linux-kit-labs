@@ -79,17 +79,20 @@ and the appendix marks it the one lab not to skip.
 
 ### The Raspberry Pi 40-pin header, and the three groups that matter
 
-![The Raspberry Pi 40-pin header with every claim in this bin marked: power, ground, the I2C, UART, SPI0 and ID EEPROM buses, the pins claimed by individual boards, the three disputed SIM7600E-H lines drawn dashed, and the three indicator pins](boards/header-claims.svg)
+![The Raspberry Pi 40-pin header with every claim in this bin marked: power, ground, the I2C, UART, SPI0 and ID EEPROM buses, the pins claimed by individual boards, the three SIM7600E-H lines once thought disputed and now shown free, and the three indicator pins](boards/header-claims.svg)
 
 **About that drawing, and about every drawing on this page.** It is original work,
 made for this volume, and it contains no vendor artwork. That is deliberate: a
 board photograph or a datasheet figure belongs to the company that drew it, and
 republishing one here would put their material under this repository's licence
 without their agreement. What a diagram of our own can do, and a borrowed one
-cannot, is show **our** claims and **our** uncertainty: the dashed boxes are the
-three lines whose status is open, and no vendor figure would ever mark them that
-way. The sources for every fact in it are in Part 8, and the pin functions follow
-the volume's appendix.
+cannot, is show **our** claims and **our** uncertainty, and then show them
+changing. Those three pins were drawn dashed while their status was open; the
+schematic settled them on Thursday 8 October 2026 and they are drawn free now.
+**A figure that can be redrawn when the evidence moves is worth more than one
+that was right the first time**, and no borrowed figure could have done either.
+The sources for every fact in it are in Part 8, and the pin functions follow the
+volume's appendix.
 
 The full pin table is in the volume's appendix. Three groups carry nearly all the
 traffic in these labs, and it is worth knowing which is which before you plan any
@@ -142,8 +145,8 @@ connector and not the header at all.
 
 ### SIM7600E-H 4G HAT (P01, P13)
 
-**The reason the indicator pins moved, and the board whose claim is now in
-question.** Read Part 7a before relying on the first three rows.
+**The board this volume was most wrong about.** It was named as the reason the
+indicator pins moved, and that reason has been withdrawn. Read Part 7a.
 
 | What | Header pin | BCM | Mark |
 |---|---|---|---|
@@ -155,16 +158,15 @@ question.** Read Part 7a before relying on the first three rows.
 | UART select, positions A, B, C | jumper | | vendor. **B is the position that lets the Pi drive the modem** |
 | Antenna connectors | MAIN, AUX, GNSS | | vendor. Three, not two |
 | Full 40-pin pass-through | all | | vendor, and checked: pins 3 and 5 stay reachable |
-| Ring indicator | 13 | GPIO27 | **open, see Part 7a** |
-| Data terminal ready | 15 | GPIO22 | **open, see Part 7a** |
-| Clear to send | 16 | GPIO23 | **open, see Part 7a** |
+| Pins 13, 15, 16 | 13, 15, 16 | GPIO27, 22, 23 | **free.** Header pass-through only, no net leaves the header. vendor schematic, settled Thursday 8 October 2026 |
 
-Those last three are exactly the pins an earlier draft had chosen for status
-indicators, and the stated reason for moving them was that hanging an LED on any
-of them puts a second driver on a line the modem is already using. That reasoning
-is sound and the premise is now in doubt: the manual's own table of control pins
-does not list them. The wiring stays where it is while the question is open, for
-the reason given in Part 7.
+Those three used to be listed here as the modem's ring indicator, data terminal
+ready and clear to send, then as open, and they are now **free**. That last step
+is a new claim rather than a tidied figure, so it is worth saying what it rests
+on: the carrier schematic shows `P27`, `P22` and `P23` on the header symbol with
+no net leaving it. The stated reason for moving the indicators off those pins,
+that an LED there would be a second driver on a line the modem was already using,
+was never true. See Part 7a, and Part 7 for why the wiring stays anyway.
 
 This board does carry a full pass-through, so the I2C corner remains available,
 which is what lets P01 run an accelerometer and a modem on one host.
@@ -490,12 +492,20 @@ This is the section that was hardest to write honestly, and probably the most
 useful. The indicator pins in this volume moved **three times**. Here is each
 move with its reason, including the one whose reason turned out to be wrong.
 
-### Move 1: off pins 13, 15 and 16. Correct, and for the stated reason.
+### Move 1: off pins 13, 15 and 16. Unnecessary, on a reason that was false.
 
 The draft put three indicators on header pins 13, 15 and 16, GPIO27, GPIO22 and
-GPIO23. On a bare Pi that is perfectly fine and it is what P15 still uses. Under
-the SIM7600E-H it is not: those are the modem's ring indicator, data terminal
-ready and clear to send. **This move was right and the reason holds.**
+GPIO23. The stated reason for moving them was that under the SIM7600E-H those are
+the modem's ring indicator, data terminal ready and clear to send, so an LED
+there would be a second driver on a line already in use.
+
+**That was wrong, and this entry used to say the move was right.** The carrier
+schematic shows all three are header pass-through with no net leaving the header.
+Nothing was ever contended. The draft's choice was fine on a bare Pi, which is
+what P15 still uses, and it was equally fine with this HAT seated.
+
+So the migration that the rest of this section describes **began with a move that
+did not need to happen**. Everything after it inherited that start.
 
 ### Move 2: onto BCM26. Wrong, and caught by an unrelated reading.
 
@@ -657,13 +667,32 @@ the board, item 8, described as being for host boards like Arduino or STM32,
 which is the same arrangement the SIM7020E has: the module's control lines live
 on their own header rather than on Pi GPIOs.
 
-**This is marked open, not corrected, and the distinction matters.** One document
-is not a refutation any more than one secondhand note was a confirmation, and
-there are honest reasons the manual might be incomplete: it is Rev1.0 from June
-2018, board revisions change, and a wiki page may carry a fuller table. But the
-volume's claim now rests on something that the vendor's own manual does not say,
-which is exactly the position the SIM7020E power-key claim was in before it was
-withdrawn. **It is the third time this failure mode has appeared in this bin.**
+**Settled on Thursday 8 October 2026, and the claim is withdrawn.** When this
+section was first written it marked the three pins **open** rather than wrong,
+on the ground that one document is not a refutation any more than one secondhand
+note was a confirmation. That caution was right at the time, and two further
+sources closed it.
+
+**What settled it, and which source did the work.** The carrier schematic is
+load-bearing: `P27`, `P22` and `P23` appear only on the Raspberry Pi header
+symbol, with **no net leaving the header**, no path to the module, the level
+translator, the USB bridge or either jumper, and no pull on the board. That is
+positive evidence of non-connection. The wiki's connection table is
+corroborating only, and could never have settled it alone: a table of what *is*
+connected supports "not documented", not "not connected". The distinction is the
+difference between a withdrawal and a shrug.
+
+So this is the volume's **third withdrawal of this kind**, and the most expensive
+of the three, because the claim was load-bearing: it was the entire stated reason
+the indicator pins moved off header pins 13, 15 and 16. **Those pins were free
+all along, and the migration was never necessary.** The withdrawal is carried by
+name in P01, P02, P03 and the appendix.
+
+**The wiring still does not move**, and it is worth being clear that this is not
+stubbornness. BCM16, 20 and 21 are documented free on every board in the bin, one
+assignment safe across all four cellular labs is easier to hold than four, and
+moving back would be a second unnecessary migration to undo the first. What
+changed is the justification, not a wire.
 
 What settles it, in order of effort: read the product wiki's pinout table; look at
 the board's silkscreen next to the 40-pin header; or, decisively, seat the HAT,
@@ -777,7 +806,7 @@ a real gap.
 | What voltage are the rails actually at? | A multimeter. There is none on this bench, which is the single purchase that unblocks the most acceptance tests |
 | Is the Renkforce cable's logic really 3.3 V? | Documented by the vendor, never measured here |
 | Which OS image and kernel were the measurements taken on? | `cat /etc/os-release`, `uname -a` and `cat /proc/device-tree/model`, recorded together next time |
-| Does the SIM7600E-H in this bin have the GPIO-select jumper block? | Look at the board. Some Waveshare HATs have one |
+| What position is the SIM7600E-H's UART jumper in as shipped? | Look at the board. Only position B puts the Pi on the module, and the manual never states the factory setting |
 
 If you settle one, the thing that matters most is not the answer. It is adding
 the mark: **vendor**, **measured** with a date, or still **open**. That is the
