@@ -108,7 +108,44 @@ Neither bench sitting recorded the OS image. The board revision is there,
 `Raspberry Pi 3 Model B Rev 1.2` from `/proc/device-tree/model`, and so is the
 userspace, libgpiod v2.2.1 over `gpiochip0` on `pinctrl-bcm2835`, but the image
 date and the kernel are not. A state of **passed** requires them, because
-"Bookworm" alone will not tell the next reader what was running. The three
-commands that capture it are `cat /etc/os-release`, `uname -a` and
-`cat /proc/device-tree/model`, and their output belongs in the lab book beside
-the numbers.
+"Bookworm" alone will not tell the next reader what was running.
+
+**Four commands, in this order, and their output belongs in the lab book beside
+the numbers.** This block is shared with the sibling bench volume, so that two
+books by the same author stop asking different questions about the same board.
+
+```
+cat /etc/os-release
+uname -a
+cat /proc/device-tree/model
+findmnt /
+```
+
+They answer four separate questions and none of them answers another's.
+
+| Command | Question | Why this one |
+|---|---|---|
+| `cat /etc/os-release` | which distribution | Operating system identification data, with `NAME`, `ID`, `VERSION_ID` and `PRETTY_NAME` set by the vendor. It says nothing about the kernel. See https://man7.org/linux/man-pages/man5/os-release.5.html |
+| `uname -a` | which kernel | Prints sysname, nodename, release, version and machine on one line, so it includes the release that `uname -r` would print alone, and keeps the version field. See https://pubs.opengroup.org/onlinepubs/9699919799/utilities/uname.html |
+| `cat /proc/device-tree/model` | which board | The string this bench recorded as `Raspberry Pi 3 Model B Rev 1.2` |
+| `findmnt /` | which root filesystem | Searches the kernel mount table, by default `/proc/self/mountinfo`, and with a mountpoint argument shows what is mounted there, source included. See https://man7.org/linux/man-pages/man8/findmnt.8.html |
+
+**`findmnt /` is the one this volume was missing, and it catches a specific
+failure.** A board that boots is not evidence that the image you built is the one
+running. The sibling volume's NanoPi arrived with a vendor image on its eMMC, so
+a successful boot there proves only that *something* booted. The same risk
+applies to any host in this bin that has ever had another card in it.
+
+**Why `uname -a` rather than `uname -r`.** The sibling volume asked for `-r`.
+The release field that `-r` prints is still readable inside `-a`, so nothing is
+lost, and what `-r` drops is the version field. That field is already
+load-bearing in the sibling volume, where the preemption model is decided by
+looking for `PREEMPT_RT` in `uname -v`. One command answers both questions, and
+keeping two spellings of "which kernel" would preserve exactly the disagreement
+this block exists to remove.
+
+**One footnote, and deliberately not a fifth command.** `findmnt` is part of
+util-linux and is present on the Debian bookworm rootfs and on Raspberry Pi OS.
+If some later image turns out to be BusyBox only, the same question is
+`awk '$2=="/"' /proc/self/mountinfo`. Do not put that in the block unless an
+image actually lacks `findmnt`.

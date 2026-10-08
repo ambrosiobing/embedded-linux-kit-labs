@@ -805,7 +805,7 @@ a real gap.
 | ~~Does the LCD's carrier cover pins 27 to 40?~~ | **Closed Thursday 8 October 2026: yes.** The carrier schematic's connector stops at pin 26 and the outline is 85.06 x 56.21 mm. P19 needs a stacking header |
 | What voltage are the rails actually at? | A multimeter. There is none on this bench, which is the single purchase that unblocks the most acceptance tests |
 | Is the Renkforce cable's logic really 3.3 V? | Documented by the vendor, never measured here |
-| Which OS image and kernel were the measurements taken on? | `cat /etc/os-release`, `uname -a` and `cat /proc/device-tree/model`, recorded together next time |
+| Which OS image, kernel, board and root filesystem were the measurements taken on? | Four commands, recorded together next time: `cat /etc/os-release`, `uname -a`, `cat /proc/device-tree/model`, `findmnt /`. The same block the sibling bench volume uses. STATUS.md says which question each answers |
 | What position is the SIM7600E-H's UART jumper in as shipped? | Look at the board. Only position B puts the Pi on the module, and the manual never states the factory setting |
 
 If you settle one, the thing that matters most is not the answer. It is adding
