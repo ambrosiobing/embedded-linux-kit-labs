@@ -24,6 +24,7 @@ to twenty.
 | [p04.md](p04.md) | A build that had never passed, hidden by how it was reported |
 | [p05.md](p05.md) | An acceptance band that turned out to be fair by luck |
 | [p06.md](p06.md) | A rule two chapters had only in prose, and the first program here that can be wrong in memory |
+| [p13.md](p13.md) | A lab predicted wrongly, and a clock that is an argument |
 | [p15.md](p15.md) | The two sittings where something was actually measured |
 | [p18.md](p18.md) | A chapter that had drifted from the repository, and a latent defect found while moving code |
 | [p19.md](p19.md) | A blocked lab, and the document that unblocked the question |

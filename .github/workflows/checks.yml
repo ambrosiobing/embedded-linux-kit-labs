@@ -385,6 +385,54 @@ jobs:
             || { echo "a cycle with no fix published something anyway"; exit 1; }
           echo "the wrong bearer stops the lab, and a cycle with no fix publishes nothing"
 
+      - name: P13 builds, with the warnings as errors
+        run: make -C p13 all
+
+      - name: P13's suite, with no hardware anywhere
+        run: |
+          set -e
+          make -C p13 check | tee p13-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p13-suite.txt || {
+            echo "p13: no suite summary in that output, so nothing ran"
+            exit 1
+          }
+
+      - name: P13's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p13 strict
+
+      - name: P13 refuses four runs that do not show the antenna test
+        # The one that matters is the healthy run. A log of a bench where
+        # everything worked demonstrates nothing about what happens when an
+        # antenna comes off, and a gate that cannot say so is a summary.
+        run: |
+          set -e
+          cd p13
+          ./p13 scene --kind outage --out outage.p13
+          ./p13 verify --source outage.p13 | tee outage.txt
+          grep -q "rhythm    pass" outage.txt \
+            || { echo "the backup rhythm was not judged"; exit 1; }
+          for kind in steady short-gap no-return backup-only; do
+            ./p13 scene --kind $kind --out $kind.p13
+            if ./p13 verify --source $kind.p13 > $kind.txt; then
+              echo "the $kind run was accepted as a failover demonstration"
+              exit 1
+            fi
+          done
+          grep -q "never fell" steady.txt \
+            || { echo "a healthy run was refused for the wrong reason"; exit 1; }
+          echo "one run passes and four are refused, each for its own reason"
+
+      - name: P13's window is the window, judged against the wrong one
+        run: |
+          set -e
+          cd p13
+          if ./p13 verify --source outage.p13 --window 10; then
+            echo "a 45 second run passed as though its window were 10"
+            exit 1
+          fi
+          echo "a log judged against the wrong window is refused"
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e

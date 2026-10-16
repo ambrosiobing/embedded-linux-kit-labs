@@ -134,16 +134,16 @@ Read the diagram from the bottom. The supervisor sees one stream of tagged recor
 
 **Step 2.** **Publish the primary health sample from the Pi 4**, every 15 s, through the P01 WAN.
 
-```python
-import json, subprocess, time
-
-BROKER = "localhost"        # the P12 broker, or test.mosquitto.org
-while True:
-    payload = json.dumps({"src": "cat4", "ok": 1})
-    subprocess.run(["mosquitto_pub", "-h", BROKER,
-                    "-t", "lab/p13/health", "-m", payload], check=False)
-    time.sleep(15)
+```bash
+# on the Pi 4, through the P01 WAN
+while true; do
+    mosquitto_pub -h localhost -t lab/p13/health \
+        -m '{"src":"cat4","ok":1}'
+    sleep 15
+done
 ```
+
+The publisher is a loop and a command, and it stays that way. Keeping it dumb is the design: neither host detects the other's state or changes its own behaviour when the supervisor changes state, which is why all the intelligence sits in one place.
 
 **Step 3.** **Publish the backup health sample from the Pi 3**, every 120 s, over CoAP/UDP or whatever P02 actually reached. The payload is the same record with a different tag, and it leaves through the module socket, not through a host route.
 
@@ -154,51 +154,40 @@ AT+CSOCON=0,5683,"172.16.0.1"
 AT+CSOSEND=0,38,"7B22737263223A226E62222C226F6B223A317D"
 ```
 
-**Step 4.** **Run the supervisor** on the P12 broker host, or on a laptop on the same LAN.
+**Step 4.** **Run the supervisor** on the P12 broker host, or on a laptop on the same LAN. It is the `p13` directory of this repository, in C, and it reads what `mosquitto_sub -v` prints. It does not open a socket, subscribe to anything or know what a broker is.
 
-```python
-import json, time
-import paho.mqtt.client as mqtt
-
-last_cat4 = 0.0
-last_nb = None
-state = "FAILOVER"          # nothing has been heard yet
-
-def on_message(client, userdata, msg):
-    global last_cat4, last_nb, state
-    rec = json.loads(msg.payload.decode(errors="ignore"))
-    if rec.get("src") == "cat4":
-        last_cat4 = time.time()
-        if state != "PRIMARY":
-            state = "PRIMARY"
-            print(time.strftime("%H:%M:%S"), "state ->", state)
-    elif rec.get("src") == "nb":
-        last_nb = rec
-
-c = mqtt.Client()
-c.on_message = on_message
-c.connect("localhost", 1883, 60)
-c.subscribe("lab/p13/health")
-c.loop_start()
-
-while True:
-    if state == "PRIMARY" and time.time() - last_cat4 > 45:
-        state = "FAILOVER"
-        print(time.strftime("%H:%M:%S"), "state ->", state, "live:", last_nb)
-    time.sleep(1)
+```bash
+make -C p13 && make -C p13 check
+mosquitto_sub -h localhost -t lab/p13/health -v | \
+    ./p13/p13 supervise --log bench.p13
 ```
+
+Nothing in the state machine reads a clock. The time arrives as an argument, from a monotonic clock during a run and from a column of the log during a replay, and the machine cannot tell the difference. That is what makes the window testable at its own boundary rather than near it, and it is why the whole of this lab's behaviour can be exercised before either radio is switched on:
+
+```bash
+./p13/p13 scene --kind outage --out outage.p13   # a run that did not happen
+./p13/p13 verify --source outage.p13             # judged as if it had
+./p13/p13 scene --kind short-gap --out gap.p13   # one missed sample
+./p13/p13 verify --source gap.p13                # refused: nothing fell
+```
+
+The second pair is the one worth running twice. A window of one sample would flip on a single missed record, and a reader who shortens the window to make the lab feel more responsive finds that out in the field rather than here.
 
 **Step 5.** **Unscrew the LTE main antenna.** The state must flip to FAILOVER within 45 seconds of the last primary sample. Refit the antenna. The state must return to PRIMARY on the next primary sample. Record both transitions with their timestamps.
 
 **Step 6.** **Record both sources to a file.** The log is the acceptance artifact, and it has to show both tags and the two transitions with their timestamps.
 
 ```bash
+# the supervisor's own log is the machine readable half
+./p13/p13 verify --source bench.p13
+# and the human half, kept beside it
 mosquitto_sub -h localhost -t 'lab/p13/health' -v | ts >> /var/log/lab-p13.txt
-# then, after the antenna test:
 grep -c '"src":"cat4"' /var/log/lab-p13.txt
 grep -c '"src":"nb"'   /var/log/lab-p13.txt
 ip route | grep default        # on each host: one modem route, not two
 ```
+
+`verify` prints one line per item of the acceptance test and exits non-zero if any of them is missing from the log, including the case nobody expects to fail: a log of a perfectly healthy run, in which no antenna was ever pulled, is refused because it demonstrates nothing.
 
 **Step 7.** **Show the state on the glass.** A `watch` terminal on the P12 panel, or the dashboard page from that chapter, is enough. The operator should be able to read the state from across the bench without a keyboard.
 
@@ -243,7 +232,7 @@ This is signalling failover. Do not advertise a 50 Mbit NB-IoT backup, it does n
 - P02 in this volume, for the NB-IoT attachment and the module socket this lab reuses unchanged
 - P12 in this volume, for the broker, the panel and the operator glass the supervisor runs on
 - Eclipse Mosquitto documentation, broker configuration and `mosquitto_pub`, <https://mosquitto.org/documentation/>
-- Eclipse Paho Python client documentation, <https://eclipse.dev/paho/>
+- Eclipse Mosquitto, for `mosquitto_pub` and `mosquitto_sub`, <https://mosquitto.org/man/>
 - SIMCom SIM7600 and SIM7020 AT command manuals, for `AT+CEREG?` and `AT+CSOSEND` (module vendor documentation)
 - The lab sequence at the end of this volume, which places this chapter after P01, P03 and P02 for exactly this reason
 - The operator's own coverage notes for both SIMs, since a backup path that shares one cell with the primary is not a backup

@@ -183,7 +183,7 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and five have been. They live in this repository beside the chapters they
+and six have been. They live in this repository beside the chapters they
 belong to, because a reader who has just read chapter 4 should not have to go
 looking.
 
@@ -204,6 +204,9 @@ looking.
 | [`p03/`](p03/) | the host half of the Cat-M node with the GNSS stamp, in C, with its own README |
 | [`p03/src/`](p03/src/) | the fix, the bearer, the one door that transmits, the audit |
 | [`p03/tests/`](p03/tests/) | the suite, five groups, no framework and no sky |
+| [`p13/`](p13/) | the supervisor of the dual-radio failover, in C, with its own README |
+| [`p13/src/`](p13/src/) | two states, one timer, and a clock that is an argument |
+| [`p13/tests/`](p13/tests/) | the suite, five groups, no framework and no clock |
 | [`lib/`](lib/) | what more than one of them needed: the AT engine, sequence accounting and the line reader |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
@@ -216,6 +219,8 @@ looking.
     make -C p02 demo      the timers decoded and four scenes replayed
     make -C p03 check     the same, for the Cat-M node
     make -C p03 demo      the scenes replayed, and the ordering audited
+    make -C p13 check     the same, for the failover supervisor
+    make -C p13 demo      five runs that did not happen, judged
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code
@@ -227,7 +232,7 @@ until the one place where they become floats.
 They do not touch a bus, a device or a lab, and no lab depends on them.
 
 Most of these labs are the same shape: something arrives over a line and a
-decision is made from it. Five are written, and `lib/` holds what more than one
+decision is made from it. Six are written, and `lib/` holds what more than one
 of them turned out to need rather than what was guessed at in advance.
 
 It has three files, and each went in the day a second lab needed it. The

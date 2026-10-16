@@ -32,7 +32,7 @@ be half held is a state that means nothing.
 | P10 | written | the pairing audit | the PPK2 on the ESP32. The PPK2 has been used on this bench, but for P15's modules, not for this lab's target |
 | P11 | written | the pairing audit | the Explorer700 seated on the Pi 3B+ |
 | P12 | written | the pairing audit | the official display and keyboard on the Pi 4, and a broker |
-| P13 | written | the pairing audit | two Pis and two modems at once, which is the largest setup in the volume |
+| P13 | written | the pairing audit. **Its supervisor is in the tree and has never been compiled.** `p13/` is the whole of the host side: two states, one timer, and a state machine whose clock is an argument so that a ten minute run replays in microseconds. This row moves to **checked** on the first green run and not before | two Pis and two modems at once, which is the largest setup in the volume |
 | P14 | written | the pairing audit | the Renkforce cable and two ESP boards on the Pi 3 |
 | P15 | **run** | three LK-LED10 modules driven from header pins 11, 13 and 15 on a Raspberry Pi 3 Model B Rev 1.2, Friday 2 October 2026; each module's current measured alone on the PPK2 at 5.000 V and 3.300 V, Saturday 3 October 2026 | the rail voltages, which need a voltmeter this bench does not have, and a written lab book |
 | P16 | written | the pairing audit | the ESP32 on the Pi 4 |

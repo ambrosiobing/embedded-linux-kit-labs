@@ -44,6 +44,7 @@ __pycache__/
 *.book
 *.glass
 *.transcript
+*.p13
 test_p06_sysfs/
 
 # What building the labs leaves behind: objects, dependency files and the
@@ -58,6 +59,8 @@ p04/p04
 p04/p04-test
 p06/p06
 p06/p06-test
+p13/p13
+p13/p13-test
 p18/p18
 p18/p18-test
 lib_atchat.o
@@ -79,6 +82,9 @@ p02-suite.txt
 p03-suite.txt
 p04-suite.txt
 p06-suite.txt
+p13-suite.txt
+# p13 names its scene reports after the scene, in a loop, so these are a glob
+p13/*.txt
 p18-suite.txt
 
 # Journals and correspondence never reach a published repository, private
