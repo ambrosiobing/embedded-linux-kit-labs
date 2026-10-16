@@ -91,13 +91,40 @@ disguised as a data question, and it is counted on its own.
 A row that does not parse is counted and dropped, never read as a zero, and
 the index it was carrying is then reported as a hole, which is what it is.
 
-## What is only a claim, as of Saturday 17 October 2026
+## The first compile, and a prediction made twice from a name
 
-**None of this has been compiled**, and `STATUS.md` leaves P05 at
-**written**.
+Built on Saturday 17 October 2026: no diagnostics under the gate, 70 checks
+with none failed, and the stricter conversion pass clean.
 
-Two things will stay claims after the first green run. No voltage in any test
-here came from anything but arithmetic, so what the suite proves is that the
+The prediction that went with it was wrong, and it was the same wrong
+prediction as the day before. Handing this over I said that unlike the last
+four programs, this one does real floating point, so `-Wdouble-promotion`
+would have something to say at last. It had nothing, for a reason that was
+available to me both times.
+
+**That warning fires when a `float` is implicitly converted to a `double`.**
+It is not a warning about programs that use floating point. P05 uses `double`
+throughout and contains no `float` at all, so there is nothing for it to
+notice.
+
+Counted across the seven programs: P04 has 134 `float` declarations and every
+other program has none. So `-Wdouble-promotion` has been exercised exactly
+once in this volume, by P04, and that once it found four defects. The
+hypothesis offered in [p18.md](p18.md), that these strict passes come back
+clean because conversions are written out, is confirmed for the conversion
+warnings and remains untested for the promotion one, and no program now in
+the tree can test it.
+
+What I did wrong is worth naming because it is this volume's own recurring
+error in a new place. I read the warning by its name and predicted from that,
+rather than from what it is defined to do. The book has withdrawn three
+hardware claims for exactly that move, each one a note trusted over the page
+it summarised, and a compiler flag turns out to be a page like any other.
+
+## What stays a claim
+
+No voltage in any test here came from anything but
+arithmetic, so what the suite proves is that the
 program agrees with its own reading of a file. And the four vendor calls in
 the chapter are quoted from MCC's published C examples rather than compiled
 against their library, which is not on this machine: the names and the
