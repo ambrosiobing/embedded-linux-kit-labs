@@ -10,7 +10,7 @@ chapters already give. The use of this page is the other direction, when
 a bench is misbehaving and the lab that discussed the symptom is not the
 lab being built.
 
-**193 pitfalls across 20 labs.**
+**196 pitfalls across 20 labs.**
 
 | Pitfall | Lab |
 |---|---|
@@ -37,10 +37,12 @@ lab being built.
 | A payload that grew | [P16](chapters/16-esp32-wi-fi-ble-sidecar.md) |
 | A Pi GPIO used as an analog source | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
 | A rail measured at the splitter but read at the terminal | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
+| A reader that splits a line it could not fit | [P18](chapters/18-nucleo-usb-cdc-recorder.md) |
 | A schema that drifts | [P07](chapters/07-consumer-9-dof-plus-climate-iks4a1.md) |
 | A second SPI board on the header | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
 | A session left open across a bearer change | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
 | A silent fall to GPRS | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
+| A sink waiting on a stream that stopped | [P18](chapters/18-nucleo-usb-cdc-recorder.md) |
 | A supervisor clock that is not the broker's | [P13](chapters/13-dual-radio-signalling-failover.md) |
 | A supervisor that probes | [P13](chapters/13-dual-radio-signalling-failover.md) |
 | A timeout shorter than the publish interval | [P13](chapters/13-dual-radio-signalling-failover.md) |
@@ -140,6 +142,7 @@ lab being built.
 | Reaching for the v1 command | [P15](chapters/15-pow-bb-mixed-voltage-discipline.md) |
 | Reading 0x68 by hand and calling it done | [P11](chapters/11-explorer700-field-console.md) |
 | Reading a fix status of zero as a coordinate | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
+| Reading a rate out of a capture file | [P18](chapters/18-nucleo-usb-cdc-recorder.md) |
 | Reading the block as one channel | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
 | Reading the LED as a link light | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
 | Reading the microphone RMS as vibration | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |

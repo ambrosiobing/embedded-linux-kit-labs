@@ -28,7 +28,7 @@ The optional half of the lab is a quaternion EKF on the M7 floating-point unit, 
 
 ![Figure 18.1. The recorder.](../figures/p18_arch.svg)
 
-*Figure 18.1. The recorder. A sequence generator on the M7 produces samples at 1 kHz, the USB-CDC class carries them, and a Python sink on the Pi counts gaps before it writes. The shield and the EKF are drawn as the option they are.*
+*Figure 18.1. The recorder. A sequence generator on the M7 produces samples at 1 kHz, the USB-CDC class carries them, and a sink on the Pi counts gaps before it writes. The shield and the EKF are drawn as the option they are.*
 
 There are only two moving parts, and the interesting one is the counter. The firmware increments a `uint32` sequence number and emits it with every sample. The sink on the Pi keeps the previous value and compares. A gap means samples went missing somewhere between the two, and the count of gaps over a known interval is the quality number for the whole path: firmware timing, USB scheduling, the character device and the reader loop, all in one figure you can quote.
 
@@ -85,6 +85,8 @@ Use a short cable and leave the other USB ports alone while a capture runs. A te
 
 The sink is a loop with two pieces of state: the previous sequence number and a gap counter. Every line either continues the sequence or does not, and when it does not, the difference is added to the counter rather than being repaired. Nothing is interpolated and nothing is retried, because the point of the exercise is to measure loss, not to hide it. At the end of ten seconds the loop prints the number of samples it saw and the number it did not, and those two numbers are the result of the lab.
 
+Three details of that loop are worth more than the loop itself, and each of them is a way a recorder quietly stops being one. A line longer than the reader's buffer is refused whole rather than handed back in two pieces, because the second piece would begin with digits and arrive as a sample nobody sent: losing a sample is a measurement, inventing one is a lie in the same column. The comparison between two sequence numbers is unsigned subtraction rather than a less-than, so the counter returning to zero is one step forward instead of a loss of four billion. And the elapsed time is taken from a clock that cannot step backwards, because a wall clock can, and a time synchronisation in the middle of a ten second capture would put a negative interval into the one measurement the loop makes.
+
 ## Data flow (ASCII)
 
 ```text
@@ -96,7 +98,7 @@ The sink is a loop with two pieces of state: the previous sequence number and a 
   |   v                           |=============>| /dev/ttyACM0                 |
   | USB-CDC class                 |   CDC ACM    |   |                          |
   +-------------------------------+              |   v                          |
-        ^                                        | p18_sink.py                  |
+        ^                                        | p18 sink                     |
         |  optional session only                 |   seq - prev == 1 ?          |
   +-------------------------------+              |     no  -> gaps += diff - 1  |
   | X-NUCLEO-IKS4A1 (P07 shield)  |              |   write the line             |
@@ -121,48 +123,55 @@ ls /dev/ttyACM*
 
 The CDC interface must appear in `lsusb`. If more than one `ttyACM` node exists, the one carrying sequence numbers is the one to record.
 
-**Step 3.** **Set the port raw and start the sink.**
+**Step 3.** **Build the sink before the board arrives.** The sink is the `p18` directory of this repository, in C, and it builds with a compiler and nothing else. Its suite reads streams it wrote a moment earlier, so the whole recorder can be finished and tested with the Nucleo still in its box.
+
+```bash
+sudo apt-get install -y build-essential
+make -C p18
+make -C p18 check
+```
+
+**Step 4.** **Prove it on a stream whose faults you chose.** `synth` writes a stream with the holes you ask for, `sink` records and counts, `count` does the accounting again over a finished capture, and `verify` applies the acceptance test and says which part of it failed. None of these needs a device.
+
+```bash
+cd p18
+./p18 synth --samples 2000 --drop 10,11,12,13 --out holed.stream
+./p18 sink --source holed.stream --out holed.capture --report holed.p18 \
+    --seconds 0 --rate 1000
+./p18 verify --report holed.p18 --allow-unmeasured-rate   # exits 1, four missing
+```
+
+**Step 5.** **Set the port raw and record for ten seconds.** The same command, with the source changed and nothing else. `stty` owns the line discipline, the program owns the counting, and `timeout` is there because a stream that stops entirely leaves a reader waiting for a line that is not coming.
 
 ```bash
 stty -F /dev/ttyACM0 921600 raw
-python3 p18_sink.py          # counts gaps in the sequence
+timeout 15 ./p18 sink --source /dev/ttyACM0 --out p18_capture.txt \
+    --report p18_run.p18 --seconds 10 --rate 1000
+./p18 verify --report p18_run.p18
 ```
 
-**Step 4.** **Write the sink so that it counts rather than repairs.** Two pieces of state, one comparison, no interpolation.
+**Step 6.** **Read the two numbers as two numbers.** Samples seen and samples missing. A capture at 1 kHz that reports 0.1 percent or fewer sequence gaps passes, and the limit is inclusive. Run it more than once: a single clean run on a quiet host is a weaker claim than three runs with the numbers written down.
 
-```python
-import sys, time, serial
-ser = serial.Serial("/dev/ttyACM0", 921600, timeout=1)
-prev = None
-seen = 0
-gaps = 0
-t_end = time.monotonic() + 10.0
-with open("p18_capture.txt", "w") as out:
-    while time.monotonic() < t_end:
-        line = ser.readline().decode(errors="ignore").strip()
-        if not line:
-            continue
-        try:
-            seq = int(line.split(",")[0])
-        except ValueError:
-            continue
-        if prev is not None and seq != prev + 1:
-            gaps += seq - prev - 1
-        prev = seq
-        seen += 1
-        out.write(line + "\n")
-print("samples", seen, "gaps", gaps)
+The rate is the second number and it is not the first one. `verify` prints three lines, one for loss, one for rate and one for integrity, and it prints all three even when they pass, because the whole difficulty of this lab is that a slow stream and a holed stream feel the same at the bench and are not the same fault. The counting is one short function in `lib/seqtrack.h`, shared with P04, and the comparison that makes the wrap harmless is one line of it:
+
+```c
+static inline bool seqtrack_behind(uint32_t seq, uint32_t last)
+{
+    return (uint32_t)(seq - last) >= SEQTRACK_HALF;
+}
 ```
 
-**Step 5.** **Run a ten-second capture and quote the two numbers.** Samples seen and samples missing. A capture at 1 kHz that reports 0.1 percent or fewer sequence gaps passes. Run it more than once: a single clean run on a quiet host is a weaker claim than three runs with the numbers written down.
+That subtraction is why the counter returning to zero after about four and a half weeks at 1 kHz is one step forward rather than a reported loss of four billion samples. The distance is taken in unsigned arithmetic, so it is small across the wrap and close to the full range when the stream genuinely went backwards.
 
-**Step 6.** **Optional EKF session.** Reuse the P07 shield, compute a quaternion on the M7 floating-point unit, and print `seq,q0,q1,q2,q3`. Linux does not run the filter. Keep the sequence number in the first field so the same sink still counts gaps, and keep this capture in its own file: it is a different stream from the bare recorder run.
+**Step 7.** **Optional EKF session.** Reuse the P07 shield, compute a quaternion on the M7 floating-point unit, and print `seq,q0,q1,q2,q3`. Linux does not run the filter. Keep the sequence number in the first field so the same sink still counts gaps, and keep this capture in its own file: it is a different stream from the bare recorder run.
 
 ## Acceptance test
 
 - A 10-second capture at 1 kHz has 0.1 percent or fewer sequence gaps.
 - `lsusb` shows the CDC interface.
 - The sink prints both numbers, samples seen and samples missing, and the capture file holds the lines it counted.
+- `verify` passes on all three of its lines, loss, rate and integrity, and the rate line says it was measured rather than assumed. A run recorded from a file rather than from the board cannot satisfy this item, and says so instead of passing quietly.
+- The run report is kept beside the capture. A capture without the numbers of the run it came from is a file, not a result.
 - In the optional session, the quaternion is computed on the M7 and Linux still writes the file.
 
 ## Practices
@@ -177,7 +186,10 @@ Count gaps rather than trusting the stream. A recorder that cannot say how much 
 - **Recording the wrong `ttyACM` node.** With the ST-LINK present, more than one appears. The wrong one is silent rather than an error.
 - **An expensive print in the firmware loop.** Formatting costs time that the 1 kHz budget does not have. The symptom is a rate that sits well under 1 kHz with no dropped samples at all, which is a different fault from a gap.
 - **Interpolating over a gap.** A sink that fills in a missing sample discards the only measurement the lab produces. Count, do not repair.
-- **Ignoring the `uint32` wrap.** After about four billion samples the counter returns to zero. It will not happen in ten seconds, but a sink that runs for a week needs the comparison written for it.
+- **Ignoring the `uint32` wrap.** After about four billion samples the counter returns to zero, which is four and a half weeks at 1 kHz. It will not happen in ten seconds, but a sink that runs for a week needs the comparison written for it. This volume's sink has it written, in `lib/seqtrack.h`, and the suite walks a stream across the wrap to prove it.
+- **A reader that splits a line it could not fit.** The remainder comes back as a line of its own, its first field parses, and the capture gains a sample that was never sent. The symptom is a loss figure that improves when the stream gets worse.
+- **Reading a rate out of a capture file.** Samples divided by the time a file took to read describes the disk. The rate is a property of the recording, which is why it is measured during the run and carried in the report rather than recomputed later.
+- **A sink waiting on a stream that stopped.** The deadline is tested between lines, so a stream that slows down still stops on time and a stream that stops entirely does not. Run the capture under `timeout` and give it a few seconds of margin.
 - **Running the filter on the Pi.** That is the opposite of the optional session and it proves nothing about the M7. Equally, discarding Linux is the draft-P15 error this chapter corrects.
 - **Busy USB during a capture.** A copy, a scan or a second gadget on the same controller shows up as gaps that the firmware never caused.
 - **Treating the console cable as a second data path.** Two recorders produce two files that disagree. The USB-TTL cable is a console, and 3.3 V logic at that.
@@ -189,7 +201,7 @@ Count gaps rather than trusting the stream. A recorder that cannot say how much 
 - STM32duino core for STM32, for the Arduino USB-CDC path, <https://github.com/stm32duino/Arduino_Core_STM32>
 - Linux USB CDC ACM driver documentation, <https://www.kernel.org/doc/html/latest/usb/index.html>
 - `stty` and the terminal line discipline, in the coreutils manual, <https://www.gnu.org/software/coreutils/manual/coreutils.html>
-- pySerial documentation, for the reader loop, <https://pyserial.readthedocs.io/>
+- The terminal interface, for what `stty` is setting and why a raw port is not an optional step, <https://man7.org/linux/man-pages/man3/termios.3.html>
 - ST X-NUCLEO-IKS4A1 expansion board page, for the optional session, <https://www.st.com/en/ecosystems/x-nucleo-iks4a1.html>
 
 ---

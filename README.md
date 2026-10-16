@@ -125,9 +125,10 @@ rails, sidecars and fleet that close it.
 
 **Written is not run.** Every lab below ends in an acceptance test that can be
 failed, and [`STATUS.md`](STATUS.md) says which of them have actually been
-compiled, wired and passed, with the board revision and the date. At the time
-of writing one lab has been run on hardware and one has been exercised on
-synthetic data. Read that page before trusting any step here.
+compiled, wired and passed, with the board revision and the date. That page
+holds the count, and this one deliberately does not repeat it: a number
+written into a sentence here is a number nothing updates when the table moves.
+Read that page before trusting any step here.
 
 **Three ways in, rather than twenty equal doors.** The appendix carries the full
 order for someone starting from bare boards and intending to build all twenty.
@@ -182,17 +183,23 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and one has been. It lives in this repository beside the chapter it belongs to,
-because a reader who has just read chapter 4 should not have to go looking.
+and two have been. They live in this repository beside the chapters they belong
+to, because a reader who has just read chapter 4 should not have to go looking.
 
 | Path | What it is |
 | --- | --- |
 | [`p04/`](p04/) | the host half of the vibration and ultrasound gateway, in C, with its own README |
 | [`p04/src/`](p04/src/) | the capture format, the transform, the classification, the invariants |
 | [`p04/tests/`](p04/tests/) | the suite, six groups, no framework and no device |
+| [`p18/`](p18/) | the host half of the USB-CDC recorder, in C, with its own README |
+| [`p18/src/`](p18/src/) | the line reader, the capture loop, the report and the gate |
+| [`p18/tests/`](p18/tests/) | the suite, six groups, no framework and no device |
+| [`lib/`](lib/) | what both of them needed: sequence accounting, header only |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
     make -C p04 demo      the lab's own demonstration, on synthetic data
+    make -C p18 check     the same, for the recorder
+    make -C p18 demo      a clean stream and a holed one, through the same commands
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code
@@ -205,9 +212,12 @@ They do not touch a bus, a device or a lab, and no lab depends on them.
 
 Most of these labs are the same shape: something arrives over a line in
 sequence-numbered pieces and a decision is made from it. P02 and P03 drive a
-modem, P06 reads a ranging grid, P18 counts gaps in a sequence, P13 decides on
-a timeout. When the second of them is written, the shared half moves out of
-`p04/src` and into a library beside it, rather than being guessed at now.
+modem, P06 reads a ranging grid, P13 decides on a timeout. The second one is
+now written, and the shared half moved out of `p04/src` and into `lib/` when it
+had two users rather than being guessed at in advance. It turned out to be one
+file: the sequence accounting, and the comparison in it was not a copy of what
+P04 had, because what P04 had reads a counter wrapping as a loss of four
+billion samples.
 
 Three rules hold across all of them. No default threshold anywhere, because a
 threshold without the baseline it was measured against is not a measurement. No

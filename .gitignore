@@ -32,22 +32,30 @@ venv/
 __pycache__/
 *.pyc
 
-# The labs' own evidence. A capture is what one bench produced on one day and
-# a lab book is the baseline and thresholds that belong to it, so neither is
-# source. Regenerate a synthetic one with: ./p04 synth
+# The labs' own evidence. A capture is what one bench produced on one day, a
+# lab book is the baseline and thresholds that belong to it, and a run report
+# is the numbers of one recording, so none of them is source. Regenerate a
+# synthetic one with: ./p04 synth, or ./p18 synth
 *.p04
 *.lab
+*.p18
+*.stream
+*.capture
 
-# What building the lab leaves behind: objects, dependency files and the two
-# binaries. Rebuild with: make -C p04
+# What building the labs leaves behind: objects, dependency files and the
+# binaries. Rebuild with: make -C p04, make -C p18
 *.o
 *.d
 p04/p04
 p04/p04-test
+p18/p18
+p18/p18-test
 
 # What a local run of the checks workflow leaves behind
 touch.txt
 speech.txt
+p18/clean.txt
+p18/long.txt
 
 # Journals and correspondence never reach a published repository, private
 # shares included. They live in the catalogue, which is local only. A published

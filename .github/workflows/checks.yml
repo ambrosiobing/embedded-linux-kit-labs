@@ -9,9 +9,9 @@ name: checks
 # instead, and this job gained a guard that the sources stay unpublished.
 #
 # What remains here is everything that reads only what is published: the parts
-# file and its suite, the status ladder, the publishing guards, and the lab's
-# own C program. This job is still where that C is compiled for the first time,
-# because the authoring laptop has no compiler it may use.
+# file and its suite, the status ladder, the publishing guards, and the two
+# labs that ship a C program. This job is still where that C is compiled for
+# the first time, because the authoring laptop has no compiler it may use.
 
 on:
   push:
@@ -77,16 +77,16 @@ jobs:
           done
           exit $fail
 
-      - name: The lab builds, with the warnings as errors
+      - name: P04 builds, with the warnings as errors
         run: |
           set -e
           cc --version | head -1
           make -C p04 all
 
-      - name: The lab's own suite, with no hardware anywhere
+      - name: P04's suite, with no hardware anywhere
         run: make -C p04 check
 
-      - name: The stricter conversion pass, reported but not gating
+      - name: P04's stricter conversion pass, reported but not gating
         continue-on-error: true
         run: make -C p04 strict
 
@@ -127,6 +127,65 @@ jobs:
             exit 1
           fi
           echo "the rate check and the resting invariant both hold"
+
+      - name: P18 builds, with the warnings as errors
+        run: make -C p18 all
+
+      - name: P18's suite, with no hardware anywhere
+        run: make -C p18 check
+
+      - name: P18's stricter conversion pass, reported but not gating
+        # Marked the same way as P04's, and with the same warning attached to
+        # it: a step allowed to continue is recorded as a success when it
+        # fails, so reading its output is a thing someone has to choose to do.
+        continue-on-error: true
+        run: make -C p18 strict
+
+      - name: P18's two faults stay two, end to end
+        # Loss and rate are different faults with different causes. This runs
+        # a clean stream and a stream missing five samples in two thousand
+        # through the same commands, and fails if the acceptance test cannot
+        # tell them apart.
+        run: |
+          set -e
+          cd p18
+          ./p18 synth --samples 2000 --out clean.stream
+          ./p18 sink --source clean.stream --out clean.capture \
+              --report clean.p18 --seconds 0 --rate 1000
+          ./p18 verify --report clean.p18 --allow-unmeasured-rate
+          ./p18 synth --samples 2000 --drop 10,11,12,13,14 --out holed.stream
+          ./p18 sink --source holed.stream --report holed.p18 \
+              --seconds 0 --rate 1000
+          if ./p18 verify --report holed.p18 --allow-unmeasured-rate; then
+            echo "a capture missing five samples in two thousand was accepted"
+            exit 1
+          fi
+          ./p18 count --source clean.capture | tee clean.txt
+          grep -q "gaps 0" clean.txt || { echo "a clean capture reported gaps"; exit 1; }
+          echo "the acceptance test passes a clean stream and refuses a holed one"
+
+      - name: A rate that was never measured does not pass as one
+        # The capture above was read from a file in milliseconds. Samples
+        # divided by that time describes this program, not a probe, and the
+        # default is to refuse it rather than to report it.
+        run: |
+          set -e
+          cd p18
+          if ./p18 verify --report clean.p18; then
+            echo "a run whose rate was never measured passed the rate check"
+            exit 1
+          fi
+          echo "an unmeasured rate is not a rate that passed"
+
+      - name: A line too long for the buffer costs one sample and invents none
+        run: |
+          set -e
+          cd p18
+          ./p18 synth --samples 20 --long 7 --out long.stream
+          ./p18 count --source long.stream | tee long.txt
+          grep -q "1 over-long" long.txt || { echo "the over-long line was not counted"; exit 1; }
+          grep -q "samples 19" long.txt || { echo "the over-long line became a sample"; exit 1; }
+          echo "the over-long line was refused whole, not split into two samples"
 
       - name: No assembled volume and no PDF is published
         run: |
