@@ -45,6 +45,7 @@ __pycache__/
 *.glass
 *.transcript
 *.p13
+*.samples
 *.csv
 *.p05book
 test_p06_sysfs/
@@ -53,6 +54,8 @@ test_p06_sysfs/
 # binaries. Rebuild with: make -C p04, make -C p18
 *.o
 *.d
+p01/p01
+p01/p01-test
 p02/p02
 p02/p02-test
 p03/p03
@@ -86,6 +89,8 @@ p02-suite.txt
 p03-suite.txt
 p04-suite.txt
 p06-suite.txt
+p01-suite.txt
+p01/*.txt
 p05-suite.txt
 p05/*.txt
 p13-suite.txt

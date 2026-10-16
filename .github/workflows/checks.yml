@@ -494,6 +494,69 @@ jobs:
           ./p05 verify --source good.csv --book full.p05book
           echo "one purchase is the whole difference between those two runs"
 
+      - name: P01 builds, with the warnings as errors
+        # P09 runs this same program with one argument changed, so this step
+        # compiles both labs' publishers. The live read is Linux only and is
+        # compiled here, where there is no bus to answer it.
+        run: make -C p01 all
+
+      - name: P01's suite, with no hardware anywhere
+        run: |
+          set -e
+          make -C p01 check | tee p01-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p01-suite.txt || {
+            echo "p01: no suite summary in that output, so nothing ran"
+            exit 1
+          }
+
+      - name: P01's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p01 strict
+
+      - name: P01 decides on the magnitude, not on an axis
+        # The lab's own rule, as two runs that must produce nothing and one
+        # that must produce five. A threshold on a single axis gets the first
+        # of these wrong in one direction and free fall wrong in the other.
+        run: |
+          set -e
+          cd p01
+          ./p01 scene --kind rest --out rest.samples
+          ./p01 replay --source rest.samples | tee rest.txt
+          grep -q "200 samples decoded" rest.txt \
+            || { echo "the still bench was not read"; exit 1; }
+          grep -q "0 samples past the dead band, 0 published" rest.txt \
+            || { echo "a still bench published something"; exit 1; }
+          ./p01 scene --kind on-its-side --out side.samples
+          ./p01 replay --source side.samples | tee side.txt
+          grep -q "0 samples past the dead band, 0 published" side.txt \
+            || { echo "a sensor on its side read as an event"; exit 1; }
+          ./p01 scene --kind free-fall --out fall.samples
+          ./p01 replay --source fall.samples | tee fall.txt
+          grep -q "200 samples past the dead band, 5 published" fall.txt \
+            || { echo "free fall was not noticed, or was not rate limited"; exit 1; }
+          ./p01 scene --kind ringing --out ring.samples
+          ./p01 replay --source ring.samples | tee ring.txt
+          grep -q "200 samples past the dead band, 5 published" ring.txt \
+            || { echo "the cool-off did not hold a ringing table to five"; exit 1; }
+          echo "quiet when nothing happened, five publishes when it did"
+
+      - name: P01 reads the sign, and P09 gets the budget
+        run: |
+          set -e
+          cd p01
+          ./p01 decode --bytes "00 00 00 00 00 ff" | tee upside.txt
+          grep -q "az -1.0000 g" upside.txt \
+            || { echo "upside down did not read minus one gravity"; exit 1; }
+          grep -q "magnitude 1.0000" upside.txt \
+            || { echo "and its magnitude was not one"; exit 1; }
+          ./p01 budget --rate 20 --cooloff 2 --fsync 30 --record 48 --hours 1 \
+            | tee budget.txt
+          grep -q "a factor of 40" budget.txt \
+            || { echo "the cool-off did not come to forty times fewer writes"; exit 1; }
+          grep -q "fewer than one fsync per event" budget.txt \
+            || { echo "committing on a timer was not reported as such"; exit 1; }
+          echo "the sign extension holds, and the wear arithmetic is forty to one"
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e

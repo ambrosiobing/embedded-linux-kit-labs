@@ -18,6 +18,7 @@ to twenty.
 | File | What that lab's record is about |
 |---|---|
 | [p01.md](p01.md) | The claim that moved three indicator pins, and its withdrawal |
+| [p01-p09.md](p01-p09.md) | One publisher for two chapters, and two scenes that must stay quiet |
 | [p02.md](p02.md) | A power key put on the wrong pin by a note nobody checked |
 | [p03.md](p03.md) | One conductor, three spellings, one vendor |
 | [p02-p03.md](p02-p03.md) | Two labs written in one sitting, and a guard that could not be reached |

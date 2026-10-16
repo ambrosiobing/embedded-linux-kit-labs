@@ -152,35 +152,23 @@ nmcli device wifi connect "YOURAP" password "..."
 
 The bus argument is 0. A Raspberry Pi command line copied from P01 with `-y 1` will report an empty bus or no such device, and the sensor is not at fault.
 
-**Step 3.** **Reuse the P01 publisher with bus number 0.** The dead-band, the magnitude and the two-second cool-off are unchanged. The only edit is the constructor.
+**Step 3.** **Reuse the P01 publisher with bus number 0.** The dead band, the magnitude and the two-second cool-off are unchanged. The only edit is the bus, and because it is one program rather than two, the edit is an argument.
 
-```python
-import time, math, json, subprocess, smbus
-bus = smbus.SMBus(0)                 # bus 0 on the NEO Air, not bus 1
-A = 0x53
-bus.write_byte_data(A, 0x2D, 0x08)   # measure
-bus.write_byte_data(A, 0x31, 0x0B)   # full-res +/-16g
-
-def g(lo, hi):
-    v = (hi << 8) | lo
-    if v & 0x8000:
-        v -= 65536
-    return v / 256.0
-
-cool = 0
-while True:
-    b = bus.read_i2c_block_data(A, 0x32, 6)
-    ax, ay, az = g(b[0], b[1]), g(b[2], b[3]), g(b[4], b[5])
-    mag = math.sqrt(ax*ax + ay*ay + az*az)
-    if abs(mag - 1.0) > 0.35 and time.time() > cool:
-        payload = json.dumps({"mag": round(mag, 3), "ax": round(ax, 3)})
-        subprocess.run(["mosquitto_pub", "-h", "test.mosquitto.org",
-                        "-t", "lab/p09/shock", "-m", payload], check=False)
-        cool = time.time() + 2
-    time.sleep(0.05)
+```bash
+make -C p01 && make -C p01 check
+sudo i2cdetect -y 0              # bus 0 on this board, not bus 1
+./p01/p01 run --bus 0 --seconds 60
 ```
 
-**Step 4.** **Optional F2FS data partition**, only if you are willing to repartition unused eMMC space, and not the rootfs you just booted.
+**Step 4.** **Work out what an hour costs the flash, before you run for a day.** On this board the cool-off is a wear control as well as a rate control, because every event appended to the log is a write to flash soldered to the board and that flash cannot be replaced when it tires.
+
+```bash
+./p01/p01 budget --rate 20 --cooloff 2 --fsync 30 --record 48 --hours 24
+```
+
+A day of a surface that never stops ringing is 1.7 million samples. Without the cool-off that is 1.7 million appends; with it, 43 thousand. The same command prints the fsync figure beside it, and the number to look at is fsyncs per event: committing on a timer rather than on every sample keeps it below one, and an interval shorter than the cool-off pushes it above one, which is a write to flash with nothing new in it.
+
+**Step 5.** **Optional F2FS data partition**, only if you are willing to repartition unused eMMC space, and not the rootfs you just booted.
 
 ```bash
 lsblk
@@ -191,7 +179,7 @@ lsblk
 
 Read `lsblk` before you type anything with `mkfs` in it. The commands above are commented for that reason: the target is a partition you created, and if you cannot name it from the `lsblk` output then you do not have one yet.
 
-**Step 5.** **Confirm the Wi-Fi profile survives a reboot** before you trust it. A connection made in a shell session and never written out is the most common reason this lab appears to fail at the last step.
+**Step 6.** **Confirm the Wi-Fi profile survives a reboot** before you trust it. A connection made in a shell session and never written out is the most common reason this lab appears to fail at the last step.
 
 ```bash
 nmcli connection show
@@ -201,7 +189,7 @@ nmcli device status
 ip -4 addr show wlan0
 ```
 
-**Step 6.** **Unplug the console and leave the board alone.** That is the acceptance condition below, and it is also the point of the lab. Confirm from another host on the same network that the publishes are still arriving.
+**Step 7.** **Unplug the console and leave the board alone.** That is the acceptance condition below, and it is also the point of the lab. Confirm from another host on the same network that the publishes are still arriving.
 
 ```bash
 mosquitto_sub -h test.mosquitto.org -t 'lab/p09/#' -v

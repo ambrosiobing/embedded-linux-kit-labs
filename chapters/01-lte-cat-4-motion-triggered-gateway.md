@@ -178,34 +178,32 @@ ip route | grep default
 sudo ip route del default dev wlan0
 ```
 
-**Step 7.** **Run the event publisher**, saved as `/home/pi/p01_shock.py`.
+**Step 7.** **Run the event publisher.** It is the `p01` directory of this repository, in C, and it builds with a compiler and nothing else. P09 runs the same program with one argument changed, which is why it is one program.
 
-```python
-import time, math, json, subprocess, smbus
-bus = smbus.SMBus(1); A = 0x53
-bus.write_byte_data(A, 0x2D, 0x08)   # measure
-bus.write_byte_data(A, 0x31, 0x0B)   # full-res +/-16g
-
-def g(lo, hi):
-    v = (hi << 8) | lo
-    if v & 0x8000:
-        v -= 65536
-    return v / 256.0
-
-cool = 0
-while True:
-    b = bus.read_i2c_block_data(A, 0x32, 6)
-    ax, ay, az = g(b[0], b[1]), g(b[2], b[3]), g(b[4], b[5])
-    mag = math.sqrt(ax*ax + ay*ay + az*az)
-    if abs(mag - 1.0) > 0.35 and time.time() > cool:
-        payload = json.dumps({"mag": round(mag, 3), "ax": round(ax, 3)})
-        subprocess.run(["mosquitto_pub", "-h", "test.mosquitto.org",
-                        "-t", "lab/p01/shock", "-m", payload], check=False)
-        cool = time.time() + 2
-    time.sleep(0.05)
+```bash
+sudo apt-get install -y build-essential i2c-tools mosquitto-clients
+make -C p01 && make -C p01 check
+sudo i2cdetect -y 1              # must show 53 before the next line
+./p01/p01 run --bus 1 --seconds 60
 ```
 
-**Step 8.** **Drive the LEDs from state, not from hope.** Green follows `AT+CEREG?`, yellow follows the presence of a default route on `usb0`, red follows the last publish. Poll `AT+CSQ` every 60 s and log it.
+The decision is taken on the magnitude of the vector and its distance from one gravity, never on a single axis, and that is the whole of why this lab works when the sensor is not flat:
+
+```c
+    if (fabs(s->magnitude - 1.0) <= p->deadband_g)
+        return false;              /* nothing happened */
+```
+
+A sensor lying on its side still reads one gravity, on a different axis. A threshold on any single axis calls that an event, so a board picked up and set down differently publishes a shock that never happened. Free fall is the same mistake from the other side: zero gravities is exactly as far from rest as two, and a threshold watching only for a high reading misses a board falling off the bench. Both fall out of that one comparison, and both are scenes the program can replay with no sensor attached:
+
+```bash
+./p01/p01 scene --kind on-its-side --out side.samples
+./p01/p01 replay --source side.samples      # nothing published, as it should be
+./p01/p01 scene --kind ringing --out ring.samples
+./p01/p01 replay --source ring.samples      # 200 samples past the band, 5 published
+```
+
+That last pair is the cool-off in numbers. Two hundred samples of a table that never settles become five publishes, one every two seconds, and without it one fist produces a burst of twenty and the compression this lab exists for is lost.
 
 ## Acceptance test
 

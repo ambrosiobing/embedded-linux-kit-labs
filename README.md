@@ -183,9 +183,10 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and seven have been. They live in this repository beside the chapters they
-belong to, because a reader who has just read chapter 4 should not have to go
-looking.
+and eight have been, in seven directories: P01 and P09 share one program,
+because their chapters say the difference between the two publishers is a bus
+number. They live in this repository beside the chapters they belong to,
+because a reader who has just read chapter 4 should not have to go looking.
 
 | Path | What it is |
 | --- | --- |
@@ -201,6 +202,9 @@ looking.
 | [`p06/`](p06/) | the host half of the time-of-flight occupancy kiosk, in C, with its own README |
 | [`p06/src/`](p06/src/) | the frame contract, the measured wall, the mapping and the clipping |
 | [`p06/tests/`](p06/tests/) | the suite, six groups, and a glass file with a guard area |
+| [`p01/`](p01/) | the shock event publisher, in C, which P09 runs with one argument changed |
+| [`p01/src/`](p01/src/) | the sign extension, the dead band, the cool-off and the wear budget |
+| [`p01/tests/`](p01/tests/) | the suite, five groups, no framework and no sensor |
 | [`p02/`](p02/) | the host half of the NB-IoT power-saving node, in C, with its own README |
 | [`p02/src/`](p02/src/) | the two timer bitmaps, the duty cycle, the conversation |
 | [`p02/tests/`](p02/tests/) | the suite, six groups, no framework and no SIM |
@@ -226,6 +230,8 @@ looking.
     make -C p13 demo      five runs that did not happen, judged
     make -C p05 check     the same, for the voltage recorder
     make -C p05 demo      six files the board did not produce, judged
+    make -C p01 check     the same, for the shock publisher of P01 and P09
+    make -C p01 demo      five benches that were never knocked, and the budget
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code
