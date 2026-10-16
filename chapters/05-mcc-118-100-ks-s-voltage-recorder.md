@@ -152,53 +152,64 @@ daqhats_list_boards
 
 **Step 3.** **Single-shot sanity.** One read per channel, to confirm the reference before anything is paced.
 
-```python
-from daqhats import mcc118, hat_list, HatIDs
-print(hat_list(filter_by_id=HatIDs.MCC_118))
-h = mcc118(0)
-print([round(h.a_in_read(ch), 4) for ch in range(8)])
+```bash
+daqhats_list_boards            # one board, at address 0
+daqhats_read_eeproms           # the factory calibration, from the board itself
 ```
+
+The vendor's own single-read example does the rest, and it is the right thing to run here: the library holds the calibration and nothing in this book improves on it.
 
 **Step 4.** **Hardware-paced scan.** This is the product, not the single read.
 
-```python
-from daqhats import mcc118, OptionFlags
-h = mcc118(0)
-h.a_in_scan_start(0x03, 10000, 10000, OptionFlags.DEFAULT)
-block = h.a_in_scan_read(20000, 5000)
-print(len(block.data), block.data[:8])
-h.a_in_scan_stop(); h.a_in_scan_cleanup()
+```c
+#include <daqhats/daqhats.h>
+
+uint16_t status = 0;
+uint32_t got = 0;
+double buf[20000];                     /* two channels, interleaved */
+
+mcc118_open(0);
+mcc118_a_in_scan_start(0, 0x03, 10000, 10000.0, OPTS_DEFAULT);
+mcc118_a_in_scan_read(0, &status, 10000, 5.0, buf, 20000, &got);
+if (status & STATUS_HW_OVERRUN)     /* the board outran the host */
+    ;
+if (status & STATUS_BUFFER_OVERRUN) /* the host did not empty it */
+    ;
+mcc118_a_in_scan_stop(0);
+mcc118_a_in_scan_cleanup(0);
+mcc118_close(0);
 ```
+
+Those are the vendor's names and argument order, from the C examples shipped with the library, not an interface invented here. The status word is the part a host-side wrapper usually drops: a scan that overran is a scan with a hole in it, and the two overrun bits say which end of the cable lost the race.
 
 The channel mask `0x03` selects CH0 and CH1. At 10 kS/s per channel, a 10 000 sample request is one second of recording per channel, and the second argument of `a_in_scan_read` is a timeout in milliseconds. The returned block carries the two channels interleaved, which is why the sample count that comes back is twice the per-channel figure.
 
-**Step 5.** **Write the file.** One second at 10 kS/s on CH0 and CH1, as CSV with a monotonic sample index, then plot it on the DSI panel with matplotlib.
+**Step 5.** **Write the file.** One second at 10 kS/s on CH0 and CH1, as CSV with a monotonic sample index. The vendor's data logger example writes exactly this and is the shortest route to it; the format is three columns and a header:
 
-```python
-import csv
-from daqhats import mcc118, OptionFlags
-
-h = mcc118(0)
-h.a_in_scan_start(0x03, 10000, 10000, OptionFlags.DEFAULT)
-block = h.a_in_scan_read(20000, 5000)
-h.a_in_scan_stop(); h.a_in_scan_cleanup()
-
-data = block.data                      # CH0, CH1, CH0, CH1, ...
-with open("/home/pi/p05_scan.csv", "w", newline="") as f:
-    w = csv.writer(f)
-    w.writerow(["index", "ch0", "ch1"])
-    for i in range(len(data) // 2):
-        w.writerow([i, round(data[2*i], 6), round(data[2*i + 1], 6)])
-print("rows:", len(data) // 2)         # expect 10000
+```text
+index,ch0,ch1
+0,3.299812,5.001233
+1,3.300411,4.999870
 ```
 
 **Step 6.** **Check the file before you look at the picture.** Count the rows, check that the index is monotonic, and confirm that the CH0 column sits on the reference. A plot hides a hole; a row count does not.
 
 ```bash
-wc -l /home/pi/p05_scan.csv          # 10001 lines: 10000 rows and one header
-head -n 3 /home/pi/p05_scan.csv
-awk -F, 'NR>1 {s+=$2; n++} END {print "mean ch0:", s/n}' /home/pi/p05_scan.csv
+make -C p05 && make -C p05 check
+./p05/p05 check --source /home/pi/p05_scan.csv
 ```
+
+A row count is not enough on its own, and the three things it misses are each a file this lab can produce. An index written twice gives a file with MORE rows than a whole one, so the count reads it as complete. A scan that stopped early has no holes at all and is short. And a sample past the 10.1 V input limit is a wiring question arriving disguised as a data question. `check` reports all four separately.
+
+**Step 7.** **Write the lab book, and read the verdict.** Seven of the eight acceptance items can be settled on this bench. The eighth cannot, and the program says which.
+
+```bash
+./p05/p05 book --out bench.p05book --address 0 --header-clear \
+    --survived-reboot --second-run-clean --date "the date of the sitting"
+./p05/p05 verify --source /home/pi/p05_scan.csv --book bench.p05book
+```
+
+With a multimeter in the room, add `--rail-3v3` and the reading it gave, and `verify` exits zero. Without one it exits 3, which is neither a pass nor a failure: every item this bench can settle is satisfied, and one is left that no amount of bench time will reach.
 
 ## Acceptance test
 

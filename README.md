@@ -183,7 +183,7 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and six have been. They live in this repository beside the chapters they
+and seven have been. They live in this repository beside the chapters they
 belong to, because a reader who has just read chapter 4 should not have to go
 looking.
 
@@ -195,6 +195,9 @@ looking.
 | [`p18/`](p18/) | the host half of the USB-CDC recorder, in C, with its own README |
 | [`p18/src/`](p18/src/) | the line reader, the capture loop, the report and the gate |
 | [`p18/tests/`](p18/tests/) | the suite, six groups, no framework and no device |
+| [`p05/`](p05/) | the file half of the calibrated voltage recorder, in C, with its own README |
+| [`p05/src/`](p05/src/) | the capture, the lab book, and eight items judged in four states |
+| [`p05/tests/`](p05/tests/) | the suite, four groups, no framework and no voltmeter |
 | [`p06/`](p06/) | the host half of the time-of-flight occupancy kiosk, in C, with its own README |
 | [`p06/src/`](p06/src/) | the frame contract, the measured wall, the mapping and the clipping |
 | [`p06/tests/`](p06/tests/) | the suite, six groups, and a glass file with a guard area |
@@ -221,6 +224,8 @@ looking.
     make -C p03 demo      the scenes replayed, and the ordering audited
     make -C p13 check     the same, for the failover supervisor
     make -C p13 demo      five runs that did not happen, judged
+    make -C p05 check     the same, for the voltage recorder
+    make -C p05 demo      six files the board did not produce, judged
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code
@@ -253,6 +258,16 @@ checks each command against the one the recording expects, so replaying a
 session tests the order of the conversation and not only its arithmetic. P03's
 whole claim is an ordering, and that is how it is tested with no antenna in the
 room.
+
+One of the seven is a different kind of program, and worth a sentence. P05
+is the only lab here that cannot reach a pass on this bench at all: its
+eighth acceptance item asks that an instrument other than the board agree
+with the board's own reading, and there is no voltmeter in the room. So its
+verdict has three outcomes rather than two, and a third exit status to carry
+the one in the middle: every item this bench can settle passed, and one
+cannot be settled here by any amount of bench time. That distinction is the
+program's reason for existing, and it makes a cheap multimeter the single
+purchase that unblocks the most acceptance tests in the volume.
 
 Three rules hold across all of them. No default threshold anywhere, because a
 threshold without the baseline it was measured against is not a measurement. No

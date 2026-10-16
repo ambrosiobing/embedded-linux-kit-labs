@@ -23,6 +23,7 @@ to twenty.
 | [p02-p03.md](p02-p03.md) | Two labs written in one sitting, and a guard that could not be reached |
 | [p04.md](p04.md) | A build that had never passed, hidden by how it was reported |
 | [p05.md](p05.md) | An acceptance band that turned out to be fair by luck |
+| [p05-program.md](p05-program.md) | Three outcomes where a gate usually has two, and the program that was not written |
 | [p06.md](p06.md) | A rule two chapters had only in prose, and the first program here that can be wrong in memory |
 | [p13.md](p13.md) | A lab predicted wrongly, and a clock that is an argument |
 | [p15.md](p15.md) | The two sittings where something was actually measured |

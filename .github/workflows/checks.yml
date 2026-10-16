@@ -433,6 +433,67 @@ jobs:
           fi
           echo "a log judged against the wrong window is refused"
 
+      - name: P05 builds, with the warnings as errors
+        run: make -C p05 all
+
+      - name: P05's suite, with no hardware anywhere
+        run: |
+          set -e
+          make -C p05 check | tee p05-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p05-suite.txt || {
+            echo "p05: no suite summary in that output, so nothing ran"
+            exit 1
+          }
+
+      - name: P05's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p05 strict
+
+      - name: P05 catches what a row count does not
+        run: |
+          set -e
+          cd p05
+          ./p05 scene --kind good --out good.csv
+          ./p05 check --source good.csv
+          ./p05 scene --kind repeat --out repeat.csv
+          ./p05 check --source repeat.csv > repeat.txt && {
+            echo "a file with an index written twice was called whole"
+            exit 1
+          }
+          grep -q "10001 rows" repeat.txt \
+            || { echo "that file does not have more rows than a whole one"; exit 1; }
+          ./p05 scene --kind hole --out hole.csv
+          ./p05 check --source hole.csv > hole.txt && {
+            echo "a file with seven samples missing was called whole"
+            exit 1
+          }
+          grep -q "holes 7" hole.txt || { echo "the holes were not counted"; exit 1; }
+          echo "a repeat, a hole, and a row count that would have missed both"
+
+      - name: P05 stops one item short, and says which item
+        # The lab's own conclusion, as an exit status. Seven items pass, the
+        # eighth needs an instrument this bench does not have, and that is
+        # neither a pass nor a failure. Exit 3 is the difference.
+        run: |
+          set -e
+          cd p05
+          ./p05 book --out bench.p05book --address 0 --header-clear \
+              --survived-reboot --second-run-clean --date "continuous integration"
+          set +e
+          ./p05 verify --source good.csv --book bench.p05book > verdict.txt
+          rc=$?
+          set -e
+          cat verdict.txt
+          [ "$rc" -eq 3 ] || { echo "expected exit 3, got $rc"; exit 1; }
+          grep -q "no voltmeter in" verdict.txt \
+            || { echo "the verdict did not name what is missing"; exit 1; }
+          # The same capture with one instrument reading added passes outright.
+          ./p05 book --out full.p05book --address 0 --header-clear \
+              --survived-reboot --second-run-clean --rail-3v3 3.2988 \
+              --instrument "a cheap multimeter" --date "continuous integration"
+          ./p05 verify --source good.csv --book full.p05book
+          echo "one purchase is the whole difference between those two runs"
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e
