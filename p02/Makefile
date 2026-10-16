@@ -40,6 +40,9 @@ $(BIN): $(OBJ) $(LIB_OBJ) $(MAIN_OBJ)
 $(TEST_BIN): $(OBJ) $(LIB_OBJ) $(TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
+check: $(TEST_BIN)
+	./$(TEST_BIN)
+
 # The timers decoded, the schedule judged, and the four scenes replayed. The
 # last one is expected to fail and is run with a guard that says so.
 demo: $(BIN)

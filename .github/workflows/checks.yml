@@ -84,7 +84,18 @@ jobs:
           make -C p04 all
 
       - name: P04's suite, with no hardware anywhere
-        run: make -C p04 check
+        # The grep is not decoration. make exits zero and prints "Nothing to
+        # be done" when a target has no recipe, so a Makefile missing its
+        # check rule reports a green suite that never ran. That happened on
+        # Friday 16 October 2026 to two labs at once. The summary line can
+        # only come from a suite that executed.
+        run: |
+          set -e
+          make -C p04 check | tee p04-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p04-suite.txt || {
+            echo "p04: no suite summary in that output, so nothing ran"
+            exit 1
+          }
 
       - name: P04's stricter conversion pass, reported but not gating
         continue-on-error: true
@@ -132,7 +143,18 @@ jobs:
         run: make -C p18 all
 
       - name: P18's suite, with no hardware anywhere
-        run: make -C p18 check
+        # The grep is not decoration. make exits zero and prints "Nothing to
+        # be done" when a target has no recipe, so a Makefile missing its
+        # check rule reports a green suite that never ran. That happened on
+        # Friday 16 October 2026 to two labs at once. The summary line can
+        # only come from a suite that executed.
+        run: |
+          set -e
+          make -C p18 check | tee p18-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p18-suite.txt || {
+            echo "p18: no suite summary in that output, so nothing ran"
+            exit 1
+          }
 
       - name: P18's stricter conversion pass, reported but not gating
         # Marked the same way as P04's, and with the same warning attached to
@@ -191,7 +213,18 @@ jobs:
         run: make -C p06 all
 
       - name: P06's suite, with no hardware anywhere
-        run: make -C p06 check
+        # The grep is not decoration. make exits zero and prints "Nothing to
+        # be done" when a target has no recipe, so a Makefile missing its
+        # check rule reports a green suite that never ran. That happened on
+        # Friday 16 October 2026 to two labs at once. The summary line can
+        # only come from a suite that executed.
+        run: |
+          set -e
+          make -C p06 check | tee p06-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p06-suite.txt || {
+            echo "p06: no suite summary in that output, so nothing ran"
+            exit 1
+          }
 
       - name: P06's stricter conversion pass, reported but not gating
         continue-on-error: true
@@ -244,7 +277,18 @@ jobs:
         run: make -C p02 all
 
       - name: P02's suite, with no hardware anywhere
-        run: make -C p02 check
+        # The grep is not decoration. make exits zero and prints "Nothing to
+        # be done" when a target has no recipe, so a Makefile missing its
+        # check rule reports a green suite that never ran. That happened on
+        # Friday 16 October 2026 to two labs at once. The summary line can
+        # only come from a suite that executed.
+        run: |
+          set -e
+          make -C p02 check | tee p02-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p02-suite.txt || {
+            echo "p02: no suite summary in that output, so nothing ran"
+            exit 1
+          }
 
       - name: P02's stricter conversion pass, reported but not gating
         continue-on-error: true
@@ -254,7 +298,18 @@ jobs:
         run: make -C p03 all
 
       - name: P03's suite, with no hardware anywhere
-        run: make -C p03 check
+        # The grep is not decoration. make exits zero and prints "Nothing to
+        # be done" when a target has no recipe, so a Makefile missing its
+        # check rule reports a green suite that never ran. That happened on
+        # Friday 16 October 2026 to two labs at once. The summary line can
+        # only come from a suite that executed.
+        run: |
+          set -e
+          make -C p03 check | tee p03-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p03-suite.txt || {
+            echo "p03: no suite summary in that output, so nothing ran"
+            exit 1
+          }
 
       - name: P03's stricter conversion pass, reported but not gating
         continue-on-error: true

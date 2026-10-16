@@ -251,20 +251,41 @@ static at_status serial_line(atchat *a, char *out, size_t cap, long deadline)
 
 /* ---------------------------------------------------------------- transcript */
 
-/* The next directive line of the transcript, with its marker. */
+/* The next directive line of the transcript, with its marker.
+ *
+ * A line longer than a line is refused rather than truncated, for the same
+ * reason lib/linereader.h refuses one: a transcript cut in the middle would
+ * replay as a command nobody recorded. The compiler asked the question first,
+ * on the copy that used to truncate silently. */
 static at_status script_line(atchat *a, char *marker, char *out, size_t cap)
 {
     char raw[AT_LINE_MAX + 8];
     for (;;) {
         if (fgets(raw, (int)sizeof raw, a->script) == NULL)
             return AT_E_EOF;
+
+        size_t n = strlen(raw);
+        if (n > 0 && raw[n - 1] != '\n' && !feof(a->script)) {
+            int c;
+            while ((c = fgetc(a->script)) != EOF && c != '\n')
+                ;
+            return AT_E_FORMAT;
+        }
+
         trim(raw);
         if (raw[0] == '\0' || raw[0] == '#')
             continue;
         if (raw[1] != ' ' && raw[1] != '\0')
             return AT_E_FORMAT;
+
+        const char *body = (raw[1] == '\0') ? "" : raw + 2;
+        size_t blen = strlen(body);
+        if (blen + 1 > cap)
+            return AT_E_FORMAT;
+
         *marker = raw[0];
-        snprintf(out, cap, "%s", raw[1] == '\0' ? "" : raw + 2);
+        memcpy(out, body, blen);
+        out[blen] = '\0';
         return AT_OK;
     }
 }

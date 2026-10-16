@@ -40,6 +40,9 @@ $(BIN): $(OBJ) $(LIB_OBJ) $(MAIN_OBJ)
 $(TEST_BIN): $(OBJ) $(LIB_OBJ) $(TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
+check: $(TEST_BIN)
+	./$(TEST_BIN)
+
 # Every scene replayed, then the same ordering question asked of a recording
 # this program did not make and could not have produced.
 demo: $(BIN)

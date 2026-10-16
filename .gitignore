@@ -75,6 +75,11 @@ p06/base.txt
 p06/mixed.txt
 p18/clean.txt
 p18/long.txt
+p02-suite.txt
+p03-suite.txt
+p04-suite.txt
+p06-suite.txt
+p18-suite.txt
 
 # Journals and correspondence never reach a published repository, private
 # shares included. They live in the catalogue, which is local only. A published
