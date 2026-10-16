@@ -68,8 +68,17 @@ p03_status p03_audit_file(const char *path, p03_audit *out)
             if (gnss_on) {
                 if (out->transmits_with_gnss_on == 0) {
                     out->first_bad_line = out->lines;
-                    snprintf(out->first_bad_cmd, sizeof out->first_bad_cmd,
-                             "%s", cmd);
+                    /* Copied with the length worked out rather than left to
+                     * snprintf, so that the bound is in the source instead of
+                     * in the library call. The destination now holds a whole
+                     * line, so the clamp below cannot fire; it stays because
+                     * the day the two sizes disagree again it is the only
+                     * thing between that and a buffer overrun. */
+                    size_t n = strlen(cmd);
+                    if (n >= sizeof out->first_bad_cmd)
+                        n = sizeof out->first_bad_cmd - 1;
+                    memcpy(out->first_bad_cmd, cmd, n);
+                    out->first_bad_cmd[n] = '\0';
                 }
                 out->transmits_with_gnss_on++;
             }

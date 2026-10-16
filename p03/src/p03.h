@@ -143,7 +143,12 @@ typedef struct {
     uint32_t transmits;
     uint32_t transmits_with_gnss_on;
     uint32_t first_bad_line;   /* where the first one was, 1 based */
-    char first_bad_cmd[AT_LINE_MAX];
+    /* Big enough for any line the reader can hand over, so that the command
+     * this names cannot be a cut-down version of the command that was sent.
+     * It was AT_LINE_MAX, which is smaller than a line, and the compiler
+     * asked about it: a buffer that holds a line should be able to hold a
+     * line, and the two sizes should not be able to drift apart. */
+    char first_bad_cmd[LINEREADER_MAX + 1];
     uint32_t lines;
 } p03_audit;
 
