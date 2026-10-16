@@ -25,68 +25,35 @@ const char *p18_strerror(p18_status s)
     return "unknown";
 }
 
+/* The reader is lib/linereader.h now. These three forward to it and map its
+ * status onto this program's, which is the whole cost of sharing it. The
+ * refusal that matters, an over-long line discarded whole rather than handed
+ * back in two pieces, is described where it now lives. */
+
+static p18_status from_lr(linereader_status s)
+{
+    switch (s) {
+    case LINEREADER_OK:  return P18_OK;
+    case LINEREADER_EOF: return P18_E_EOF;
+    case LINEREADER_IO:  return P18_E_IO;
+    case LINEREADER_ARG: return P18_E_ARG;
+    }
+    return P18_E_IO;
+}
+
 p18_status p18_reader_open(p18_reader *r, const char *path)
 {
-    if (r == NULL || path == NULL)
-        return P18_E_ARG;
-    memset(r, 0, sizeof *r);
-    if (strcmp(path, "-") == 0) {
-        r->fp = stdin;
-        r->owns_fp = false;
-        return P18_OK;
-    }
-    r->fp = fopen(path, "rb");
-    if (r->fp == NULL)
-        return P18_E_IO;
-    r->owns_fp = true;
-    return P18_OK;
+    return from_lr(linereader_open(r, path));
 }
 
 void p18_reader_close(p18_reader *r)
 {
-    if (r == NULL || r->fp == NULL)
-        return;
-    if (r->owns_fp)
-        fclose(r->fp);
-    r->fp = NULL;
+    linereader_close(r);
 }
 
 p18_status p18_reader_line(p18_reader *r, const char **line, size_t *len)
 {
-    if (r == NULL || r->fp == NULL || line == NULL || len == NULL)
-        return P18_E_ARG;
-
-    for (;;) {
-        if (fgets(r->buf, (int)sizeof r->buf, r->fp) == NULL)
-            return feof(r->fp) ? P18_E_EOF : P18_E_IO;
-
-        size_t n = strlen(r->buf);
-        bool terminated = (n > 0 && r->buf[n - 1] == '\n');
-
-        if (!terminated && !feof(r->fp)) {
-            /* It did not fit. Discard the whole line rather than return the
-             * part that did: the remainder would come back as a line of its
-             * own and its first field would parse as a sequence number that
-             * was never sent. Losing a sample is a measurement. Inventing one
-             * is a lie in the same column. */
-            r->long_lines++;
-            int c;
-            while ((c = fgetc(r->fp)) != EOF && c != '\n')
-                ;
-            continue;
-        }
-
-        while (n > 0 && (r->buf[n - 1] == '\n' || r->buf[n - 1] == '\r'))
-            r->buf[--n] = '\0';
-
-        if (n == 0) {
-            r->blank_lines++;
-            continue;
-        }
-        *line = r->buf;
-        *len = n;
-        return P18_OK;
-    }
+    return from_lr(linereader_line(r, line, len));
 }
 
 p18_status p18_parse_seq(const char *line, uint32_t *seq)

@@ -32,14 +32,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "../../lib/linereader.h"
 #include "../../lib/seqtrack.h"
 
 /* ---------------------------------------------------------------- limits */
 
-/* Long enough for a sequence number and a handful of fields, short enough
- * that a runaway stream of binary rubbish is noticed rather than buffered.
- * The optional session of the chapter prints five fields. */
-#define P18_LINE_MAX 512
+/* The line buffer is the shared reader's, so that the size a line is
+ * measured against and the size it is read into cannot drift apart. The
+ * optional session of the chapter prints five fields, so the margin is
+ * large. */
+#define P18_LINE_MAX LINEREADER_MAX
 
 /* The faults a synthetic stream can be told to carry. */
 #define P18_FAULTS_MAX 32
@@ -75,16 +77,11 @@ const char *p18_strerror(p18_status s);
  * recorder inventing data, which is worse than a recorder losing it, so an
  * over-long line is counted and discarded to the next newline.
  *
- * A final line that fills the buffer exactly and ends at end of file with no
- * newline is counted as over-long as well. That is conservative and it is
- * written down rather than left to be discovered. */
-typedef struct {
-    FILE *fp;
-    bool owns_fp;
-    char buf[P18_LINE_MAX + 1];
-    uint32_t long_lines;
-    uint32_t blank_lines;
-} p18_reader;
+ * The reader itself is in lib/linereader.h, shared with P06, which needs the
+ * same refusal for a different reason: a partial frame painted on the glass
+ * looks like a real reading and is not. The name stays p18_reader here
+ * because the suite and the chapter use it. */
+typedef linereader p18_reader;
 
 p18_status p18_reader_open(p18_reader *r, const char *path);
 void p18_reader_close(p18_reader *r);
