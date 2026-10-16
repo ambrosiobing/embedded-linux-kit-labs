@@ -43,22 +43,34 @@ __pycache__/
 *.capture
 *.book
 *.glass
+*.transcript
 test_p06_sysfs/
 
 # What building the labs leaves behind: objects, dependency files and the
 # binaries. Rebuild with: make -C p04, make -C p18
 *.o
 *.d
+p02/p02
+p02/p02-test
+p03/p03
+p03/p03-test
 p04/p04
 p04/p04-test
 p06/p06
 p06/p06-test
 p18/p18
 p18/p18-test
+lib_atchat.o
 
 # What a local run of the checks workflow leaves behind
 touch.txt
 speech.txt
+p02/timers.txt
+p02/plan.txt
+p02/attached.txt
+p02/searching.txt
+p03/fix.txt
+p03/nofix.txt
 p06/base.txt
 p06/mixed.txt
 p18/clean.txt

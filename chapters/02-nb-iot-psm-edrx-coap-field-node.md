@@ -133,7 +133,7 @@ One consequence is worth stating plainly before the steps begin. Everything the 
 ```text
   Pi 3                                        SIM7020E HAT
   +------------------------------+            +---------------------------+
-  | p02_coap.py                  |            |  NB-IoT radio, band 20    |
+  | p02 session                  |            |  NB-IoT radio, band 20    |
   |   every 10 minutes:          |            |    |                      |
   |     AT+CSOC=1,2,1            |            |    v                      |
   |     AT+CSOCON=0,5683,"..."   |  ttyAMA0   | UDP socket INSIDE the     |
@@ -158,7 +158,7 @@ The payload budget is about 20 bytes. That is not a limitation of the radio so m
 
 ```bash
 sudo systemctl disable --now hciuart
-sudo apt-get install -y minicom python3-serial
+sudo apt-get install -y minicom
 sudo minicom -D /dev/ttyAMA0 -b 115200
 ```
 
@@ -193,32 +193,30 @@ AT+CSOCON=0,5683,"172.16.0.1"
 AT+CSOSEND=0,8,"50494E47"
 ```
 
-**Step 6.** **Wrap the send in a schedule.** A 10-minute cron entry or a Python loop is enough. If the operator does not honour power-saving mode from this HAT, power-cycle the radio between sends with `AT+CFUN=0` and `AT+CFUN=1` instead of trusting the timers.
+**Step 6.** **Decode the two bitmaps before you trust them.** This is the step the earlier draft of this material did not have, and it is the one that decides whether the rest of the lab means anything. Both arguments of `AT+CPSMS` are three bits of unit and five bits of value, and *the two unit tables are different tables*. The periodic update timer is GPRS Timer 3 of 3GPP TS 24.008 section 10.5.7.4a, where unit 001 means an hour. The active time is GPRS Timer of section 10.5.7.3, where unit 000 means two seconds.
 
-```python
-import time, serial
-
-ser = serial.Serial("/dev/ttyAMA0", 115200, timeout=2)
-
-def at(cmd, wait=1.0):
-    ser.write((cmd + "\r\n").encode())
-    time.sleep(wait)
-    return ser.read(ser.in_waiting or 1).decode(errors="ignore")
-
-while True:
-    print(at("AT+CEREG?"), at("AT+CSQ"))
-    at("AT+CSOC=1,2,1")
-    at("AT+CSOCON=0,5683,\"172.16.0.1\"")
-    print(at("AT+CSOSEND=0,8,\"50494E47\""))
-    # if PSM is not granted, uncomment the two lines below
-    # at("AT+CFUN=0", 2.0)
-    # at("AT+CFUN=1", 8.0)
-    time.sleep(600)
+```bash
+sudo apt-get install -y build-essential
+make -C p02 && make -C p02 check
+./p02/p02 timers --tau 00100011 --active 00000101
 ```
 
-**Step 7.** **Drive the LED from the registration state.** Green on BCM16 follows `AT+CEREG?` and nothing else. It is not a link light and not a transmit light, because on this radio neither of those is meaningful between wakes.
+Those two bitmaps are three hours and ten seconds. Read with the other table the first one would be fifty minutes, and nothing on the glass distinguishes the two readings.
 
-**Step 8.** **Count the duty cycle at the endpoint, not on the Pi.** The product of this lab is a record on the receiving side. Leave the node running for an hour and count the datagrams that arrived.
+**Step 7.** **Wrap the send in a schedule, and check the schedule first.** The arithmetic of the duty cycle is the acceptance test worked out in advance: a send period, an active window, and the number of datagrams an hour that follows from them.
+
+```bash
+./p02/p02 plan --tau 00100011 --active 00000101 --period 600
+./p02/p02 session --port /dev/ttyAMA0 --cycles 6 --log bench.transcript
+```
+
+`plan` exits non-zero when the send period sits inside the active window, because a node that sends again before the window closes never reaches power saving at all and the lab then measures the opposite of its intent. If the operator does not honour power-saving mode from this HAT, power-cycle the radio between sends with `AT+CFUN=0` and `AT+CFUN=1` instead of trusting the timers.
+
+Two properties of the program are worth knowing before it runs unattended. Every command waits for its own final line rather than for a fixed delay, so a slow reply is never read as the next command's answer. And `--log` writes the session in a format that can be replayed afterwards with no module attached, which is how the four scenes in `p02` were tested before the HAT was seated.
+
+**Step 8.** **Drive the LED from the registration state.** Green on BCM16 follows `AT+CEREG?` and nothing else. It is not a link light and not a transmit light, because on this radio neither of those is meaningful between wakes.
+
+**Step 9.** **Count the duty cycle at the endpoint, not on the Pi.** The product of this lab is a record on the receiving side. Leave the node running for an hour and count the datagrams that arrived.
 
 ```bash
 # on the CoAP endpoint host

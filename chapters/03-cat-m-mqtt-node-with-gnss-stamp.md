@@ -35,7 +35,7 @@ Every publish carries a GNSS time, not `date` from the Pi. That is the rule this
 
 *Figure 3.1. Two subsystems inside one module, reached over one AT channel. The MQTT session and the GNSS engine never run at the same moment, and that ordering is the lab.*
 
-The SIM7070G carries its own MQTT client. The session is configured with `AT+SMCONF`, opened with `AT+SMCONN` and used with `AT+SMPUB`, all over the AT character device. Nothing in Python holds a socket, which is the opposite arrangement from a host-side client library. The advantage is that the session, and any transport security you later add to it, stays on the modem where the radio state also lives. The cost is that every publish is a short AT dialogue with return codes to parse, so the host script has to be written as a protocol driver rather than as a call to a client library.
+The SIM7070G carries its own MQTT client. The session is configured with `AT+SMCONF`, opened with `AT+SMCONN` and used with `AT+SMPUB`, all over the AT character device. No socket is held on the host at all, which is the opposite arrangement from a client library. The advantage is that the session, and any transport security you later add to it, stays on the modem where the radio state also lives. The cost is that every publish is a short AT dialogue with return codes to parse, so the host script has to be written as a protocol driver rather than as a call to a client library.
 
 The GNSS engine is the second subsystem, and it is the one that has to be managed. It is powered on with `AT+CGNSPWR=1`, polled with `AT+CGNSINF`, and powered off again with `AT+CGNSPWR=0` before the module transmits. The host cycle is therefore: acquire a fix, power the receiver down, then open the MQTT session and publish the fix that was just cached. USB is preferred for the AT and NMEA traffic, so the character devices appear when the HAT USB cable is connected.
 
@@ -48,7 +48,7 @@ The GNSS engine is the second subsystem, and it is the one that has to be manage
 | `AT+CGNSPWR` | Powers the GNSS receiver on, and off again before every transmission |
 | `AT+CGNSINF` | The fix: run status, fix status, UTC time, latitude, longitude |
 | `AT+SMCONF` | Broker address, port and client identifier, held on the module |
-| `AT+SMCONN` | Opens the session from the module, not from Python |
+| `AT+SMCONN` | Opens the session from the module, not from the host |
 | `AT+SMPUB` | Publishes one payload to one topic |
 
 *Table 3.1. The AT set this lab uses and what each command settles. Two of them, `AT+CMNB` and `AT+CGNSPWR`, carry the whole discipline of the chapter.*
@@ -134,14 +134,14 @@ The sequence is the product of this lab. Read it from the top: lock the bearer, 
 ```text
   Pi 3B+                                      SIM7070G HAT
   +---------------------------------+         +-----------------------------+
-  | p03_fix.py                      |         | GNSS engine                 |
+  | p03 session                     |         | GNSS engine                 |
   |   AT+CNMP=38 ; AT+CMNB=1        |         |   AT+CGNSPWR=1  (on)        |
   |   AT+CPSI?      -> CAT-M ?      |  USB    |   AT+CGNSINF    -> fix      |
   |   AT+CGNSPWR=1                  |<=======>|   AT+CGNSPWR=0  (off)       |
   |   parse +CGNSINF -> cache fix   |  ttyUSB2|                             |
   |   AT+CGNSPWR=0     <-- ALWAYS   |         | Cat-M radio + MQTT client   |
   |   AT+SMCONF / AT+SMCONN         |         |   AT+SMCONN                 |
-  |   AT+SMPUB "lab/p03/fix",0,1    |         |   AT+SMPUB ---------------------> broker
+  |   AT+SMPUB topic,len,qos,retain |         |   AT+SMPUB ---------------------> broker
   |   payload: <GNSS stamp>,lat,lon |         |                             |    1883
   |   sleep 60 s                    |         +-----------------------------+
   | gpio: YEL BCM16 = Cat-M + up    |
@@ -176,51 +176,46 @@ AT+CGNSINF
 AT+CGNSPWR=0
 ```
 
-**Step 4.** **Module MQTT.** This keeps the session, and any transport security you add later, on the modem rather than in Python.
+**Step 4.** **Module MQTT.** This keeps the session, and any transport security you add later, on the modem rather than on the host.
 
 ```text
 AT+SMCONF="URL","test.mosquitto.org",1883
 AT+SMCONF="CLIENTID","p03-catm"
 AT+SMCONN
-AT+SMPUB="lab/p03/fix",0,1
+AT+SMPUB="lab/p03/fix",38,0,1    # topic, length, qos, retain
 # type payload:  2026-09-14T10:00:00Z,lat,lon
 ```
 
-**Step 5.** **Automate.** A 30-line Python script talks AT over `serial.Serial`, parses `+CGNSINF`, powers GNSS off, publishes, and sleeps 60 s.
+**Step 5.** **Automate, with the ordering enforced rather than remembered.** The host side is the `p03` directory of this repository, in C. It builds with a compiler and nothing else, and every scene below runs with no module attached.
 
-```python
-import time, serial
-
-ser = serial.Serial("/dev/ttyUSB2", 115200, timeout=2)
-last_fix = None
-
-def at(cmd, wait=1.0):
-    ser.write((cmd + "\r\n").encode())
-    time.sleep(wait)
-    return ser.read(ser.in_waiting or 1).decode(errors="ignore")
-
-at("AT+CNMP=38"); at("AT+CMNB=1")
-print(at("AT+CPSI?"))          # must mention CAT-M / eMTC
-
-while True:
-    at("AT+CGNSPWR=1")
-    inf = at("AT+CGNSINF", 2.0)
-    for line in inf.splitlines():
-        if line.startswith("+CGNSINF:"):
-            f = line.split(":", 1)[1].split(",")
-            if len(f) > 5 and f[1].strip() == "1" and f[2].strip():
-                last_fix = (f[2].strip(), f[3].strip(), f[4].strip())
-    at("AT+CGNSPWR=0")         # power down BEFORE the transmission
-    if last_fix:
-        at("AT+SMCONF=\"URL\",\"test.mosquitto.org\",1883")
-        at("AT+SMCONF=\"CLIENTID\",\"p03-catm\"")
-        at("AT+SMCONN", 4.0)
-        at("AT+SMPUB=\"lab/p03/fix\",0,1")
-        ser.write((",".join(last_fix) + "\x1a").encode())
-    time.sleep(60)
+```bash
+sudo apt-get install -y build-essential
+make -C p03 && make -C p03 check
+./p03/p03 session --port /dev/ttyUSB2 --cycles 10 --log bench.transcript
 ```
 
-**Step 6.** **Keep the evidence.** Append the `+CPSI` line and the published payload to a log on every cycle. The pair is what proves the lab afterwards: the bearer that was in use, and the stamp that went out with it.
+Everything that transmits goes through one function, and that function refuses while the receiver is powered. It does not log a warning and send the command anyway: the command is never written. The rule of this chapter is true of that program rather than remembered by whoever edits it next.
+
+```c
+p03_status p03_transmit(atchat *a, p03_session *s, const char *cmd)
+{
+    if (s->gnss_powered) {
+        s->order_refusals++;
+        return P03_E_ORDER;     /* and nothing is sent */
+    }
+    return must(a, s, cmd);
+}
+```
+
+**Step 6.** **Audit the recording, not only the program.** The enforcement above protects one program. A session typed by hand in `minicom`, which is how this lab should be started anyway, has no such function in it and leaves only a transcript behind.
+
+```bash
+./p03/p03 audit --transcript bench.transcript
+```
+
+That reads any recorded session and answers one question: was the radio asked to transmit while the receiver was still powered. It names the first offending command and its line. Run it against `p03 transcript --scene gnss-left-on` once, to watch it fail, before trusting it to pass: a check that has never found anything has not been shown to be able to.
+
+**Step 7.** **Keep the evidence.** Append the `+CPSI` line and the published payload to a log on every cycle. The pair is what proves the lab afterwards: the bearer that was in use, and the stamp that went out with it.
 
 ```bash
 # one line per cycle, appended by the script
@@ -228,7 +223,7 @@ while True:
 tail -f /home/pi/p03.log
 ```
 
-**Step 7.** **Drive the LED from two conditions, not one.** Yellow on BCM16 is on when `AT+CPSI?` last contained CAT-M and the module reported the session open. If the bearer changed, the LED goes out, which is the fastest way to notice a silent fallback from across the bench.
+**Step 8.** **Drive the LED from two conditions, not one.** Yellow on BCM16 is on when `AT+CPSI?` last contained CAT-M and the module reported the session open. If the bearer changed, the LED goes out, which is the fastest way to notice a silent fallback from across the bench.
 
 The module has a status LED of its own and it answers a different question, which is why this lab fits a second one rather than reading the first. NETLIGHT on module pin 52 drives a network indicator with four states defined in the hardware design document: 64 ms on and 800 ms off while no network is registered, 64 ms on and 3000 ms off once registration succeeds, 64 ms on and 300 ms off while data is moving, and off for power down or power saving. Useful, and silent on the one thing this chapter exists for: all three lit patterns look identical whether the bearer is Cat-M, NB-IoT or a GPRS fallback. The host LED reports the bearer and the session; the module's reports that a network exists. Watch both and the pair tells you which half failed.
 

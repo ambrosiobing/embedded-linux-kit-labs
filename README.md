@@ -183,7 +183,7 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and three have been. They live in this repository beside the chapters they
+and five have been. They live in this repository beside the chapters they
 belong to, because a reader who has just read chapter 4 should not have to go
 looking.
 
@@ -198,7 +198,13 @@ looking.
 | [`p06/`](p06/) | the host half of the time-of-flight occupancy kiosk, in C, with its own README |
 | [`p06/src/`](p06/src/) | the frame contract, the measured wall, the mapping and the clipping |
 | [`p06/tests/`](p06/tests/) | the suite, six groups, and a glass file with a guard area |
-| [`lib/`](lib/) | what more than one of them needed: sequence accounting and the line reader, header only |
+| [`p02/`](p02/) | the host half of the NB-IoT power-saving node, in C, with its own README |
+| [`p02/src/`](p02/src/) | the two timer bitmaps, the duty cycle, the conversation |
+| [`p02/tests/`](p02/tests/) | the suite, six groups, no framework and no SIM |
+| [`p03/`](p03/) | the host half of the Cat-M node with the GNSS stamp, in C, with its own README |
+| [`p03/src/`](p03/src/) | the fix, the bearer, the one door that transmits, the audit |
+| [`p03/tests/`](p03/tests/) | the suite, five groups, no framework and no sky |
+| [`lib/`](lib/) | what more than one of them needed: the AT engine, sequence accounting and the line reader |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
     make -C p04 demo      the lab's own demonstration, on synthetic data
@@ -206,6 +212,10 @@ looking.
     make -C p18 demo      a clean stream and a holed one, through the same commands
     make -C p06 check     the same, for the kiosk
     make -C p06 demo      measure a wall, then judge a hand against it
+    make -C p02 check     the same, for the power-saving node
+    make -C p02 demo      the timers decoded and four scenes replayed
+    make -C p03 check     the same, for the Cat-M node
+    make -C p03 demo      the scenes replayed, and the ordering audited
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code
@@ -217,16 +227,27 @@ until the one place where they become floats.
 They do not touch a bus, a device or a lab, and no lab depends on them.
 
 Most of these labs are the same shape: something arrives over a line and a
-decision is made from it. P02 and P03 drive a modem, P13 decides on a timeout.
-Three are written, and `lib/` holds what more than one of them turned out to
-need rather than what was guessed at in advance. It has two files. The sequence
-accounting went in when P18 needed what P04 had, and the comparison in it was
-not a copy, because what P04 had reads a counter wrapping as a loss of four
-billion samples. The line reader went in when P06 needed what P18 had, for a
-rule both chapters already stated in prose and neither could enforce: a line
-too long for the buffer is refused whole, because the remainder of a split line
-is a sample nobody sent in one lab and a partial frame on the glass in the
-other.
+decision is made from it. Five are written, and `lib/` holds what more than one
+of them turned out to need rather than what was guessed at in advance.
+
+It has three files, and each went in the day a second lab needed it. The
+sequence accounting moved out of P04 when P18 wanted the same four numbers, and
+the comparison in it was not a copy, because what P04 had reads a counter
+wrapping as a loss of four billion samples. The line reader moved out of P18
+when P06 wanted it, for a rule both chapters already stated in prose and
+neither could enforce: a line too long for the buffer is refused whole, since
+the remainder of a split line is a sample nobody sent in one lab and a partial
+frame on the glass in the other. The AT engine was written for P02 and P03
+together, which are the only two labs that drive a radio by typing at it, and
+it is the one piece here that was shaped by two sets of requirements rather
+than by one and a later surprise.
+
+That engine is also why those two labs can be finished before the HATs are
+seated. It reads a recorded conversation as readily as a serial port, and it
+checks each command against the one the recording expects, so replaying a
+session tests the order of the conversation and not only its arithmetic. P03's
+whole claim is an ordering, and that is how it is tested with no antenna in the
+room.
 
 Three rules hold across all of them. No default threshold anywhere, because a
 threshold without the baseline it was measured against is not a measurement. No

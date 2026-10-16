@@ -20,6 +20,7 @@ to twenty.
 | [p01.md](p01.md) | The claim that moved three indicator pins, and its withdrawal |
 | [p02.md](p02.md) | A power key put on the wrong pin by a note nobody checked |
 | [p03.md](p03.md) | One conductor, three spellings, one vendor |
+| [p02-p03.md](p02-p03.md) | Two labs written in one sitting, and a guard that could not be reached |
 | [p04.md](p04.md) | A build that had never passed, hidden by how it was reported |
 | [p05.md](p05.md) | An acceptance band that turned out to be fair by luck |
 | [p06.md](p06.md) | A rule two chapters had only in prose, and the first program here that can be wrong in memory |

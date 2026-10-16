@@ -240,6 +240,96 @@ jobs:
             || { echo "the over-long line reached the parser"; exit 1; }
           echo "the hand is 6 zones, an empty field is 0, and 5 bad lines are 5 drops"
 
+      - name: P02 builds, with the warnings as errors
+        run: make -C p02 all
+
+      - name: P02's suite, with no hardware anywhere
+        run: make -C p02 check
+
+      - name: P02's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p02 strict
+
+      - name: P03 builds, with the warnings as errors
+        run: make -C p03 all
+
+      - name: P03's suite, with no hardware anywhere
+        run: make -C p03 check
+
+      - name: P03's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p03 strict
+
+      - name: P02 reads the two timer bitmaps with their own tables
+        # The same eight characters mean three hours in one table and fifty
+        # minutes in the other, and a host that never decodes them cannot
+        # tell. This is the arithmetic the lab rests on.
+        run: |
+          set -e
+          cd p02
+          ./p02 timers --tau 00100011 --active 00000101 | tee timers.txt
+          grep -q "10800 s" timers.txt || { echo "the update interval is not three hours"; exit 1; }
+          grep -q "10 s" timers.txt    || { echo "the active time is not ten seconds"; exit 1; }
+          ./p02 plan --period 600 | tee plan.txt
+          grep -q "6.00 datagrams" plan.txt || { echo "ten minutes is not six an hour"; exit 1; }
+          if ./p02 plan --period 5; then
+            echo "a schedule that never lets the radio sleep was accepted"
+            exit 1
+          fi
+          echo "the bitmaps decode, and a schedule with no sleep in it is refused"
+
+      - name: P02 drives four scenes, and the indicator follows registration
+        run: |
+          set -e
+          cd p02
+          ./p02 transcript --scene attached --out attached.transcript
+          ./p02 session --transcript attached.transcript | tee attached.txt
+          grep -q "indicator on for 3 of 3" attached.txt \
+            || { echo "the indicator did not follow a good registration"; exit 1; }
+          ./p02 transcript --scene searching --out searching.transcript
+          ./p02 session --transcript searching.transcript | tee searching.txt
+          grep -q "sends attempted 0" searching.txt \
+            || { echo "something was sent into a network that had not answered"; exit 1; }
+          ./p02 transcript --scene silent --out silent.transcript
+          if ./p02 session --transcript silent.transcript; then
+            echo "a module that said nothing was treated as a module that answered"
+            exit 1
+          fi
+          echo "attached sends three, searching sends none, silence stops the lab"
+
+      - name: P03 keeps the receiver down while the radio transmits
+        # The lab's whole claim. Enforced inside the program, and audited
+        # from outside it, because the enforcement protects this program and
+        # a session typed by hand in minicom has no such function in it.
+        run: |
+          set -e
+          cd p03
+          ./p03 transcript --scene fix --out fix.transcript
+          ./p03 session --transcript fix.transcript --log session.log | tee fix.txt
+          grep -q "ordering refusals 0" fix.txt || { echo "something was refused"; exit 1; }
+          ./p03 audit --transcript session.log
+          ./p03 transcript --scene gnss-left-on --out broken.transcript
+          if ./p03 audit --transcript broken.transcript; then
+            echo "a recording that transmitted with the receiver powered was passed"
+            exit 1
+          fi
+          echo "the audit passes a good recording and refuses a bad one"
+
+      - name: P03 refuses the wrong bearer and never invents a stamp
+        run: |
+          set -e
+          cd p03
+          ./p03 transcript --scene wrong-bearer --out bearer.transcript
+          if ./p03 session --transcript bearer.transcript; then
+            echo "a payload would have gone out over a bearer this lab forbids"
+            exit 1
+          fi
+          ./p03 transcript --scene no-fix --out nofix.transcript
+          ./p03 session --transcript nofix.transcript | tee nofix.txt
+          grep -q "published 0, skipped 3" nofix.txt \
+            || { echo "a cycle with no fix published something anyway"; exit 1; }
+          echo "the wrong bearer stops the lab, and a cycle with no fix publishes nothing"
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e
