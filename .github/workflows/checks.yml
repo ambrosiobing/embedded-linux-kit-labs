@@ -187,6 +187,59 @@ jobs:
           grep -q "samples 19" long.txt || { echo "the over-long line became a sample"; exit 1; }
           echo "the over-long line was refused whole, not split into two samples"
 
+      - name: P06 builds, with the warnings as errors
+        run: make -C p06 all
+
+      - name: P06's suite, with no hardware anywhere
+        run: make -C p06 check
+
+      - name: P06's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p06 strict
+
+      - name: P06 measures a threshold and refuses to invent one
+        # The chapter says to measure the threshold rather than guess it. The
+        # only way a program holds anyone to that is by refusing to produce
+        # one from a measurement that does not deserve the name, so both
+        # refusals are exercised here beside the case that works.
+        run: |
+          set -e
+          cd p06
+          ./p06 synth --frames 30 --scene empty --out empty.stream
+          ./p06 baseline --source empty.stream --out bench.book \
+              --placement "continuous integration, no sensor" | tee base.txt
+          grep -q "threshold" base.txt || { echo "no threshold was produced"; exit 1; }
+          ./p06 synth --frames 5 --scene empty --out short.stream
+          if ./p06 baseline --source short.stream --out short.book; then
+            echo "five frames was accepted as a baseline"
+            exit 1
+          fi
+          ./p06 synth --frames 30 --scene walk --hand-zones 6 --out moving.stream
+          if ./p06 baseline --source moving.stream --out moving.book; then
+            echo "a wall with a hand moving across it was accepted as a baseline"
+            exit 1
+          fi
+          echo "a steady wall gives a threshold, and neither of the other two does"
+
+      - name: P06 tells a hand from an empty field, and paints only what it parsed
+        run: |
+          set -e
+          cd p06
+          ./p06 synth --frames 30 --scene hand --hand-zones 6 --out hand.stream
+          ./p06 run --source hand.stream --book bench.book --expect-zones 4:10
+          ./p06 run --source empty.stream --book bench.book --expect-zones 0:0
+          ./p06 synth --frames 12 --scene hand --out mixed.stream \
+              --fault short:2 --fault notz:3 --fault rubbish:4 \
+              --fault huge:5 --fault long:6
+          ./p06 run --source mixed.stream --book bench.book | tee mixed.txt
+          grep -q "7 accepted, 0 painted" mixed.txt \
+            || { echo "the five bad lines were not all dropped"; exit 1; }
+          grep -q "1 not a Z line" mixed.txt \
+            || { echo "the line from another talker was not counted as one"; exit 1; }
+          grep -q "1 over-long" mixed.txt \
+            || { echo "the over-long line reached the parser"; exit 1; }
+          echo "the hand is 6 zones, an empty field is 0, and 5 bad lines are 5 drops"
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e

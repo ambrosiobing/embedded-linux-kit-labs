@@ -41,6 +41,9 @@ __pycache__/
 *.p18
 *.stream
 *.capture
+*.book
+*.glass
+test_p06_sysfs/
 
 # What building the labs leaves behind: objects, dependency files and the
 # binaries. Rebuild with: make -C p04, make -C p18
@@ -48,12 +51,16 @@ __pycache__/
 *.d
 p04/p04
 p04/p04-test
+p06/p06
+p06/p06-test
 p18/p18
 p18/p18-test
 
 # What a local run of the checks workflow leaves behind
 touch.txt
 speech.txt
+p06/base.txt
+p06/mixed.txt
 p18/clean.txt
 p18/long.txt
 

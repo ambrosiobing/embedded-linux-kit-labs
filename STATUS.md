@@ -25,7 +25,7 @@ be half held is a state that means nothing.
 | P03 | written | the pairing audit | the SIM7070G seated on the Pi 3B+, and a Cat-M SIM |
 | P04 | **checked** | compiled with warnings as errors and run end to end on synthetic data by this repository's own checks, on every push | the STWIN.box on the Pi 4's USB, and a real capture through the same path |
 | P05 | written | the pairing audit | the MCC 118 seated on the Pi 4. See the note below: this lab cannot reach **passed** on this bench |
-| P06 | written | the pairing audit | the 53L8A1, the LCD and the Nucleo together on the Pi 3 |
+| P06 | written | the pairing audit. **Its program is in the tree and has never been compiled.** `p06/` is the whole host side, parser, baseline, classifier and painter, with its own suite. The authoring laptop has no compiler it may use, so the first build is the next push, and this row moves to **checked** on the first green run and not before | the 53L8A1, the LCD and the Nucleo together on the Pi 3 |
 | P07 | written | the pairing audit | the IKS4A1 stacked on the Nucleo |
 | P08 | written | the pairing audit | the IKS5A1 stacked on the Nucleo |
 | P09 | written | the pairing audit | the NanoPi NEO Air brought up headless with the ADXL345 |

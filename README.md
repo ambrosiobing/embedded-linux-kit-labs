@@ -183,8 +183,9 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and two have been. They live in this repository beside the chapters they belong
-to, because a reader who has just read chapter 4 should not have to go looking.
+and three have been. They live in this repository beside the chapters they
+belong to, because a reader who has just read chapter 4 should not have to go
+looking.
 
 | Path | What it is |
 | --- | --- |
@@ -194,12 +195,17 @@ to, because a reader who has just read chapter 4 should not have to go looking.
 | [`p18/`](p18/) | the host half of the USB-CDC recorder, in C, with its own README |
 | [`p18/src/`](p18/src/) | the line reader, the capture loop, the report and the gate |
 | [`p18/tests/`](p18/tests/) | the suite, six groups, no framework and no device |
-| [`lib/`](lib/) | what both of them needed: sequence accounting, header only |
+| [`p06/`](p06/) | the host half of the time-of-flight occupancy kiosk, in C, with its own README |
+| [`p06/src/`](p06/src/) | the frame contract, the measured wall, the mapping and the clipping |
+| [`p06/tests/`](p06/tests/) | the suite, six groups, and a glass file with a guard area |
+| [`lib/`](lib/) | what more than one of them needed: sequence accounting and the line reader, header only |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
     make -C p04 demo      the lab's own demonstration, on synthetic data
     make -C p18 check     the same, for the recorder
     make -C p18 demo      a clean stream and a holed one, through the same commands
+    make -C p06 check     the same, for the kiosk
+    make -C p06 demo      measure a wall, then judge a hand against it
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code
@@ -210,14 +216,17 @@ until the one place where they become floats.
 `lint.py` turn the sources into chapters, figures and the reading editions.
 They do not touch a bus, a device or a lab, and no lab depends on them.
 
-Most of these labs are the same shape: something arrives over a line in
-sequence-numbered pieces and a decision is made from it. P02 and P03 drive a
-modem, P06 reads a ranging grid, P13 decides on a timeout. The second one is
-now written, and the shared half moved out of `p04/src` and into `lib/` when it
-had two users rather than being guessed at in advance. It turned out to be one
-file: the sequence accounting, and the comparison in it was not a copy of what
-P04 had, because what P04 had reads a counter wrapping as a loss of four
-billion samples.
+Most of these labs are the same shape: something arrives over a line and a
+decision is made from it. P02 and P03 drive a modem, P13 decides on a timeout.
+Three are written, and `lib/` holds what more than one of them turned out to
+need rather than what was guessed at in advance. It has two files. The sequence
+accounting went in when P18 needed what P04 had, and the comparison in it was
+not a copy, because what P04 had reads a counter wrapping as a loss of four
+billion samples. The line reader went in when P06 needed what P18 had, for a
+rule both chapters already stated in prose and neither could enforce: a line
+too long for the buffer is refused whole, because the remainder of a split line
+is a sample nobody sent in one lab and a partial frame on the glass in the
+other.
 
 Three rules hold across all of them. No default threshold anywhere, because a
 threshold without the baseline it was measured against is not a measurement. No

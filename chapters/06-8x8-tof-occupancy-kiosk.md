@@ -92,6 +92,22 @@ Put the two stacks side by side with the LCD facing you and the ToF aperture fac
 
 The consumer is deliberately dull. It reads a line, checks that the line starts with `Z,`, splits on commas and converts to integers. A line that fails any of those checks is dropped rather than repaired, because a partial frame painted on the glass looks like a real reading and is not. Occupancy is one comparison per zone against a threshold you measured yourself with the field of view empty, not a constant somebody wrote down.
 
+Three details of that dullness are the whole of the host side, and each is a way the kiosk quietly starts lying. The four ways a line can be wrong are counted separately, so a bench that is dropping everything can tell a truncated frame from the ST-LINK node talking on the wrong port. A zone reporting zero millimetres saw no target, which is not a target at zero distance, so a zero is never the nearest thing in the room and never an occupied zone. And the painting lives inside the parse loop, so the glass cannot show a frame that was not read in the same breath:
+
+```c
+        if (p06_parse_frame(line, &f, &why) != P06_OK) {
+            run->dropped[why]++;
+            continue;                 /* nothing below this line runs */
+        }
+        ...
+        if (fb != NULL) {
+            st = p06_fb_paint(fb, &f, b);
+            run->painted++;
+        }
+```
+
+There is no other call to the painter anywhere in the program, which is what lets the suite assert the rule rather than describe it: seven frames parsed out of twelve lines means the glass was written exactly seven times, and a stream with no frame in it leaves it byte for byte as it was.
+
 ## Data flow (ASCII)
 
 ```text
@@ -100,7 +116,7 @@ The consumer is deliberately dull. It reads a line, checks that the line starts 
   | X-NUCLEO-53L8A1              |           | /dev/ttyACM0  115200 8N1      |
   |   VL53L8CX 8x8 ToF           |           |   |                           |
   |   I2C 0x29, J9 = I2C         |           |   v                           |
-  |        |                     |           | p06_kiosk.py                  |
+  |        |                     |           | p06 run                       |
   |        v  data-ready         |    USB    |   startswith("Z,") ? drop : ok|
   | ST driver: read 64 ranges    |==========>|   64 ints, min / max in mm    |
   |        |                     |  CDC ACM  |   range < threshold = occupied|
@@ -142,28 +158,41 @@ A `/dev/fb0` or a DRM card must be present. If neither is, the overlay did not l
 ```bash
 lsusb
 ls /dev/ttyACM* 2>/dev/null
-sudo apt-get install -y python3-serial
+sudo apt-get install -y build-essential
+make -C p06
+make -C p06 check
 ```
 
-More than one `ttyACM` node can appear, because the ST-LINK enumerates as well. The node that carries `Z,` lines is the one you want.
+More than one `ttyACM` node can appear, because the ST-LINK enumerates as well. The node that carries `Z,` lines is the one you want, and the next step will tell you which that is without painting anything.
 
-**Step 5.** **Run the consumer.** Save this as `/home/pi/p06_kiosk.py` and confirm the numbers before you paint anything.
+**Step 5.** **Confirm the numbers before you paint anything.** `show` prints the grid as text and needs no display at all, which makes it the right thing to point at each `ttyACM` node in turn.
 
-```python
-import serial
-ser = serial.Serial("/dev/ttyACM0", 115200, timeout=1)
-while True:
-    line = ser.readline().decode(errors="ignore").strip()
-    if line.startswith("Z,"):
-        z = [int(x) for x in line.split(",")[1:]]
-        print(min(z), max(z), "mm", len(z))
+```bash
+stty -F /dev/ttyACM0 115200 raw
+./p06/p06 show --source /dev/ttyACM0 --frames 3
 ```
 
-The printed length must be 64 on every frame. If it is not, the firmware line is truncated and the serial settings or the print statement are the cause, not the sensor.
+Every accepted line carries 64 values, and a line that does not is dropped with the reason printed rather than patched up to the right length. If every line is being dropped for the field count, the firmware line is truncated and the serial settings or the print statement are the cause, not the sensor.
 
-**Step 6.** **Measure the threshold, do not guess it.** With the field of view empty, watch the printed minimum for a minute and write the wall distance in the lab book. Occupied is a range below a threshold you set under that number with margin. Repeat the measurement if you move the bench, because the wall distance is a property of where the sensor sits and not of the part.
+**Step 6.** **Measure the threshold, do not guess it.** With the field of view empty, let `baseline` watch the wall for a while. It writes the lab book, and it refuses to produce a threshold at all from a measurement that does not deserve the name: fewer than ten frames, or a wall that moved by more than the 20 mm the acceptance test allows.
 
-**Step 7.** **Paint the grid.** Draw an 8x8 rectangle grid on the framebuffer, one rectangle per zone, filled by range. Occupied means the zone range is below the threshold you just measured against the empty field of view. Keep the painting in the same loop as the parse, so a stalled sensor stops the repaint rather than leaving a stale frame that looks live.
+```bash
+./p06/p06 baseline --source /dev/ttyACM0 --out bench.book \
+    --placement "kiosk bracket, 1.8 m from the far wall"
+```
+
+Occupied is a range below that threshold, which sits under the nearest wall zone by a margin. Repeat the measurement if you move the bench, because the wall distance is a property of where the sensor sits and not of the part. The placement text is written into the book for the same reason.
+
+**Step 7.** **Paint the grid.** One rectangle per zone, filled by range, with the geometry read from the two files the kernel publishes rather than assumed.
+
+```bash
+cat /sys/class/graphics/fb0/virtual_size
+cat /sys/class/graphics/fb0/bits_per_pixel
+./p06/p06 run --source /dev/ttyACM0 --book bench.book \
+    --fb /dev/fb0 --fb-sysfs /sys/class/graphics/fb0
+```
+
+Those two `cat` commands print the numbers the program will use, which is the reason it reads them there rather than through an `ioctl`. The painting happens in the same loop as the parse and nowhere else, so a stalled sensor stops the repaint rather than leaving a stale frame that looks live, and a line that failed to parse paints nothing at all.
 
 **Step 8.** **Tear the stack down when the acceptance test passes.** Power the Pi off before you unseat the LCD, put the 53L8A1 back in its own bag, and leave the Nucleo bare for P18. The next lab that wants this Pi wants the header empty.
 
@@ -172,7 +201,9 @@ The printed length must be 64 on every frame. If it is not, the firmware line is
 - A hand at 300 mm occupies 4 to 10 zones.
 - An empty field of view reports the wall at a stable range, plus or minus 20 mm.
 - The LCD shows a coarse heat map, 64 values every frame.
-- `len(z)` is 64 on every accepted line, and lines that do not start with `Z,` are dropped rather than parsed.
+- Every accepted line carried 64 values, and lines that do not start with `Z,` are dropped rather than parsed. `run` prints the drops under four separate reasons, and a bench where everything is being dropped should be able to say which one.
+- The threshold in the lab book was measured rather than chosen, and the book says where the sensor was standing when it was. A book with no placement in it describes nothing.
+- The number of times the glass was written equals the number of frames parsed. A stalled sensor leaves the last frame on the glass and stops, rather than repainting something a minute old.
 
 ## Practices
 
