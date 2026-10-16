@@ -14,11 +14,17 @@ assumed.
 
 ## State, stated plainly
 
-**Compiled and run on synthetic frames, never run against a sensor.** No
-distance here came from a VL53L8CX, no rectangle here has been on glass, and
-the Nucleo has never been flashed with the firmware this program expects. What
-the suite proves is that the program agrees with its own arithmetic, which is
-worth having and is not a measurement.
+**Compiled and run on synthetic frames, never run against a sensor.** First
+built on Friday 16 October 2026: clean under the gate, clean under the
+stricter conversion pass, and 120 checks passing. No distance here came from a
+VL53L8CX, no rectangle here has been on glass, and the Nucleo has never been
+flashed with the firmware this program expects. What the suite proves is that
+the program agrees with its own arithmetic, which is worth having and is not a
+measurement.
+
+There is no floating point in this program at all, which is why it does not
+link the maths library and why the stricter pass has less to say about it than
+the number of warnings enabled suggests.
 
 ## Build and check
 
