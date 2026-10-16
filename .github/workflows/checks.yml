@@ -121,9 +121,9 @@ jobs:
               --mounting "continuous integration" \
               --warn 1.5 --fault 3.0 --band-low 2000 --band-high 6000
           ./p04 validate --source honest.p04 --book axis.lab
-          ./p04 synth --kind idle --blocks 10 --true-rate 30000 --out skewed.p04
+          ./p04 synth --kind idle --blocks 10 --rate 30000 --out skewed.p04
           if ./p04 analyse --source skewed.p04 --book axis.lab; then
-            echo "a probe running 12 per cent off its claimed rate was reported on"
+            echo "a lab book taken at one rate was applied to a capture taken at another"
             exit 1
           fi
           echo "the rate check and the resting invariant both hold"

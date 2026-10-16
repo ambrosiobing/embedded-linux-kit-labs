@@ -132,8 +132,13 @@ static bool parse_args(opts *o, int argc, char **argv)
         else if (strcmp(a, "--mounting") == 0)   { NEED_VALUE(); o->mounting = v; }
         else if (strcmp(a, "--blocks") == 0)     { NEED_VALUE(); o->blocks = strtol(v, NULL, 10); }
         else if (strcmp(a, "--len") == 0)        { NEED_VALUE(); o->len = strtol(v, NULL, 10); }
+        /* There is no --true-rate. It existed as an exact synonym of --rate and
+         * its name claimed something the program cannot do: a capture whose
+         * header declares one rate while its samples were produced at another
+         * is a lie this file format gives no way to detect. What can be
+         * detected, and is, is a lab book applied to a capture taken at a
+         * different rate, and that needs one spelling of one option. */
         else if (strcmp(a, "--rate") == 0)       { NEED_VALUE(); o->rate = atof(v); }
-        else if (strcmp(a, "--true-rate") == 0)  { NEED_VALUE(); o->rate = atof(v); }
         else if (strcmp(a, "--warn") == 0)       { NEED_VALUE(); o->warn = atof(v); }
         else if (strcmp(a, "--fault") == 0)      { NEED_VALUE(); o->fault = atof(v); }
         else if (strcmp(a, "--band-low") == 0)   { NEED_VALUE(); o->band_low = atof(v); }
