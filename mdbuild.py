@@ -511,9 +511,21 @@ def nav(prev, nxt):
 
 
 def write_figures(names, figures, written, missing):
+    """Render each figure from its source, then publish it.
+
+    This used to copy whatever SVG happened to sit in the build cache, and
+    reported a figure as missing only when the cache held nothing at all. An
+    edited figure source therefore never reached the published SVG unless some
+    other command rebuilt the cache first, and nothing in prepublish.py does.
+    The regeneration check could not see it either, because the bytes it
+    compares are the bytes of the stale copy. Rendering here means an edited
+    source always moves the published file, which is what makes that check
+    mean what it says. build_figure is itself cached on modification time, so
+    an unchanged figure still costs nothing.
+    """
     for name in names:
-        svg = build.FIGBUILD / f"{name}.svg"
-        if svg.exists():
+        svg = build.build_figure(name)
+        if svg is not None:
             copy_svg(svg, figures / f"{name}.svg")
             written.add(name)
         elif name not in missing:
@@ -652,11 +664,16 @@ def main(argv):
         print("warnings:")
         for w in sorted(set(build.WARNINGS)):
             print("  " + w)
-    if missing:
-        print("figures not rendered (run python build.py --figures): "
-              + ", ".join(sorted(missing)))
     print(f"{len(written)} figures, into {out}")
+    if missing:
+        print("FAILED. These figures did not render, and the chapters that name "
+              "them now point at an SVG that is absent or older than its source: "
+              + ", ".join(sorted(missing)))
+        print("The warnings above say which source failed. A chapter published "
+              "with a stale figure is the failure this exit status exists for.")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    sys.exit(main(sys.argv[1:]))
