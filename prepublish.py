@@ -107,12 +107,14 @@ def main():
 
     print()
     if no_shellcheck:
-        print("prepublish: WARNING. shellcheck is not on this machine, so the 42")
-        print("shell blocks were not checked by anything. Continuous integration")
-        print("used to check them and can no longer see the sources, so this is")
-        print("now the only place they could be checked. Run this script on a")
-        print("machine with shellcheck before a release, or accept the gap")
-        print("knowingly rather than by default.")
+        print("prepublish: WARNING. shellcheck is not on this machine, so the")
+        print("shell blocks counted above were not checked by anything, and the")
+        print("count is printed by the run rather than written here, because a")
+        print("number in a sentence is a number nothing updates. Continuous")
+        print("integration used to check them and can no longer see the")
+        print("sources, so this is now the only place they could be checked.")
+        print("Run this script on a machine with shellcheck before a release,")
+        print("or accept the gap knowingly rather than by default.")
     if ok:
         print("prepublish: all checks that could run passed."
               if no_shellcheck else "prepublish: all checks passed.")

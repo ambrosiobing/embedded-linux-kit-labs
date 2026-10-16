@@ -1,12 +1,15 @@
 /* The suite. No framework, no hardware, no network.
  *
- * Four groups, kept apart because they fail for different reasons:
+ * Six groups, kept apart because they fail for different reasons:
  *
+ *   capture format whether a file written here reads back as what was written
  *   transport      whether the stream arrived whole
  *   determinism    whether the same input gives the same output
  *   physics        whether the signal obeys the one absolute check available
  *   orthogonality  whether vibration and sound move independently, which is
  *                  the lab's own claim and the only one worth publishing
+ *   lab book       whether a baseline survives a write and a read, and whether
+ *                  the classifier answers the way the thresholds say it should
  *
  * Each check prints what it compared, so a failure names the numbers rather
  * than only the line.

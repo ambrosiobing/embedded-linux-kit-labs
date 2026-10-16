@@ -12,10 +12,13 @@ against a baseline you measured as NORMAL, WARNING or FAULT.
 
 ## State, stated plainly
 
-**Written, never compiled here, never run against hardware.** The authoring
-laptop has no C compiler and no WSL distribution, so the first compile happens
-in the workflow on a push. A red run there is the expected way to find out what
-the compiler has to say, not a surprise. No number this program produces is a
+**Compiled and run on synthetic data, never run against hardware.** The
+authoring laptop has no compiler it may use, so the first compile of anything
+here happens in the workflow on a push, and a red run there is how the compiler
+gets read rather than a surprise. What that run proves is the whole of what is
+proved: the build is clean with its warnings as errors, the suite passes, and
+the six commands work end to end on files this program generated. No probe has
+ever been attached. No number this program produces is a
 measurement of anything physical: the synthetic stimuli are signals with the
 right shape, not a model of the probe, and a threshold tuned against them is a
 threshold tuned against them.
@@ -81,7 +84,7 @@ number is small enough to check.
 | `src/labbook.c` | the baseline file, flat key and value, no dependency |
 | `src/synth.c` | synthetic stimuli, deterministic from a seed |
 | `src/main.c` | six subcommands and the exit status rules |
-| `tests/test_p04.c` | the suite, four groups, no framework |
+| `tests/test_p04.c` | the suite, six groups, no framework |
 
 ## Three things the program refuses to do
 

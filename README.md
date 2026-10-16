@@ -189,7 +189,7 @@ because a reader who has just read chapter 4 should not have to go looking.
 | --- | --- |
 | [`p04/`](p04/) | the host half of the vibration and ultrasound gateway, in C, with its own README |
 | [`p04/src/`](p04/src/) | the capture format, the transform, the classification, the invariants |
-| [`p04/tests/`](p04/tests/) | the suite, four groups, no framework and no device |
+| [`p04/tests/`](p04/tests/) | the suite, six groups, no framework and no device |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
     make -C p04 demo      the lab's own demonstration, on synthetic data

@@ -13,6 +13,11 @@
 >
 > Draft P1 called USB-C a "VCP" and invoked Intel MKL. USB-C is the connector; CDC-ACM exists only after HSDatalog or USB-CDC firmware is present. Use a NumPy FFT. Draft P20 reused the STWIN as a BLE factory tier, which would double-own this silicon. Anomaly-only uplink is a policy in this lab, not a second project.
 
+> [!NOTE]
+> **Where this lab leaves its source, and what it keeps**
+>
+> The audit prescribes a NumPy FFT, and this lab ships the same analysis in C instead. The verdict is kept in full: the transform runs on the host rather than on the M33, and it is a magnitude check rather than a heavy library. What changed is the tool, for a reason that belongs to this book. The deliverable of an embedded Linux lab is a program that builds on the recorder with the toolchain already on it, and this one builds from a compiler and the maths library, with no package to install and nothing to go missing on a field host. The program is in `p04` and its own README states what it refuses to do. Departure taken on Friday 16 October 2026; every other verdict of the audit stands as written.
+
 ## Intent
 
 The STWIN.box is a USB industrial probe. The Pi 4 isolates one CPU core for the FFT thread with `isolcpus` and `taskset`, and classifies NORMAL, WARNING or FAULT from spectral peaks. The DSI panel carries the waterfall, and the 40-pin header stays empty, which is what makes this lab compatible with the panel in the first place.
@@ -99,7 +104,7 @@ Strain-relieve the USB cable at both ends. The probe is mounted on something tha
 
 *Figure 4.4. The boundary the source insists on. Everything left of the dashed line is firmware that moves and labels samples. Everything right of it is Linux, on a core the scheduler does not touch.*
 
-Read the diagram as a contract. The firmware guarantees three properties and no more: samples arrive in order, each frame carries a timestamp, and each frame carries a sequence number that increases by one. Those three are exactly what the host needs to detect a gap, and a gap is the only transport fault that matters here. The host side then owns the window, the transform, the baseline and the decision, which are the four things you will want to change during the lab.
+Read the diagram as a contract. The firmware guarantees three properties and no more: samples arrive in order, each frame carries a timestamp, and each frame carries a sequence number that increases by one. Those three are exactly what the host needs to detect a gap, and a gap is the only transport fault that matters here. The host side then owns the window, the transform, the baseline and the decision, which are the four things you will want to change during the lab. Those four are four files in `p04/src`: `dsp.c` holds the window and the transform, `labbook.c` the baseline, `analysis.c` the decision, and `block.c` the capture format and the sequence accounting the other three rest on.
 
 The sequence number is the cheapest instrument in the lab. It costs four bytes per frame and it is the only way to tell a quiet machine from a stalled reader, because both look like an absence of energy in the spectrum. Check it on every frame, and count the gaps rather than logging them, so that a long run produces one number instead of a scroll.
 
@@ -128,68 +133,70 @@ lsusb | grep -i st
 STM32_Programmer_CLI -c port=USB1 -w firmware.bin 0x08000000
 ```
 
-**Step 2.** **Isolate a core** so the scheduler does not migrate the FFT thread.
+**Step 2.** **Isolate a core and build the host program.** The isolated core keeps the scheduler from migrating the thread that runs the transform. The program is the `p04` directory of this repository, written in C, and it builds with a compiler and nothing else: no numerical library, no serial library, no package beyond the toolchain and the maths library every toolchain ships with.
 
 ```bash
 # append to /boot/firmware/cmdline.txt:
 #   isolcpus=3 nohz_full=3
 sudo reboot
 ls /dev/ttyACM*
-sudo apt-get install -y python3-serial python3-numpy python3-matplotlib
+sudo apt-get install -y build-essential
+make -C p04
+make -C p04 check
 ```
 
-**Step 3.** **Ingest.** If the firmware is the Zephyr text dashboard, parse lines. If it is HSDatalog binary, use ST's host decoder first. Do not invent a frame format.
+`make -C p04 check` runs the whole suite with no probe attached and no port opened, and the build treats its warnings as errors. Run it before the probe arrives and again on the Pi you will record with, because a build that passes on a workstation and a build that passes on the recorder are two different claims.
+
+**Step 3.** **Ingest, and keep the two formats apart.** If the firmware is the Zephyr text dashboard, parse lines. If it is HSDatalog binary, use ST's host decoder first. Do not invent a frame format. What the probe sends is decided by the firmware you flashed. What `p04` reads is its own recorded capture format, documented in the comment at the top of `p04/src/block.c`, and the two are not the same thing. The decoder that turns one into the other is written once the firmware is chosen, and it is the only part of this lab that cannot be written before the probe is on the bench.
 
 ```bash
 stty -F /dev/ttyACM0 921600 raw -echo
-taskset -c 3 python3 p04_fft.py
+timeout 2 cat /dev/ttyACM0 > /home/pi/p04_raw.bin
+ls -l /home/pi/p04_raw.bin
 ```
 
-**Step 4.** **Write the analysis.** `p04_fft.py` in outline: read 2048 int16 samples at the configured output data rate, apply a Hann window, call `numpy.fft.rfft`, take the magnitude, and compare a high-frequency band against a baseline captured on an idle machine. Print NORMAL, WARNING or FAULT.
+Until that decoder exists, `p04 synth` stands in for the probe. It writes captures in the same format from a deterministic generator, so every command in the steps below runs today, on a machine with nothing plugged into it, and the probe changes only where the samples came from.
 
-```python
-import numpy as np, serial
-
-N = 2048
-win = np.hanning(N)
-baseline = None                 # captured once, on an idle machine
-
-ser = serial.Serial("/dev/ttyACM0", 921600, timeout=2)
-
-def band_energy(block):
-    spec = np.abs(np.fft.rfft(block * win))
-    return spec
-
-while True:
-    block = read_2048_samples(ser)      # parser for the firmware you flashed
-    spec = band_energy(block)
-    hf = spec[len(spec)//2:].sum()      # the high-frequency band
-    if baseline is None:
-        baseline = hf
-        continue
-    ratio = hf / baseline
-    # WARN and FAULT are measured on your own idle machine.
-    # The cookbook prescribes no numbers here: record what you used.
-    state = "NORMAL"
-    if ratio > WARN:
-        state = "WARNING"
-    if ratio > FAULT:
-        state = "FAULT"
-    print(state, round(ratio, 2))
-```
-
-The two thresholds are the one part of this pipeline with no prescribed value. Measure them: capture the idle baseline, capture the stimulus, and set the two ratios where they separate the two populations on your bench. Write both numbers in the lab book beside the baseline they belong to, because a threshold without its baseline is not a measurement.
-
-**Step 5.** **Optional policy: publish only FAULT.** That is the anomaly-only uplink from draft P20, implemented here as a flag rather than as a second project. The uplink itself belongs to whichever radio lab is seated on another host.
-
-**Step 6.** **Check the transport before trusting the spectrum.** Capture two seconds to a file and confirm that the sequence number is monotonic and that no frame is missing. A spectrum computed over a stream with holes in it is a picture of the holes.
+**Step 4.** **Measure a baseline, then classify against it.** The analysis reads 2048 `int16_t` samples at the capture's own output data rate, applies a Hann window, transforms the block with an iterative radix-2 transform, sums the magnitudes between two named frequencies, and compares that sum against a baseline measured on an idle machine. It prints NORMAL, WARNING or FAULT. Six subcommands cover the whole lab: `synth`, `baseline`, `analyse`, `replay`, `transport` and `validate`.
 
 ```bash
-# capture two seconds, then count the gaps offline
-timeout 2 cat /dev/ttyACM0 > /home/pi/p04_capture.bin
-ls -l /home/pi/p04_capture.bin
-# the decoder reports: frames, first and last sequence number, gaps = 0
+cd p04
+./p04 synth --kind idle  --blocks 10 --out idle.p04   # until the probe is wired
+./p04 synth --kind touch --blocks 10 --out touch.p04  # and the stimulus with it
+./p04 baseline --source idle.p04 --out book.lab \
+    --mounting "clamp on the motor housing, M4" \
+    --warn 1.5 --fault 3.0 --band-low 2000 --band-high 6000
+taskset -c 3 ./p04 analyse --source touch.p04 --book book.lab
 ```
+
+The decision itself is short enough to read rather than to trust, and it is in `p04/src/analysis.c`:
+
+```c
+    /* A baseline of zero means nobody measured one. Classifying against it
+     * would make every block a fault, which reads as a broken machine rather
+     * than as a missing step, so it stays NORMAL and the caller is told the
+     * baseline is absent when the book is loaded. */
+    if (!(t->baseline > 0.0f))
+        return P04_NORMAL;
+    if (ratio >= t->fault_ratio)
+        return P04_FAULT;
+    if (ratio >= t->warn_ratio)
+        return P04_WARNING;
+    return P04_NORMAL;
+```
+
+The two thresholds are the one part of this pipeline with no prescribed value. Measure them: capture the idle baseline, capture the stimulus, and set the two ratios where they separate the two populations on your bench. Write both numbers in the lab book beside the baseline they belong to, because a threshold without its baseline is not a measurement. `p04 baseline` writes exactly that file, one flat line per value: the baseline energy, the two ratios, the band edges, the rate they were computed at, the counts per gravity the capture declared, and the mounting you typed. `analyse` refuses a capture whose rate disagrees with the book's, because the band edges became bin numbers at one rate and pointing them at another gives an answer that is confident and wrong.
+
+**Step 5.** **Optional policy: publish only FAULT.** That is the anomaly-only uplink from draft P20, and it belongs to this lab as a policy rather than to a second project. The program does not implement it and does not pretend to: `analyse` prints the state of every block and leaves the filtering to whatever reads the output. The uplink itself belongs to whichever radio lab is seated on another host.
+
+**Step 6.** **Account for the sequence numbers before trusting the spectrum.** Confirm that the sequence is monotonic and that no block is missing, before any spectrum is read. A spectrum computed over a stream with holes in it is a picture of the holes.
+
+```bash
+./p04 transport --source touch.p04
+# blocks, the first and last sequence number, gaps, duplicates, reorders
+```
+
+`transport` exits non-zero when the stream has holes in it, so it can stand in front of the analysis in a script rather than beside it in a log. `analyse` accounts for the sequence numbers first in any case and prints the count with every result, so a classification and the transport it rests on are never reported apart.
 
 **Step 7.** **Run the orthogonality test and write down both numbers.** Touch the case, note the vibration band. Speak near the digital microphone, note the RMS and the vibration band again. The second number is the one that decides whether the mounting is honest.
 
