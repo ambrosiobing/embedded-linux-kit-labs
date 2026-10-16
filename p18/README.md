@@ -13,10 +13,13 @@ the chapter's acceptance test and says which part of it failed.
 
 ## State, stated plainly
 
-**Compiled and run on synthetic streams, never run against a Nucleo.** The
-authoring laptop has no compiler it may use, so the first compile happens in
-the workflow on a push. No number here was measured on hardware. The streams
-the suite reads were written by the program a moment earlier.
+**Compiled and run on synthetic streams, never run against a Nucleo.** First
+built on Friday 16 October 2026: clean under the gate, clean under the
+stricter conversion pass as well, and 94 checks passing. No number here was
+measured on hardware. The streams the suite reads were written by the program
+a moment earlier, so what the suite proves is that the program agrees with
+itself and with the arithmetic it claims, which is worth having and is not a
+measurement.
 
 Unlike the sibling lab, this one has nothing missing for the hardware. A
 character device is one more source, and `stty` sets the line discipline
