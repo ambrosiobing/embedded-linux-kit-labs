@@ -262,42 +262,19 @@ p04_status p04_capture_close(p04_capture *c)
 
 /* ---------------------------------------------------------------- transport */
 
+/* Both of these forward to lib/seqtrack.h. The arithmetic left this file when
+ * P18 needed the same four numbers, and the note in p04.h says what changed
+ * on the way. They stay as functions rather than becoming macros so that a
+ * debugger and a stack trace still show this lab's own names. */
+
 void p04_transport_init(p04_transport *t)
 {
-    if (t != NULL)
-        memset(t, 0, sizeof *t);
+    seqtrack_init(t);
 }
 
 void p04_transport_see(p04_transport *t, uint32_t seq)
 {
-    if (t == NULL)
-        return;
-    if (!t->started) {
-        t->started = true;
-        t->first_seq = seq;
-        t->last_seq = seq;
-        t->received = 1;
-        t->expected = 1;
-        return;
-    }
-    t->received++;
-
-    if (seq == t->last_seq) {
-        t->duplicates++;
-        return;
-    }
-    if (seq < t->last_seq) {
-        /* Out of order rather than missing. Counted separately because the two
-         * have different causes: a reorder is the transport shuffling, a gap
-         * is the transport losing. */
-        t->reorders++;
-        return;
-    }
-    uint32_t step = seq - t->last_seq;
-    if (step > 1)
-        t->gaps += step - 1;
-    t->last_seq = seq;
-    t->expected = t->last_seq - t->first_seq + 1u;
+    seqtrack_see(t, seq);
 }
 
 bool p04_transport_whole(const p04_transport *t)

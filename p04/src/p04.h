@@ -22,6 +22,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "../../lib/seqtrack.h"
+
 /* ---------------------------------------------------------------- limits */
 
 /* The transform is radix-2, so a block length must be a power of two. 2048 at
@@ -90,17 +92,20 @@ p04_status p04_capture_close(p04_capture *c);
 
 /* What the stream did on the way, as opposed to what the signal did. A
  * spectrum over a stream with holes in it is a picture of the holes, so this
- * is reported beside every result rather than folded into it. */
-typedef struct {
-    uint32_t received;
-    uint32_t expected;   /* highest sequence seen, minus the first, plus one */
-    uint32_t gaps;       /* how many sequence numbers never arrived */
-    uint32_t duplicates;
-    uint32_t reorders;
-    uint32_t first_seq;
-    uint32_t last_seq;
-    bool started;
-} p04_transport;
+ * is reported beside every result rather than folded into it.
+ *
+ * The accounting itself is in lib/seqtrack.h, shared with the other lab in
+ * this volume that records a numbered stream. It moved there when the second
+ * one needed it, and it was not a straight copy: the version that lived here
+ * compared sequence numbers with a plain less-than, which reads the wrap of a
+ * 32-bit counter as a jump backwards of four billion. No capture in this lab
+ * has ever been long enough to reach it. P18's runs are, and one correct
+ * version is cheaper than two that differ only where nobody has looked.
+ *
+ * The name stays p04_transport because the chapter, the suite and six call
+ * sites use it, and a rename would change those without changing anything a
+ * reader of this lab can observe. */
+typedef seqtrack p04_transport;
 
 void p04_transport_init(p04_transport *t);
 void p04_transport_see(p04_transport *t, uint32_t seq);

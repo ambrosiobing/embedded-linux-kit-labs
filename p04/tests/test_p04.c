@@ -132,6 +132,26 @@ static void test_transport(void)
     ok(t.reorders == 1 && t.gaps == 0,
        "an earlier sequence number is a reorder and not a gap");
 
+    /* The counter returning to zero is one step forward, not a leap back of
+     * four billion. This lab's own captures are far too short to reach the
+     * wrap, so the check is here for the shared accounting rather than for
+     * anything P04 will ever record. */
+    p04_transport_init(&t);
+    p04_transport_see(&t, 0xFFFFFFFEu);
+    p04_transport_see(&t, 0xFFFFFFFFu);
+    p04_transport_see(&t, 0u);
+    p04_transport_see(&t, 1u);
+    ok(t.gaps == 0 && t.reorders == 0 && t.duplicates == 0,
+       "a counter crossing its maximum is four steps forward and no fault");
+    ok(t.expected == 4 && t.received == 4,
+       "four expected and four received across the wrap");
+
+    p04_transport_init(&t);
+    p04_transport_see(&t, 0xFFFFFFFFu);
+    p04_transport_see(&t, 2u);
+    ok(t.gaps == 2 && t.reorders == 0,
+       "a hole that straddles the wrap is two missing, not four billion");
+
     /* A capture with two deliberate holes must report exactly those holes,
      * which is the check the workflow runs on the command line. */
     const uint32_t drop[2] = {3, 4};

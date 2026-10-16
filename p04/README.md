@@ -78,7 +78,8 @@ number is small enough to check.
 | File | What it holds |
 | --- | --- |
 | `src/p04.h` | every declaration, and the three rules above as a comment |
-| `src/block.c` | the capture file format and the transport accounting |
+| `src/block.c` | the capture file format, and the transport accounting forwarded to the shared one |
+| `../lib/seqtrack.h` | gaps, duplicates and reorders, shared with P18, header only |
 | `src/dsp.c` | the window, an iterative radix-2 transform, the band |
 | `src/analysis.c` | thresholds, classification, the gravity invariant, the run |
 | `src/labbook.c` | the baseline file, flat key and value, no dependency |
