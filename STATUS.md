@@ -46,24 +46,61 @@ be half held is a state that means nothing.
 **P05 cannot reach passed on this bench, and no amount of bench time will
 change that.** Its acceptance test asks that the multimeter reading of the
 3.3 V rail and the CH0 column of the capture agree, and that both are written
-down. There is no voltmeter here. The MCC 118 itself cannot stand in, because
-the whole point of that item is an independent instrument disagreeing with the
-one under test. So P05 can reach **run**, and its first three acceptance items
-can be satisfied, but the fourth state is bought with a multimeter and nothing
-else. That makes a cheap multimeter the single purchase that unblocks the most
-acceptance tests in this volume, ahead of the stacking header P19 may need.
+down. The MCC 118 cannot stand in, because the whole point of that item is a
+second instrument agreeing with the one under test, and no instrument can
+witness itself. So P05 can reach **run**, and every item of its acceptance
+test but the seventh can be satisfied, while the seventh is bought with a
+multimeter and nothing else.
+
+**Two claims in this paragraph are withdrawn, Saturday 17 October 2026.** It
+used to say "there is no voltmeter here", and to rank a cheap multimeter as
+the single purchase unblocking the most acceptance tests in the volume.
+
+The first is wrong. **The MCC 118 is a voltage-measuring instrument on this
+bench**, eight single-ended inputs at plus or minus 10 V, and P05's own first
+and sixth items are rail readings taken with it. What this bench lacks is a
+*second* instrument, which is a narrower thing, and only P05's seventh item
+asks for one. The PPK2 cannot be that second instrument either, and for a
+different reason: Nordic's specification is 200 nA to 1 A of current, a
+supplied 0.8 to 5 V in source-meter mode and an accepted 0.8 to 5 V in
+ampere-meter mode, with no voltage input anywhere.
+
+The ranking rested on that sentence together with P15's rails, and the P15
+half is withdrawn in the next paragraph. What is left of it is one acceptance
+item in one lab, so the ranking is not patched here: it needs deriving again
+across all twenty labs, against the stacking header P19 needs and the resistor
+P15 turns out to need.
 
 **P15 is the lab closest to a recorded pass, not P05.** Three of its seven
 acceptance items are already satisfied and written into the chapter: the common
 ground was shown by a module lighting from a host pin, one module's polarity
 was settled by three controls in the order high, low, released, and no jumper
-ran between the 5 V rail and any header pin at any point. Two more are within
-reach in one sitting, and as of Saturday 17 October 2026 the typing half of
-that is done: the semaphore item asked for a program rather than the three
-`pinctrl` commands that had stood in for one, and `p15/` is that program. It
-has not been compiled yet, so what stands between this lab and its first two
-new acceptance items is one build and one sitting. Only the rails item needs
-the instrument this bench lacks.
+ran between the 5 V rail and any header pin at any point. The semaphore item
+asked for a program rather than the three `pinctrl` commands that had stood in
+for one, and as of Saturday 17 October 2026 `p15/` is that program, built and
+checked.
+
+**Four items remain and none of them wants a voltmeter**, which this page
+claimed for two weeks and which re-reading the acceptance test on Saturday 17
+October 2026 does not support. Item by item: the rails item asks that both
+rails are labelled and that the lab book say what was measured and what could
+not be, with the reason named, so it is satisfied by an honest sentence rather
+than by a number. The semaphore item wants three modules seen lit at once,
+which is a sitting. The "no 5 V on header pins" item is a sentence in the lab
+book. And the breadboard item wants the negative-test pull-up gone by the end
+of the sitting.
+
+So **P15 reaches passed with one sitting and one resistor.** The resistor is
+the part nobody had noticed this lab needs: a 5 V pull-up is a resistor, and
+there are no loose resistors on this bench, so the negative test cannot be
+built as the chapter describes it and the breadboard item cannot be earned by
+a pull-up that was never there. A check that passes because nothing was done
+is not a check, which is this volume's own rule.
+
+If the rail numbers are wanted beyond what the item asks, the MCC 118 can take
+them: both rails are inside plus or minus 10 V, its ground is already common
+with the POW-BB's in this lab's wiring, and that is a separate short step on
+the Pi 4 rather than part of the LED sitting on the Pi 3B+.
 
 ## The build beside P04 that failed on every run, read on Tuesday 6 October 2026
 

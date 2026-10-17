@@ -214,7 +214,15 @@ the state of a lab here is what its acceptance test has earned, and the
 fourth item still wants three modules seen lit at once by somebody in the
 room.
 
-The two acceptance items this unblocks are still unmet. What stood between
-them and this lab was a program; what stands between them now is one build and
-one sitting with the board, three modules and a lab book. The rails item needs
-a voltmeter, and no amount of either will produce one.
+The four acceptance items that remain are still unmet. What stood between the
+semaphore item and this lab was a program; what stands between it and a pass
+now is one sitting with the board, three modules and a lab book.
+
+**And not a voltmeter.** Re-reading the acceptance test on Saturday 17 October
+2026, prompted by Joseph pointing out that the bench has a PPK2 and no
+voltmeter, the rails item turns out to ask for a labelled rail and an honest
+lab book rather than for a reading. What it does need, and what nobody here
+had noticed, is a resistor: the negative test is a 5 V pull-up, a pull-up is a
+resistor, and there are no loose resistors on this bench. So the breadboard
+item cannot be earned by dismantling a pull-up that was never built, because a
+check that passes because nothing was done is not a check.
