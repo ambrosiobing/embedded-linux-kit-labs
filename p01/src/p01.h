@@ -34,18 +34,19 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "../../lib/adxl345.h"
 #include "../../lib/linereader.h"
 
-/* The ADXL345, as the chapters configure it. */
-#define P01_ADDRESS 0x53
-#define P01_REG_POWER_CTL 0x2D
-#define P01_REG_DATA_FORMAT 0x31
-#define P01_REG_DATAX0 0x32
-#define P01_POWER_MEASURE 0x08
-#define P01_FORMAT_FULL_RES_16G 0x0B
-/* Full resolution is 3.9 milli-g per count, which is one 256th of a gravity
- * at every range. That is the whole reason full resolution is selected. */
-#define P01_COUNTS_PER_G 256.0
+/* The part is in lib/adxl345.h, with P19, which reads the same six bytes
+ * and turns them into angles instead of events. These names stay because
+ * this lab's chapter and suite use them. */
+#define P01_ADDRESS ADXL345_ADDRESS
+#define P01_REG_POWER_CTL ADXL345_REG_POWER_CTL
+#define P01_REG_DATA_FORMAT ADXL345_REG_DATA_FORMAT
+#define P01_REG_DATAX0 ADXL345_REG_DATAX0
+#define P01_POWER_MEASURE ADXL345_POWER_MEASURE
+#define P01_FORMAT_FULL_RES_16G ADXL345_FORMAT_FULL_RES_16G
+#define P01_COUNTS_PER_G ADXL345_COUNTS_PER_G
 
 #define P01_DEADBAND_G 0.35
 #define P01_COOLOFF_S 2.0
@@ -64,10 +65,7 @@ const char *p01_strerror(p01_status s);
 
 /* ---------------------------------------------------------------- samples */
 
-typedef struct {
-    double ax, ay, az;
-    double magnitude;
-} p01_sample;
+typedef adxl345_sample p01_sample;
 
 /* Six bytes as the device returns them, X low first. Two's complement, and
  * the sign extension is the half of this that is usually wrong: a reading of

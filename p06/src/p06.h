@@ -39,6 +39,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "../../lib/framebuffer.h"
 #include "../../lib/linereader.h"
 
 /* ---------------------------------------------------------------- limits */
@@ -148,11 +149,7 @@ void p06_frame_print(const p06_frame *f, const p06_book *b, FILE *out);
 
 /* ---------------------------------------------------------------- the glass */
 
-typedef struct {
-    uint32_t width;
-    uint32_t height;
-    uint32_t bpp;      /* 16 or 32. Anything else is refused by name */
-} p06_geometry;
+typedef fb_geometry p06_geometry;
 
 /* From the two text files the kernel already publishes, which saves an ioctl
  * and a header, and lets a test point this at a directory of its own. */
@@ -160,13 +157,7 @@ p06_status p06_geometry_from_sysfs(p06_geometry *g, const char *dir);
 /* From a string of the form 480x320x16, for a bench with neither. */
 p06_status p06_geometry_parse(p06_geometry *g, const char *spec);
 
-typedef struct {
-    int fd;
-    unsigned char *map;
-    size_t bytes;      /* what the geometry says, which is what may be written */
-    size_t stride;
-    p06_geometry geo;
-} p06_fb;
+typedef fb_target p06_fb;
 
 void p06_fb_init(p06_fb *fb);
 /* Maps exactly width * height * bpp / 8 bytes and refuses to open a regular

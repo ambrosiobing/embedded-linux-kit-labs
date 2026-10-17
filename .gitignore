@@ -70,7 +70,9 @@ p13/p13
 p13/p13-test
 p18/p18
 p18/p18-test
-lib_atchat.o
+# every lab compiles the shared sources into its own directory
+lib_*.o
+lib_*.d
 
 # What a local run of the checks workflow leaves behind
 touch.txt

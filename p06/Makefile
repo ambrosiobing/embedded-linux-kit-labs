@@ -21,6 +21,7 @@ CFLAGS  += $(CSTD) $(WARN) $(OPT) -MMD -MP
 
 SRC      = src/frame.c src/book.c src/fb.c src/synth.c src/run.c
 OBJ      = $(SRC:.c=.o)
+LIB_OBJ  = lib_framebuffer.o
 MAIN_OBJ = src/main.o
 TEST_OBJ = tests/test_p06.o
 
@@ -31,10 +32,13 @@ TEST_BIN = p06-test
 
 all: $(BIN) $(TEST_BIN)
 
-$(BIN): $(OBJ) $(MAIN_OBJ)
+lib_framebuffer.o: ../lib/framebuffer.c ../lib/framebuffer.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BIN): $(OBJ) $(LIB_OBJ) $(MAIN_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
-$(TEST_BIN): $(OBJ) $(TEST_OBJ)
+$(TEST_BIN): $(OBJ) $(LIB_OBJ) $(TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 check: $(TEST_BIN)
@@ -57,9 +61,9 @@ strict:
 	$(MAKE) CFLAGS="$(CSTD) $(WARN) $(STRICT) $(OPT) -MMD -MP" all
 
 clean:
-	rm -f $(OBJ) $(MAIN_OBJ) $(TEST_OBJ) \
-	      $(OBJ:.o=.d) $(MAIN_OBJ:.o=.d) $(TEST_OBJ:.o=.d) \
+	rm -f $(OBJ) $(MAIN_OBJ) $(TEST_OBJ) $(LIB_OBJ) \
+	      $(OBJ:.o=.d) $(MAIN_OBJ:.o=.d) $(TEST_OBJ:.o=.d) $(LIB_OBJ:.o=.d) \
 	      $(BIN) $(TEST_BIN) *.stream *.book *.glass
 	rm -rf test_p06_sysfs
 
--include $(OBJ:.o=.d) $(MAIN_OBJ:.o=.d) $(TEST_OBJ:.o=.d)
+-include $(OBJ:.o=.d) $(MAIN_OBJ:.o=.d) $(TEST_OBJ:.o=.d) $(LIB_OBJ:.o=.d)

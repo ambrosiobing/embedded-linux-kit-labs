@@ -1,20 +1,16 @@
-/* The sensor: six bytes in, three accelerations out, and the bus.
+/* The bus, and two forwards to the part.
  *
- * The decode is eight lines and half of it is the part that is usually
- * wrong. Two bytes arrive low first, they are two's complement, and a
- * reading of minus one gravity is 0xFF00 rather than 65280 counts of
- * acceleration. A sign extension missed here produces a magnitude that is
- * enormous and an event on every sample, which looks like a broken sensor
- * and is not.
+ * The decode moved to lib/adxl345.h when P19 turned out to read the same six
+ * bytes, and the reasoning that goes with it moved there too: the registers
+ * and the two's complement are properties of the device rather than of any
+ * lab. What is left here is this lab's names and the i2c-dev sequence that
+ * reaches the device at all.
  */
 #define _POSIX_C_SOURCE 200809L
 
 #include "p01.h"
 
 #include <fcntl.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #if defined(__linux__)
@@ -33,56 +29,17 @@ const char *p01_strerror(p01_status s)
     return "unknown";
 }
 
+/* Both of these are lib/adxl345.h now. They stay as functions here so that
+ * this lab's own names survive in a stack trace and in its suite. */
+
 void p01_decode(const uint8_t raw[6], p01_sample *out)
 {
-    if (raw == NULL || out == NULL)
-        return;
-
-    for (int axis = 0; axis < 3; axis++) {
-        uint16_t u = (uint16_t)((uint16_t)raw[axis * 2 + 1] << 8 |
-                                (uint16_t)raw[axis * 2]);
-        /* Through int32_t rather than by subtracting 65536 from a double, so
-         * that the two's complement is done in integers where it is exact. */
-        int32_t v = (int32_t)u;
-        if (u & 0x8000u)
-            v -= 65536;
-        double g = (double)v / P01_COUNTS_PER_G;
-        if (axis == 0)
-            out->ax = g;
-        else if (axis == 1)
-            out->ay = g;
-        else
-            out->az = g;
-    }
-    out->magnitude = sqrt(out->ax * out->ax + out->ay * out->ay +
-                          out->az * out->az);
+    adxl345_decode(raw, out);
 }
 
 bool p01_parse_bytes(const char *text, uint8_t raw[6])
 {
-    if (text == NULL || raw == NULL)
-        return false;
-
-    const char *p = text;
-    for (int i = 0; i < 6; i++) {
-        while (*p == ' ' || *p == ',' || *p == '\t')
-            p++;
-        if (*p == '\0')
-            return false;
-        char *end = NULL;
-        /* Base sixteen, always. The device returns bytes, a capture records
-         * them in hexadecimal, and this program writes them the same way, so
-         * there is one base and no line that means two things. Base zero
-         * would read "fe" as an error and "010" as eight. */
-        long v = strtol(p, &end, 16);
-        if (end == p || v < 0 || v > 255)
-            return false;
-        raw[i] = (uint8_t)v;
-        p = end;
-    }
-    while (*p == ' ' || *p == ',' || *p == '\t')
-        p++;
-    return *p == '\0';
+    return adxl345_parse_bytes(text, raw);
 }
 
 /* ---------------------------------------------------------------- the bus */
