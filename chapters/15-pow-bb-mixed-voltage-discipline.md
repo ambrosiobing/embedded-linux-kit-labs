@@ -49,7 +49,11 @@ Three LK-LED10 modules become a semaphore driven from 3.3 V GPIO. Each module ca
 >
 > **Three modules share an effective resistance** within three ohms and green sits at 198. With three different forward voltages giving the same figure, that figure is mostly the fitted resistor rather than the diode slope, so green most likely carries a different resistor. Most likely is as far as two points go.
 >
-> **The semaphore on the Pi draws 16.5 mA at 3.3 V**, blue, green and yellow together, which is under what one pin may source and well under the budget for the whole header. The three lit at once in the earlier note were never near a limit.
+> **Three modules together drew 16.5 mA at 3.3 V**, and those three were blue, green and yellow, which is the triple that happened to be wired that afternoon.
+>
+> **The semaphore this chapter defines is a different triple.** Its colours are green, yellow and red, because those are the three that carry meanings in P01, P02 and P03, and from the same table they draw 19.9 mA at 3.3 V. Both figures are right about their own three modules, and this paragraph attached the first to the second until Saturday 17 October 2026. The arithmetic now lives in `p15 budget`, which prints both sums and names the triple each belongs to, because a sentence can hold a figure from the wrong column and a program that adds the column up cannot.
+>
+> Neither figure is set against a limit here. The sum is the number a whole-header limit is compared against, and the largest single channel, green at 7.4 mA, is the number a per-pin limit is compared against; those are two different limits and this chapter prints no figure for either, so it claims no margin. The sources below name the Raspberry Pi hardware documentation, and until a figure is quoted from a page of it the honest statement is that three modules at a few milliamps each have never been near anything this bench has reason to worry about.
 
 > [!NOTE]
 > **Where this lab sits in the order**
@@ -118,9 +122,13 @@ One consequence of the shared return is worth knowing before it is debugged. All
 
 *Figure 15.4. The procedure as an activity. One module is wired and settled before the other two go on, and the negative test ends in a dismantle step rather than in a connection to a header pin.*
 
-The software in this lab is three output pins and a loop, so the interesting design is the procedure rather than the program. Label, wire one, settle its polarity with three controls, write the polarity down, wire the rest, blink, then run the negative test and take it apart. The dismantle step is part of the procedure and not an afterthought: a pull-up left on the breadboard is a 5 V source sitting within jumper reach of a 3.3 V input for the rest of the week.
+The software in this lab is three output lines and a plan, so most of the interesting design is the procedure rather than the program. Label, wire one, settle its polarity with three controls, write the polarity down, wire the rest, blink, then run the negative test and take it apart. The dismantle step is part of the procedure and not an afterthought: a pull-up left on the breadboard is a 5 V source sitting within jumper reach of a 3.3 V input for the rest of the week.
 
-The blink program sets every pin low before it does anything else, because low is the unlit state when the pin sources. It also restores the pins on the way out. A semaphore that is left in an arbitrary state at the end of a run is a semaphore the next lab cannot read, and the same colours carry meaning in P01, P02 and P03, where green means registered, yellow means a default route and red means an event.
+The blink program comes up dark, and it does that inside the line request rather than in a write that follows it. The character device takes the initial output values as part of the request, so the lines go from released straight to unlit and are never briefly driven to a state nobody chose. Low is the unlit state when the pin sources, which is this bench, and `--sinking` inverts every line value for a module that sinks.
+
+**It does not restore the pins on the way out, because it does not have to.** The lines are released when the request's descriptor closes, and the kernel closes it when the process ends however it ends, including under a signal that no handler sees. There is deliberately no signal handler in `p15`: a handler would add a path that can fail to a guarantee that currently has none.
+
+That is the plainest thing a program gives here that three `pinctrl` commands do not. `pinctrl` leaves the pin driven after it exits, which is why settling a polarity by hand takes a third command to release the line, and a semaphore left in an arbitrary state is a semaphore the next lab cannot read. The same colours carry meaning in P01, P02 and P03, where green means registered, yellow means a default route and red means an event.
 
 ## Data flow (ASCII)
 
@@ -185,7 +193,17 @@ gpioset (libgpiod) v2.2.1
 pi3b+ $ gpioset -c gpiochip0 17=1
 ```
 
-All three lit at once is worth doing deliberately, because it is the only check that three modules drawing together stay inside what the header can supply. Three modules at a few milliamps each are comfortably inside it, and the point of the check is to see it rather than to assume it.
+The program this step asks for is `p15/`, in C. It reaches the GPIO character device through `linux/gpio.h` directly rather than through libgpiod, for a reason that is about this book rather than about the code: the kernel headers are present wherever these programs are compiled, so its suite builds and runs on a machine with no board attached, and most of the labs in this volume are waiting for a bench. For a command line libgpiod is the better answer and the commands above are the ones to type.
+
+```text
+pi3b+ $ ./p15 probe                  # what holds the lines, by name
+pi3b+ $ ./p15 blink --cycles 3       # each channel alone, then all three
+pi3b+ $ ./p15 semaphore --state all  # three lit, held, then released
+```
+
+**All three lit at once is the acceptance item, and on its own it cannot tell a correct bench from a crossed pair of jumpers.** Three lines driven high are three lines driven high in any order, so the check passes with green and yellow swapped, and the swap is found two labs later, where green means registered and the bench shows yellow. That is why `p15 blink` lights each channel alone first, in the published order, and why the step that lights all three comes fourth rather than first. The suite asserts both halves of that: swapping two channels leaves the all-three step identical and changes two of the other four.
+
+Doing it deliberately is still worth it for the other reason. Three modules drawing together is the state the header actually sees, and the point of the step is to see it rather than to assume it.
 
 **Step 4.** **Run the negative test on the breadboard only, not on a GPIO.** Build a 5 V pull-up on the breadboard and show that it sits above 3.3 V. Without a voltmeter the reading cannot be taken here, so record that as absent with the reason: the rule does not depend on the measurement, and the pull-up is still built, still kept away from every header pin, and still dismantled before the sitting ends. Nothing in this step touches a header pin at any point.
 
@@ -203,7 +221,7 @@ All three lit at once is worth doing deliberately, because it is the only check 
 - Both rails are labelled, and the lab book says what was measured and what could not be, with the reason named rather than a blank.
 - The ground is shown to be common to the POW-BB, the breadboard and the host, by a module lighting from a host pin.
 - One module's polarity is settled by three controls, high then low then released, and written down.
-- A blink program runs three modules as a semaphore from the host's own pins, and all three are seen lit at once.
+- A blink program runs three modules as a semaphore from the host's own pins, and all three are seen lit at once. `p15 blink` is that program, and because it lights each channel alone first the same sitting records which pin is which.
 - The lab book carries a sentence that says "no 5 V on header pins".
 - The breadboard is clear of the negative-test pull-up when the sitting ends.
 - No jumper runs between the 5 V rail and any header pin, on any host, at any point in the lab.
@@ -227,6 +245,9 @@ Keep every I/O pin on this bench at 3.3 V: Pi, NanoPi and Nucleo I/O are 3.3 V, 
 - **The negative test left standing.** A 5 V pull-up that stays on the breadboard is a hazard to the next lab that borrows a jumper from the same row.
 - **Two red jumpers from the same strip.** Colour is a convention, not a measurement. The label on the POW-BB is what settles which rail a wire came from.
 - **Reaching for the v1 command.** `gpioset gpiochip0 17=1` is refused by libgpiod v2 with an invalid-line-value complaint, which reads like a wiring fault and is not one. On v2 the chip is an option: `gpioset -c gpiochip0 17=1`.
+- **Reading three lit LEDs as three correct channels.** The step that lights all three is the one step that cannot detect a crossed pair. Light them one at a time first, in a known order, or the sitting records a pass that says nothing about which pin carries which meaning.
+- **A line already held.** The request is refused with `EBUSY` while another process owns the line, and on this bench `bench-status` is such a process. The errno on its own reads like a wiring fault, so `p15 probe` reports the holder's name before anything is asked for.
+- **Offsets carried to another board.** The line offsets here are the BCM numbers because on `pinctrl-bcm2835` they are the same number. On a Pi 5 the chip is `pinctrl-rp1` and they are not, so driving 17, 27 and 22 there is three arbitrary pins. `p15` reads the chip's label and refuses a chip that is not the one this wiring was recorded on.
 
 ## Sources
 
@@ -234,6 +255,7 @@ Keep every I/O pin on this bench at 3.3 V: Pi, NanoPi and Nucleo I/O are 3.3 V, 
 - Raspberry Pi hardware documentation, 40-pin header and GPIO electrical limits, <https://www.raspberrypi.com/documentation/computers/raspberry-pi.html>
 - FriendlyElec NanoPi NEO Air wiki, 24-pin header pinout, <https://wiki.friendlyelec.com/wiki/index.php/NanoPi_NEO_Air>
 - libgpiod and the character-device GPIO interface, which is what the host actually carries, <https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git/>
+- `include/uapi/linux/gpio.h`, the v2 line request and the line values ioctl that `p15` uses directly, <https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/gpio.h>
 - `pinctrl` in the Raspberry Pi utilities, for setting and reading one pin without holding the line, <https://github.com/raspberrypi/utils>
 - JOY-iT LinkerKit LED module documentation, for the pinout and the fitted resistor, <https://joy-it.net/en/>
 

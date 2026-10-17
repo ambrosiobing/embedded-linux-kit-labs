@@ -28,6 +28,7 @@ to twenty.
 | [p06.md](p06.md) | A rule two chapters had only in prose, and the first program here that can be wrong in memory |
 | [p13.md](p13.md) | A lab predicted wrongly, and a clock that is an argument |
 | [p15.md](p15.md) | The two sittings where something was actually measured |
+| [p15-program.md](p15-program.md) | What a program does that three commands do not, and a current quoted for the wrong three modules |
 | [p18.md](p18.md) | A chapter that had drifted from the repository, and a latent defect found while moving code |
 | [p19.md](p19.md) | A blocked lab, and the document that unblocked the question |
 | [p19-program.md](p19-program.md) | The last chapter, and what writing it said about the library |

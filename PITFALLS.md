@@ -10,7 +10,7 @@ chapters already give. The use of this page is the other direction, when
 a bench is misbehaving and the lab that discussed the symptom is not the
 lab being built.
 
-**196 pitfalls across 20 labs.**
+**199 pitfalls across 20 labs.**
 
 | Pitfall | Lab |
 |---|---|
@@ -32,6 +32,7 @@ lab being built.
 | A depleted coin cell in the DS3231 holder | [P11](chapters/11-explorer700-field-console.md) |
 | A graceful shutdown instead of a power pull | [P11](chapters/11-explorer700-field-console.md) |
 | A hub between the probe and the host | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |
+| A line already held | [P15](chapters/15-pow-bb-mixed-voltage-discipline.md) |
 | A long or unsecured USB cable | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |
 | A loose screw terminal | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
 | A payload that grew | [P16](chapters/16-esp32-wi-fi-ble-sidecar.md) |
@@ -121,6 +122,7 @@ lab being built.
 | No checklist line | [P14](chapters/14-usb-ttl-provisioning-jig.md) |
 | No common analog ground | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
 | No SSH keys | [P20](chapters/20-four-host-fleet-health.md) |
+| Offsets carried to another board | [P15](chapters/15-pow-bb-mixed-voltage-discipline.md) |
 | One SIM in both hosts, swapped between tests | [P13](chapters/13-dual-radio-signalling-failover.md) |
 | Painting a partial frame | [P06](chapters/06-8x8-tof-occupancy-kiosk.md) |
 | Picking the wrong AT device | [P01](chapters/01-lte-cat-4-motion-triggered-gateway.md) |
@@ -146,6 +148,7 @@ lab being built.
 | Reading the block as one channel | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
 | Reading the LED as a link light | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
 | Reading the microphone RMS as vibration | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |
+| Reading three lit LEDs as three correct channels | [P15](chapters/15-pow-bb-mixed-voltage-discipline.md) |
 | Recording the wrong `ttyACM` node | [P18](chapters/18-nucleo-usb-cdc-recorder.md) |
 | Removing the cover glass or the spacer | [P06](chapters/06-8x8-tof-occupancy-kiosk.md) |
 | Reporting a dev-board figure as a module figure | [P10](chapters/10-ppk2-energy-characterisation-bench.md) |

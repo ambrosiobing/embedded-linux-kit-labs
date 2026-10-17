@@ -183,7 +183,9 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and nine have been, in eight directories: P01 and P09 share one program,
+and ten have been written, in nine directories, nine of them built under
+warnings as errors and the tenth, `p15/`, waiting for its first compile:
+P01 and P09 share one program,
 because their chapters say the difference between the two publishers is a bus
 number. They live in this repository beside the chapters they belong to,
 because a reader who has just read chapter 4 should not have to go looking.
@@ -216,6 +218,8 @@ because a reader who has just read chapter 4 should not have to go looking.
 | [`p13/tests/`](p13/tests/) | the suite, five groups, no framework and no clock |
 | [`p19/`](p19/) | the offline tilt meter, in C, two formulas and a drawing |
 | [`p19/tests/`](p19/tests/) | the suite, four groups, no framework and no panel |
+| [`p15/`](p15/) | the semaphore, in C, three output lines and a plan |
+| [`p15/tests/`](p15/tests/) | the suite, six groups, no framework and no chip |
 | [`lib/`](lib/) | what more than one of them needed: the AT engine, the framebuffer, the sensor, the bus, sequence accounting and the line reader |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
@@ -236,6 +240,8 @@ because a reader who has just read chapter 4 should not have to go looking.
     make -C p01 demo      five benches that were never knocked, and the budget
     make -C p19 check     the same, for the tilt meter
     make -C p19 demo      the acceptance test with nothing to rotate
+    make -C p15 check     the same, for the semaphore
+    make -C p15 demo      the blink plan and the draw, with no chip to drive
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code

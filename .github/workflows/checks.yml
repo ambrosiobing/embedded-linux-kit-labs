@@ -591,6 +591,70 @@ jobs:
             || { echo "a gravity wholly on x is not ninety degrees of pitch"; exit 1; }
           echo "one bar full scale, the other exactly where it was"
 
+      - name: P15 builds, with the warnings as errors
+        run: make -C p15 all
+
+      - name: P15's suite, with no chip and no board
+        run: |
+          set -e
+          make -C p15 check | tee p15-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p15-suite.txt || {
+            echo "p15: no suite summary in that output, so nothing ran"
+            exit 1
+          }
+
+      - name: P15's suite exercised the real uAPI and not the fallback
+        # lines.c has a second half for anything that is not Linux, and a
+        # suite that quietly compiled that half would pass while testing
+        # nothing about the character device. The device group prints which
+        # half it is talking to, so this reads it back.
+        run: |
+          set -e
+          grep -q "this build answers: the chip would not open" p15-suite.txt || {
+            echo "p15: the suite did not reach the Linux GPIO path, so its"
+            echo "device group proved nothing about the character device."
+            echo "What it printed was:"
+            grep "this build answers" p15-suite.txt || echo "  nothing at all"
+            exit 1
+          }
+          echo "the device group refused a real chip path through the real ioctls"
+
+      - name: P15's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p15 strict
+
+      - name: P15's plan is the plan, and the refusals refuse
+        # The table a sitting is prepared from, read back row by row. Step 3
+        # is the chapter's fourth acceptance item: three lines high at once,
+        # and the draw of the triple that actually carries meaning.
+        run: |
+          set -e
+          cd p15
+          ./p15 plan | tee plan.txt
+          grep -qE "^ +0 +0 +600 +100 +7\.4 mA +green$" plan.txt \
+            || { echo "step 0 is not green alone at 7.4 mA"; exit 1; }
+          grep -qE "^ +3 +1800 +2400 +111 +19\.9 mA +green yellow red$" plan.txt \
+            || { echo "step 3 is not three lines high at 19.9 mA"; exit 1; }
+          grep -qE "^ +4 +2400 +3000 +000 +0\.0 mA +dark$" plan.txt \
+            || { echo "the cycle does not end dark"; exit 1; }
+          ./p15 budget | tee budget.txt
+          grep -q "chapter quotes 16.5 mA" budget.txt \
+            || { echo "the chapter's own figure is not printed"; exit 1; }
+          grep -q "they draw 19.9 mA" budget.txt \
+            || { echo "this semaphore's own figure is not printed"; exit 1; }
+          if [ -e /dev/gpiochip0 ]; then
+            echo "this runner has a GPIO chip, which it is not supposed to;"
+            echo "the refusal below cannot be checked here, so it is skipped"
+          else
+            if ./p15 probe > probe.txt 2> probe.err; then
+              echo "p15 probe succeeded on a machine with no GPIO chip"
+              exit 1
+            fi
+            grep -q "the chip would not open" probe.err \
+              || { echo "the probe failed without naming the chip"; exit 1; }
+            echo "and the probe refused a chip that is not there, by name"
+          fi
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e

@@ -34,7 +34,7 @@ be half held is a state that means nothing.
 | P12 | written | the pairing audit | the official display and keyboard on the Pi 4, and a broker |
 | P13 | **checked** | built with warnings as errors and its 70 checks run on generated logs, Saturday 17 October 2026, gcc under `-Wall -Wextra -Werror` and again under the stricter conversion pass, which was clean. Among those checks: the window is tested at its own boundary, at forty five seconds and at forty five point zero zero one; a log of a healthy afternoon is refused because it shows no antenna test; and a log judged against a window it was not run at is refused. The suite and two command-line checks run on every push | two Pis and two modems at once, which is the largest setup in the volume. Whether forty five seconds is the right window is a question for a working day of observation, and the route check belongs to `ip route` on two hosts rather than to this program |
 | P14 | written | the pairing audit | the Renkforce cable and two ESP boards on the Pi 3 |
-| P15 | **run** | three LK-LED10 modules driven from header pins 11, 13 and 15 on a Raspberry Pi 3 Model B Rev 1.2, Friday 2 October 2026; each module's current measured alone on the PPK2 at 5.000 V and 3.300 V, Saturday 3 October 2026 | the rail voltages, which need a voltmeter this bench does not have, and a written lab book |
+| P15 | **run** | three LK-LED10 modules driven from header pins 11, 13 and 15 on a Raspberry Pi 3 Model B Rev 1.2, Friday 2 October 2026; each module's current measured alone on the PPK2 at 5.000 V and 3.300 V, Saturday 3 October 2026. **The blink program the fourth acceptance item asks for is now in the tree, and has never been compiled**: `p15/`, written Saturday 17 October 2026, three output lines and a plan. Writing it found that the chapter quoted a measured current for one triple of modules and attached it to a different triple, which is corrected and dated | the first compile, then the rail voltages, which need a voltmeter this bench does not have, and one sitting to run `p15 blink` on the board and write the lab book |
 | P16 | written | the pairing audit | the ESP32 on the Pi 4 |
 | P17 | written | the pairing audit | the ESP8266 on the NanoPi |
 | P18 | **checked** | built with warnings as errors and its 94 checks run on synthetic streams, Friday 16 October 2026, gcc under `-Wall -Wextra -Werror` and again under the stricter conversion pass, which was clean on its first run. The same build and suite run in this repository's own checks on every push, with three command-line checks beside them: that the acceptance test refuses a stream missing five samples in two thousand, that a rate nobody measured does not pass as one, and that a line too long for the buffer costs one sample and invents none | a bare Nucleo on the Pi 4 over USB. Nothing else: the recorder is finished, and a character device is one more source |
@@ -58,9 +58,12 @@ acceptance items are already satisfied and written into the chapter: the common
 ground was shown by a module lighting from a host pin, one module's polarity
 was settled by three controls in the order high, low, released, and no jumper
 ran between the 5 V rail and any header pin at any point. Two more are within
-reach in one sitting, since the semaphore item asks for a program rather than
-the three `pinctrl` commands that have stood in for one so far. Only the rails
-item needs the instrument this bench lacks.
+reach in one sitting, and as of Saturday 17 October 2026 the typing half of
+that is done: the semaphore item asked for a program rather than the three
+`pinctrl` commands that had stood in for one, and `p15/` is that program. It
+has not been compiled yet, so what stands between this lab and its first two
+new acceptance items is one build and one sitting. Only the rails item needs
+the instrument this bench lacks.
 
 ## The build beside P04 that failed on every run, read on Tuesday 6 October 2026
 
