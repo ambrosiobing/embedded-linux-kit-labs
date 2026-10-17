@@ -20,6 +20,18 @@
  * is the whole of the chapter's "restore the pins on the way out", and it is
  * stronger than a handler because there is no path through it that can fail.
  */
+/* O_CLOEXEC is POSIX.1-2008 and -std=c11 hides it, which is the same trap
+ * that hides M_PI in P19. This is the line lib/framebuffer.c, p01 and p19
+ * already declare for the same reason, so it is the volume's answer rather
+ * than a second one.
+ *
+ * It is also enough on its own. glibc declares ioctl in sys/ioctl.h with no
+ * feature guard, which is why lib/i2cbus.h compiles in P01 and P19 under
+ * exactly this macro and nothing more, so there is no reason to reach for
+ * _DEFAULT_SOURCE as lib/atchat.c has to for its three termios names.
+ */
+#define _POSIX_C_SOURCE 200809L
+
 #include "p15.h"
 
 #include <string.h>

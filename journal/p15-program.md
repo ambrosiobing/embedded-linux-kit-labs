@@ -127,12 +127,47 @@ controls before any program is trusted, that was done on Friday 2 October
 2026, and a program that re-litigated it would be a program asserting the
 thing it was built on.
 
+## The first build, and the one thing it caught
+
+Attempted in WSL on win11 skyhorizon on **Saturday 17 October 2026**. It
+failed once, and not where the risk had been placed.
+
+The hand-over said that if anything failed it would fail in `lines.c` and on
+a uAPI name, because the structs and ioctls there were written from reading
+`include/uapi/linux/gpio.h` rather than from a compile. It did fail in
+`lines.c`, one line above the first ioctl, and the uAPI was not the problem.
+Every struct field, both attribute ids and all four ioctl names were checked
+against that header afterwards and every one of them matches.
+
+What it caught was `O_CLOEXEC`. It is POSIX.1-2008 and `-std=c11` hides it,
+so `open(path, O_RDWR | O_CLOEXEC)` was an undeclared identifier under this
+volume's gate. `main.c` declares `_POSIX_C_SOURCE 200809L` and `lines.c` did
+not.
+
+**That trap was already written down twice in this volume and once in this
+journal.** P19's record has `M_PI` hidden by the same mechanism.
+`lib/atchat.c` carries two feature macros and a paragraph naming the three
+termios symbols that need the second one. And `lib/framebuffer.c`,
+`p01/src/main.c` and `p19/src/main.c` all carry the very line that was
+missing. I wrote a new file that opens a device and never asked it the
+question this volume had already answered four times.
+
+The fix was read off the siblings rather than guessed at, which settled a
+second question at the same time. `_POSIX_C_SOURCE 200809L` alone is enough
+here: glibc declares `ioctl` in `sys/ioctl.h` with no feature guard, and the
+evidence is in this repository, because `lib/i2cbus.h` calls `ioctl` and
+compiles clean in P01 and P19 under exactly that macro and nothing else. So
+`lines.c` does not need `_DEFAULT_SOURCE`, and adding it defensively would
+have been a second answer to a solved question.
+
 ## What stays a claim, as of Saturday 17 October 2026
 
-**None of this has been compiled.** No chip has been opened, no line has been
-requested, no LED has been lit by it, and the suite has never run. `STATUS.md`
-leaves P15 at **run**, which is where the two sittings put it, and says in the
-same row that the program is in the tree and has never been built.
+**The suite has still never run.** Three of the five translation units
+compile, the fourth failed on the macro above and is fixed but unbuilt, and
+`main.c` has not been reached by a compiler at all. No chip has been opened,
+no line requested, no LED lit. `STATUS.md` leaves P15 at **run**, which is
+where the two sittings put it, and says in the same row that the program is
+in the tree and has not yet built.
 
 The two acceptance items this unblocks are still unmet. What stood between
 them and this lab was a program; what stands between them now is one build and
