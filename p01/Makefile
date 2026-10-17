@@ -61,6 +61,6 @@ strict:
 clean:
 	rm -f $(OBJ) $(MAIN_OBJ) $(TEST_OBJ) \
 	      $(OBJ:.o=.d) $(MAIN_OBJ:.o=.d) $(TEST_OBJ:.o=.d) \
-	      $(BIN) $(TEST_BIN) *.csv *.p01book
+	      $(BIN) $(TEST_BIN) *.samples
 
 -include $(OBJ:.o=.d) $(MAIN_OBJ:.o=.d) $(TEST_OBJ:.o=.d)
