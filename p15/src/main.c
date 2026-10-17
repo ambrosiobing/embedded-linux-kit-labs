@@ -181,11 +181,11 @@ static int cmd_wiring(void)
                ch, w[ch].colour, w[ch].header_pin, w[ch].offset,
                w[ch].meaning);
     }
-    printf("\nThe offsets are the BCM numbers because on %s they are the "
-           "same number.\nThat is a property of this chip and not a general "
-           "truth, so nothing is\ndriven before the chip has given its label."
-           " Offsets 17, 27 and 22 on a chip\nthat numbers its lines "
-           "differently are three arbitrary pins.\n", P15_CHIP_LABEL);
+    printf("\nThe offsets are the BCM numbers because on %s they are\nthe "
+           "same number. That is a property of this chip and not a general "
+           "truth,\nso nothing is driven before the chip has given its label."
+           " Offsets 17, 27\nand 22 on a chip that numbers its lines "
+           "differently are three arbitrary\npins.\n", P15_CHIP_LABEL);
     printf("\nHigh is lit on this bench, settled by the chapter's three "
            "controls in the\norder high, low, released: lit, dark, dark.\n");
     return 0;

@@ -183,9 +183,7 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and ten have been written, in nine directories, nine of them built under
-warnings as errors and the tenth, `p15/`, waiting for its first compile:
-P01 and P09 share one program,
+and ten have been, in nine directories: P01 and P09 share one program,
 because their chapters say the difference between the two publishers is a bus
 number. They live in this repository beside the chapters they belong to,
 because a reader who has just read chapter 4 should not have to go looking.

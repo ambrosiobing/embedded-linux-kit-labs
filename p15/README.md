@@ -34,10 +34,11 @@ the difference is worth stating:
 
 ## State, stated plainly
 
-**Written Saturday 17 October 2026, and not compiled yet.** No LED has been
-lit by it, no chip has been opened by it, and its suite has never run. The
-first build is the next thing that happens to it, and this paragraph says so
-rather than describing a program as though it had been exercised.
+**Built with warnings as errors on Saturday 17 October 2026, and again under
+the stricter conversion pass, which was clean.** What it has not done is
+touch hardware: no chip has been opened by it, no line requested, no LED lit.
+Its device half has been exercised only by being refused, which is the most a
+machine with no header can offer.
 
 The wiring table and the current table are both dated observations from
 sittings that did happen, on Friday 2 October 2026 and Saturday 3 October

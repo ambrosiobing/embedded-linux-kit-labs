@@ -160,14 +160,50 @@ compiles clean in P01 and P19 under exactly that macro and nothing else. So
 `lines.c` does not need `_DEFAULT_SOURCE`, and adding it defensively would
 have been a second answer to a solved question.
 
+## The second build, and a check that was wrong about itself
+
+Rebuilt in WSL on win11 skyhorizon on **Saturday 17 October 2026**, after the
+macro above. Five translation units, no diagnostics, and the stricter pass
+with `-Wconversion`, `-Wsign-conversion` and `-Wdouble-promotion` added was
+clean as well.
+
+The suite ran for the first time: **85 checks, 1 failed.** The failure was in
+the suite rather than in the program.
+
+The check asserted that a lit set with rubbish in its high bits drives three
+lines. The constant it used was `0xF8`, whose low three bits are all zero, so
+the right answer was no line at all and `p15_bits_for` returned exactly that.
+The sentence and the constant disagreed with each other, and I had written
+the expected value to agree with the sentence instead of computing it from
+the constant.
+
+It is now two checks with a value that carries both halves: `0xF8` drives
+nothing, and `0xFD` drives green and red, which shows the high bits being
+discarded rather than folded in. That is the check the original sentence was
+reaching for.
+
+Worth keeping for what it says about the other eighty four. A suite written
+alongside the thing it tests will agree with that thing's defects; what it
+cannot do is agree with a value the author never worked out. This one failed
+at the first opportunity, loudly, on the one assertion whose arithmetic had
+been skipped, which is the behaviour that makes the rest of the output worth
+reading.
+
 ## What stays a claim, as of Saturday 17 October 2026
 
-**The suite has still never run.** Three of the five translation units
-compile, the fourth failed on the macro above and is fixed but unbuilt, and
-`main.c` has not been reached by a compiler at all. No chip has been opened,
-no line requested, no LED lit. `STATUS.md` leaves P15 at **run**, which is
-where the two sittings put it, and says in the same row that the program is
-in the tree and has not yet built.
+**It builds, and both passes are clean.** What it has not done is touch
+hardware: no chip has been opened by it, no line requested, no LED lit. The
+whole of its device half has been exercised only by being refused, which is
+the most a machine with no header can offer.
+
+The corrected check has not been rerun, so the next build is the one that
+should print 86 checks with none failed.
+
+`STATUS.md` leaves P15 at **run**, which is where the two sittings put it.
+The program building changes the evidence column and not the state, because
+the state of a lab here is what its acceptance test has earned, and the
+fourth item still wants three modules seen lit at once by somebody in the
+room.
 
 The two acceptance items this unblocks are still unmet. What stood between
 them and this lab was a program; what stands between them now is one build and

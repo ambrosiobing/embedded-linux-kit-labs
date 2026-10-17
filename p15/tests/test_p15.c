@@ -130,9 +130,18 @@ static void test_polarity(void)
        "and the two arrangements are exact inversions of each other on "
        "every one of them");
 
-    ok(p15_bits_for(0xF8u, P15_SOURCING) == 0x7u,
-       "a lit set with rubbish in the high bits drives three lines and not "
-       "a fourth");
+    /* Rubbish above the three channels is discarded, and the three below it
+     * survive. This was one check with the wrong expected value until its
+     * first run on Saturday 17 October 2026: it asserted that 0xF8 drives
+     * three lines, and 0xF8 has no channel bit set at all, so the sentence
+     * and the constant disagreed and the sentence won. Two checks now, with
+     * a value that carries both halves. */
+    ok(p15_bits_for(0xF8u, P15_SOURCING) == 0x0u,
+       "a lit set that is nothing but rubbish in the high bits drives no "
+       "line at all");
+    ok(p15_bits_for(0xFDu, P15_SOURCING) == 0x5u,
+       "and one with rubbish above green and red drives green and red, so "
+       "the high bits are discarded rather than folded in");
     ok(p15_dark_bits(P15_SOURCING) == 0x0u &&
        p15_dark_bits(P15_SINKING) == 0x7u,
        "the dark pattern follows the arrangement, which is what the line "
