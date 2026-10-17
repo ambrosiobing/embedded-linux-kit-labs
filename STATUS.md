@@ -127,22 +127,44 @@ them. The soldering iron does not take P01 anywhere on its own, because two of
 P01's other items want a mobile network.
 
 **What is actually in front of the other hundred and one items is bench time,
-and after that, mobile data.** By the reading of Saturday 17 October 2026,
-**sixteen items across P01, P02, P03 and P13 cannot be satisfied without a
-SIM**, and two of those labs want bearers rather than just a SIM: P02 needs
-NB-IoT and P03 needs Cat-M, which is an operator tariff question in this
-country and not a shop purchase. That is three times what every missing part
-on the bench costs put together.
+and after that, mobile data.** Sixteen items across P01, P02, P03 and P13
+need a SIM, which is three times what every missing part on the bench costs
+put together.
 
-**Whether there is a SIM here at all is an open question and not a finding.**
-The bench inventory does not list one as present or as absent, and a silent
-inventory is not evidence of absence. It is the first thing to settle before
-any part is ordered, because the answer moves sixteen items and the parts
-above move five.
+**That question was opened and answered on Saturday 17 October 2026, and the
+answer splits the sixteen in two.** There is a SIM here: an Elisa Finnish
+prepaid. Finland and Austria are both in the EU, so ordinary LTE data roams,
+and **P01's two items are the ones that opens**, because a Cat-4 gateway wants
+nothing more exotic than an LTE bearer.
 
-Two labs are deliberately generous about this and should not be counted as
-blocked: P02's fifth item and P03's fifth both say that without a SIM the lab
-stops at AT bring-up and that this is still a pass.
+**The other fourteen are blocked by the kind of SIM rather than by its
+absence.** A consumer prepaid is not provisioned for NB-IoT or LTE-M; those
+want an IoT SIM. NB-IoT roaming is worse again, because it rests on explicit
+carrier-to-carrier agreements rather than on the general roaming framework,
+while LTE-M roaming is widely established. So P02 at three items, P03 at five
+and P13 at six are waiting on **one IoT SIM with LTE-M and NB-IoT roaming into
+Austria**, which costs about what a multimeter does.
+
+**That makes an IoT SIM the purchase that unblocks the most acceptance items
+in this volume, at fourteen**, against five for every absent part put
+together. The question this page asked for two weeks was which tool to buy,
+and the answer was never a tool.
+
+**It should be settled at the bench before it is bought**, because the claim
+above is about consumer prepaid SIMs in general and not about this one. All
+three modem HATs are here and the test is one sitting: put the Elisa SIM in
+the SIM7600E-H and confirm an LTE attach, then in the SIM7020E and the
+SIM7070G and read what the network grants. A refusal there is a finding
+rather than a fault.
+
+**One gap in two acceptance tests, found by answering this.** P02's fifth item
+and P03's fifth both say that without a SIM the lab stops at AT bring-up and
+that this is still a pass. Neither says anything about the state this bench is
+now in, which is a SIM that attaches on LTE and is refused the bearer the lab
+is about. That is a third outcome and the chapters name two. Whether it should
+be written in as a pass with the reason recorded, the way P15's rails are, is
+a decision about the standard and not a tidy-up, so it is left here rather
+than made.
 
 ## The build beside P04 that failed on every run, read on Tuesday 6 October 2026
 
