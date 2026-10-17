@@ -79,13 +79,20 @@ truncating would have worked and my reason was false. The rounding stayed
 because it is right for the general case, and the comment was rewritten to
 say what is actually true. A plausible number in a comment is still a claim.
 
-## What stays a claim, as of Saturday 17 October 2026
+## The first compile, and the end of a road
 
-**None of this has been compiled**, and `STATUS.md` leaves P19 at
-**written**.
+Built on Saturday 17 October 2026: no diagnostics under the gate, 41 checks
+with none failed, and the stricter conversion pass clean. P01 was rebuilt on
+the same commit and is unchanged at 55, which is what the bus moving out of
+it was supposed to look like.
 
-And unlike every other lab here, a green run is the end of the road rather
-than a step along it. This lab needs a 2x20 stacking header or a tall header
+## What stays a claim
+
+`STATUS.md` moves this row to **checked**, and that is the end of the road
+rather than a step along it.
+
+Unlike every other lab here, there is nowhere further to go. This lab needs
+a 2x20 stacking header or a tall header
 whose pins clear the panel's socket, and this bin has neither, so P19 can
 reach **checked** and stop there. The program being finished changes nothing
 about that, which is worth stating plainly in the same place as the program:
