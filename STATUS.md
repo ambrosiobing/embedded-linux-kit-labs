@@ -67,9 +67,8 @@ ampere-meter mode, with no voltage input anywhere.
 
 The ranking rested on that sentence together with P15's rails, and the P15
 half is withdrawn in the next paragraph. What is left of it is one acceptance
-item in one lab, so the ranking is not patched here: it needs deriving again
-across all twenty labs, against the stacking header P19 needs and the resistor
-P15 turns out to need.
+item in one lab. It is replaced by a count over all twenty labs, two sections
+below.
 
 **P15 is the lab closest to a recorded pass, not P05.** Three of its seven
 acceptance items are already satisfied and written into the chapter: the common
@@ -101,6 +100,49 @@ If the rail numbers are wanted beyond what the item asks, the MCC 118 can take
 them: both rails are inside plus or minus 10 V, its ground is already common
 with the POW-BB's in this lab's wiring, and that is a separate short step on
 the Pi 4 rather than part of the LED sitting on the Pi 3B+.
+
+## What the missing parts actually cost, counted over all 106 items
+
+Derived on Saturday 17 October 2026, after the claim it replaces was
+withdrawn. The twenty acceptance tests hold **106 items** between them. The
+question a purchase ranking has to answer is how many of those an absent part
+is standing in front of, and the answer is smaller than this page has been
+implying for two weeks.
+
+**Five items. Out of a hundred and six.**
+
+| Part | Items it unblocks | Where |
+| --- | --- | --- |
+| A 2x20 stacking or tall header | **2** | P19's first two items. Its third, that no MQTT client is running, needs nothing |
+| A multimeter | **1** | P05's seventh, the only item in the volume that asks for a second instrument |
+| One resistor, any value | **1** | P15's sixth. The negative test is a 5 V pull-up, and a pull-up is a resistor |
+| A soldering iron and one 8-pin 2.54 mm header | **1** | P01's first. A fist producing exactly one message is a two-condition observation, and the SEN0032's friction contacts are reliably present in neither condition |
+
+**So there is no single purchase that unblocks the most acceptance tests, and
+the question was the wrong one.** Three of those four parts each carry one lab
+to **passed** once a sitting is given to it: the resistor takes P15, the
+multimeter takes P05, the stacking header takes P19. They cost very little
+between them, so the useful answer is to buy all three rather than to rank
+them. The soldering iron does not take P01 anywhere on its own, because two of
+P01's other items want a mobile network.
+
+**What is actually in front of the other hundred and one items is bench time,
+and after that, mobile data.** By the reading of Saturday 17 October 2026,
+**sixteen items across P01, P02, P03 and P13 cannot be satisfied without a
+SIM**, and two of those labs want bearers rather than just a SIM: P02 needs
+NB-IoT and P03 needs Cat-M, which is an operator tariff question in this
+country and not a shop purchase. That is three times what every missing part
+on the bench costs put together.
+
+**Whether there is a SIM here at all is an open question and not a finding.**
+The bench inventory does not list one as present or as absent, and a silent
+inventory is not evidence of absence. It is the first thing to settle before
+any part is ordered, because the answer moves sixteen items and the parts
+above move five.
+
+Two labs are deliberately generous about this and should not be counted as
+blocked: P02's fifth item and P03's fifth both say that without a SIM the lab
+stops at AT bring-up and that this is still a pass.
 
 ## The build beside P04 that failed on every run, read on Tuesday 6 October 2026
 
