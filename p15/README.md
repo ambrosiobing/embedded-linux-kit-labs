@@ -34,11 +34,11 @@ the difference is worth stating:
 
 ## State, stated plainly
 
-**Built with warnings as errors on Saturday 17 October 2026, and again under
-the stricter conversion pass, which was clean.** What it has not done is
-touch hardware: no chip has been opened by it, no line requested, no LED lit.
-Its device half has been exercised only by being refused, which is the most a
-machine with no header can offer.
+**Built with warnings as errors on Saturday 17 October 2026, its 86 checks
+run with none failed, and the stricter conversion pass clean.** What it has
+not done is touch hardware: no chip has been opened by it, no line
+requested, no LED lit. Its device half has been exercised only by being
+refused, which is the most a machine with no header can offer.
 
 The wiring table and the current table are both dated observations from
 sittings that did happen, on Friday 2 October 2026 and Saturday 3 October

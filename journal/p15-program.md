@@ -180,7 +180,7 @@ the constant.
 It is now two checks with a value that carries both halves: `0xF8` drives
 nothing, and `0xFD` drives green and red, which shows the high bits being
 discarded rather than folded in. That is the check the original sentence was
-reaching for.
+reaching for, and both passed on the rerun.
 
 Worth keeping for what it says about the other eighty four. A suite written
 alongside the thing it tests will agree with that thing's defects; what it
@@ -196,8 +196,17 @@ hardware: no chip has been opened by it, no line requested, no LED lit. The
 whole of its device half has been exercised only by being refused, which is
 the most a machine with no header can offer.
 
-The corrected check has not been rerun, so the next build is the one that
-should print 86 checks with none failed.
+The corrected pair was rerun on **Saturday 17 October 2026**: 86 checks, none
+failed, and the stricter pass clean again afterwards.
+
+The stricter pass was clean on its first attempt, which has not happened in
+this volume before without a round of fixes first. The reason is not care, it
+is that this program has no floating point anywhere in it: the measured
+currents are integer microamps, the only division is by a thousand, and
+`-Wdouble-promotion` therefore has nothing to look at. P04 is the only
+program here with any `float` at all, and it is the only one that ever had
+anything to say to that flag. Worth writing down, because I have twice
+predicted that flag would fire on a program that had no floating point in it.
 
 `STATUS.md` leaves P15 at **run**, which is where the two sittings put it.
 The program building changes the evidence column and not the state, because
