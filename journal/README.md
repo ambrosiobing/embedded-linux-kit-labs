@@ -30,6 +30,7 @@ to twenty.
 | [p15.md](p15.md) | The two sittings where something was actually measured |
 | [p18.md](p18.md) | A chapter that had drifted from the repository, and a latent defect found while moving code |
 | [p19.md](p19.md) | A blocked lab, and the document that unblocked the question |
+| [p19-program.md](p19-program.md) | The last chapter, and what writing it said about the library |
 | [tooling.md](tooling.md) | The checks, and three false passes in three days |
 
 ## What these files are not

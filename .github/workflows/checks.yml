@@ -557,6 +557,40 @@ jobs:
             || { echo "committing on a timer was not reported as such"; exit 1; }
           echo "the sign extension holds, and the wear arithmetic is forty to one"
 
+      - name: P19 builds, with the warnings as errors
+        run: make -C p19 all
+
+      - name: P19's suite, with no hardware anywhere
+        run: |
+          set -e
+          make -C p19 check | tee p19-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p19-suite.txt || {
+            echo "p19: no suite summary in that output, so nothing ran"
+            exit 1
+          }
+
+      - name: P19's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p19 strict
+
+      - name: P19's other bar does not move
+        # The half of the acceptance test a per-axis instrument fails. The
+        # sweep tilts a gravity about one axis and reports how far the other
+        # angle went, which on this arithmetic is nothing at all.
+        run: |
+          set -e
+          cd p19
+          ./p19 sweep --axis pitch | tee pitch.txt
+          ./p19 sweep --axis roll | tee roll.txt
+          grep -q "roll moved at most 0.000000 degrees" pitch.txt \
+            || { echo "roll moved while pitch was swept"; exit 1; }
+          grep -q "pitch moved at most 0.000000 degrees" roll.txt \
+            || { echo "pitch moved while roll was swept"; exit 1; }
+          ./p19 angles --bytes "00 01 00 00 00 00" | tee side.txt
+          grep -q "pitch +90.00" side.txt \
+            || { echo "a gravity wholly on x is not ninety degrees of pitch"; exit 1; }
+          echo "one bar full scale, the other exactly where it was"
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e

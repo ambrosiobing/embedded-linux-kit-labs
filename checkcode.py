@@ -91,7 +91,14 @@ def main(argv):
             elif exe is not None:
                 problems += check_shell(code, where, exe)
 
-    print(f"{counted['pycode']} Python blocks compiled")
+    if counted['pycode'] == 0:
+        print("0 Python blocks compiled: there are none left in the volume.")
+        print("This half of the check is inert, and says so rather than")
+        print("printing a quiet zero that reads like a pass. It stays because")
+        print("a chapter may print Python again, for orchestration, and the")
+        print("day it does this should parse it.")
+    else:
+        print(f"{counted['pycode']} Python blocks compiled")
     if exe is None:
         print(f"{counted['shellcode']} shell blocks NOT CHECKED: "
               f"shellcheck is not on PATH of this machine")

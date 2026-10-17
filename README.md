@@ -183,7 +183,7 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and eight have been, in seven directories: P01 and P09 share one program,
+and nine have been, in eight directories: P01 and P09 share one program,
 because their chapters say the difference between the two publishers is a bus
 number. They live in this repository beside the chapters they belong to,
 because a reader who has just read chapter 4 should not have to go looking.
@@ -214,7 +214,9 @@ because a reader who has just read chapter 4 should not have to go looking.
 | [`p13/`](p13/) | the supervisor of the dual-radio failover, in C, with its own README |
 | [`p13/src/`](p13/src/) | two states, one timer, and a clock that is an argument |
 | [`p13/tests/`](p13/tests/) | the suite, five groups, no framework and no clock |
-| [`lib/`](lib/) | what more than one of them needed: the AT engine, sequence accounting and the line reader |
+| [`p19/`](p19/) | the offline tilt meter, in C, two formulas and a drawing |
+| [`p19/tests/`](p19/tests/) | the suite, four groups, no framework and no panel |
+| [`lib/`](lib/) | what more than one of them needed: the AT engine, the framebuffer, the sensor, the bus, sequence accounting and the line reader |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
     make -C p04 demo      the lab's own demonstration, on synthetic data
@@ -232,11 +234,19 @@ because a reader who has just read chapter 4 should not have to go looking.
     make -C p05 demo      six files the board did not produce, judged
     make -C p01 check     the same, for the shock publisher of P01 and P09
     make -C p01 demo      five benches that were never knocked, and the budget
+    make -C p19 check     the same, for the tilt meter
+    make -C p19 demo      the acceptance test with nothing to rotate
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code
 that returns a status rather than exiting, and samples that stay `int16_t`
 until the one place where they become floats.
+
+**No chapter in this volume prints Python any more.** The last of it went
+on Saturday 17 October 2026, and `checkcode.py` now says out loud that its
+Python half has nothing to check rather than printing a quiet zero that
+reads like a pass. The half stays, because a chapter may print Python again
+for orchestration, and the day it does that check should parse it.
 
 **Python here builds the book and nothing else.** `build.py`, `mdbuild.py` and
 `lint.py` turn the sources into chapters, figures and the reading editions.

@@ -144,38 +144,48 @@ sudo apt-get install -y i2c-tools python3-smbus
 sudo i2cdetect -y 1          # must show 53
 ```
 
-**Step 3.** **Read the sensor and compute the two angles.** The register sequence is the one from P01: 0x2D to enter measure mode, 0x31 for full resolution, then six bytes from 0x32.
+**Step 3.** **Read the sensor and compute the two angles.** The program is the `p19` directory of this repository, in C. Almost none of it is new: the sensor is the same file P01 reads, the panel is the same file P06 paints, and what belongs to this lab is two formulas and a drawing.
 
-```python
-import math, time, smbus
-bus = smbus.SMBus(1); A = 0x53
-bus.write_byte_data(A, 0x2D, 0x08)   # measure
-bus.write_byte_data(A, 0x31, 0x0B)   # full-res +/-16g
-
-def g(lo, hi):
-    v = (hi << 8) | lo
-    if v & 0x8000:
-        v -= 65536
-    return v / 256.0
-
-while True:
-    b = bus.read_i2c_block_data(A, 0x32, 6)
-    ax, ay, az = g(b[0], b[1]), g(b[2], b[3]), g(b[4], b[5])
-    pitch = math.degrees(math.atan2(ax, math.sqrt(ay*ay + az*az)))
-    roll  = math.degrees(math.atan2(ay, math.sqrt(ax*ax + az*az)))
-    draw_two_bars(pitch, roll)       # on the framebuffer
-    time.sleep(0.05)
+```bash
+sudo apt-get install -y build-essential i2c-tools
+make -C p19 && make -C p19 check
+sudo i2cdetect -y 1          # must show 53
+./p19/p19 run --bus 1 --fb /dev/fb0 --fb-sysfs /sys/class/graphics/fb0
 ```
 
-**Step 4.** **Draw two bars on the framebuffer.** One bar for pitch, one for roll, each with a marked centre and marked ends. The panel is 480x320, so a horizontal bar per angle across most of the width leaves room for a numeric readout if you want one.
+The denominators are what make the acceptance test's second half true, and they are worth reading rather than copying:
 
-**Step 5.** **Check that nothing else is running.** No MQTT client, no publisher, no uplink of any kind. That is part of the acceptance test rather than a tidiness preference.
+```c
+    out->pitch_deg = degrees_of(atan2(ax, sqrt(ay * ay + az * az)));
+    out->roll_deg  = degrees_of(atan2(ay, sqrt(ax * ax + az * az)));
+```
+
+Pitch takes `ax` against the combined length of the other two. Rotating about the x axis moves acceleration between `ay` and `az` without changing that combined length at all, so roll does not move: not nearly, exactly. That is the half of the test a per-axis instrument fails, and you can run it here with nothing to rotate:
+
+```bash
+./p19/p19 sweep --axis pitch     # roll must move by nothing
+./p19/p19 sweep --axis roll      # and the same the other way round
+```
+
+**Step 4.** **Know where the instrument stops.** Both formulas take the arctangent against a positive square root, so both fold at ninety degrees: a hundred and twenty degrees of pitch reads the same as sixty. That is a limit rather than a defect. The acceptance test asks for ninety, so the range is exactly enough and no more, and a reader who wants a full turn needs a different instrument rather than a wider scale.
+
+**Step 5.** **Draw two bars on the framebuffer.** One bar for pitch, one for roll, each with a marked centre and marked ends. The panel is 480x320, and the layout is a fraction of that rather than numbers that suit one panel: the margins and the track height scale, and a panel too small for two readable tracks is refused rather than drawn one pixel high.
+
+```bash
+cat /sys/class/graphics/fb0/virtual_size
+./p19/p19 draw --fb /dev/fb0 --fb-sysfs /sys/class/graphics/fb0 \
+    --pitch 30 --roll -15
+```
+
+An angle past full scale rests on the end of its track rather than running off it, which is a reading rather than a drawing accident.
+
+**Step 6.** **Check that nothing else is running.** No MQTT client, no publisher, no uplink of any kind. That is part of the acceptance test rather than a tidiness preference.
 
 ```bash
 pgrep -a mosquitto_sub mosquitto_pub || echo "nothing publishing, good"
 ```
 
-**Step 6.** **Tear the LCD down** when the lab is accepted, so the Pi 3 is free for P06 in a later sitting.
+**Step 7.** **Tear the LCD down** when the lab is accepted, so the Pi 3 is free for P06 in a later sitting.
 
 ## Acceptance test
 

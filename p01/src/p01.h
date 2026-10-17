@@ -35,6 +35,7 @@
 #include <stdio.h>
 
 #include "../../lib/adxl345.h"
+#include "../../lib/i2cbus.h"
 #include "../../lib/linereader.h"
 
 /* The part is in lib/adxl345.h, with P19, which reads the same six bytes
