@@ -27,6 +27,7 @@ to twenty.
 | [p05-program.md](p05-program.md) | Three outcomes where a gate usually has two, and the program that was not written |
 | [p06.md](p06.md) | A rule two chapters had only in prose, and the first program here that can be wrong in memory |
 | [p13.md](p13.md) | A lab predicted wrongly, and a clock that is an argument |
+| [p10-program.md](p10-program.md) | The first lab where the no-threshold rule decided the design, not just the numbers |
 | [p15.md](p15.md) | The two sittings where something was actually measured |
 | [p15-program.md](p15-program.md) | What a program does that three commands do not, and a current quoted for the wrong three modules |
 | [p18.md](p18.md) | A chapter that had drifted from the repository, and a latent defect found while moving code |

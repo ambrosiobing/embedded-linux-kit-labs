@@ -656,6 +656,56 @@ jobs:
             echo "and the probe refused a chip that is not there, by name"
           fi
 
+      - name: P10 builds, with the warnings as errors
+        run: make -C p10 all
+
+      - name: P10's suite, with no instrument anywhere
+        run: |
+          set -e
+          make -C p10 check | tee p10-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p10-suite.txt || {
+            echo "p10: no suite summary in that output, so nothing ran"
+            exit 1
+          }
+
+      - name: P10's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p10 strict
+
+      - name: P10 refuses three traces that overlay
+        # The fourth acceptance item, which is the one this lab exists for.
+        # Three distinct states pass. The same capture written three times
+        # under three names is what a DUT still on its own USB cable
+        # produces through the instrument, and it has to be refused by name
+        # rather than reported as a tidy little table.
+        run: |
+          set -e
+          cd p10
+          ./p10 scene --kind sleep --samples 20000 --out sleep.csv
+          ./p10 scene --kind idle  --samples 20000 --out idle.csv
+          ./p10 scene --kind ble   --samples 20000 --out ble.csv
+          ./p10 scene --kind sleep --samples 20000 --out repeat.csv
+          WHY="a dev-board, so the USB-UART silicon leaks"
+          ./p10 reduce --source sleep.csv  --state sleep --book run.p10book --why "$WHY"
+          ./p10 reduce --source idle.csv   --state idle  --book run.p10book
+          ./p10 reduce --source ble.csv    --state ble   --book run.p10book
+          ./p10 reduce --source repeat.csv --state sleep --book run.p10book
+          ./p10 judge --book run.p10book | tee good.txt
+          grep -q "Every item this program can decide is satisfied" good.txt \
+            || { echo "three distinct states did not pass"; exit 1; }
+          ./p10 scene --kind usb --samples 20000 --out usb.csv
+          for s in sleep idle ble sleep; do
+            ./p10 reduce --source usb.csv --state $s --book usbrun.p10book --why "$WHY" > /dev/null
+          done
+          if ./p10 judge --book usbrun.p10book > bad.txt; then
+            echo "three traces that overlay were accepted, which is the one"
+            echo "run this lab exists to refuse"
+            exit 1
+          fi
+          grep -q "cause is the cable" bad.txt \
+            || { echo "the refusal did not send the reader to the cable"; exit 1; }
+          echo "a distinct run passes, and three that overlay are refused by name"
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e
