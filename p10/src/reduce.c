@@ -33,11 +33,30 @@
 
 /* ---------------------------------------------------------------- format */
 
+/* Three ranges, and the smallest one was missing until the demo of Sunday
+ * 18 October 2026 printed a bucket width of three nanoamps as "0.0 uA".
+ *
+ * That is the one output this program could make that is a lie. Every figure
+ * it prints carries a resolution beside it, and a resolution of zero claims
+ * the figure is exact. The suite had eight checks on this formatter and not
+ * one of them was a bucket, because every value I had thought to test was a
+ * current: forty five microamps, twenty milliamps, a hundred and ten. A
+ * bucket is the one quantity here that is routinely smaller than a microamp,
+ * and it was the only one never handed to the formatter.
+ */
 bool p10_format_current(char *buf, size_t n, uint32_t na)
 {
     if (na >= P10_NA_PER_MA)
         return thousandths_format(buf, n, na / P10_NA_PER_UA, "mA");
-    return thousandths_format(buf, n, na, "uA");
+    if (na >= P10_NA_PER_UA)
+        return thousandths_format(buf, n, na, "uA");
+
+    /* Below a microamp, whole nanoamps and no decimal point, because a
+     * tenth of a nanoamp is past anything this instrument reports. */
+    if (buf == NULL || n == 0u)
+        return false;
+    int w = snprintf(buf, n, "%lu nA", (unsigned long)na);
+    return w > 0 && (size_t)w < n;
 }
 
 /* ------------------------------------------------------------- histogram */

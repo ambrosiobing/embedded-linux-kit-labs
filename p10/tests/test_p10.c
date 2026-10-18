@@ -87,8 +87,21 @@ static void test_format(void)
        "45000 nA is 45.0 uA, which is a dev-board deep sleep");
     ok(p10_format_current(b, sizeof b, 500102u) && strcmp(b, "500.1 uA") == 0,
        "500102 nA is 500.1 uA");
-    ok(p10_format_current(b, sizeof b, 0u) && strcmp(b, "0.0 uA") == 0,
-       "and nothing is 0.0 uA rather than a blank");
+    /* The bucket widths, which is the range this formatter was missing until
+     * the demo of Sunday 18 October 2026 printed three nanoamps as 0.0 uA.
+     * Every check in this group used to be a current, and a resolution is
+     * the one quantity here that is routinely below a microamp. A resolution
+     * printed as zero claims the figure beside it is exact. */
+    ok(p10_format_current(b, sizeof b, 3u) && strcmp(b, "3 nA") == 0,
+       "a bucket of 3 nA prints as 3 nA, not as 0.0 uA");
+    ok(p10_format_current(b, sizeof b, 977u) && strcmp(b, "977 nA") == 0,
+       "and a bucket of 977 nA keeps all three figures");
+    ok(p10_format_current(b, sizeof b, 999u) && strcmp(b, "999 nA") == 0,
+       "999 nA is the last value below the microamp boundary");
+    ok(p10_format_current(b, sizeof b, 1000u) && strcmp(b, "1.0 uA") == 0,
+       "and 1000 nA is the first value above it");
+    ok(p10_format_current(b, sizeof b, 0u) && strcmp(b, "0 nA") == 0,
+       "nothing is 0 nA rather than a blank or a rounded zero");
 
     ok(p10_format_current(b, sizeof b, 1000000u) && strcmp(b, "1.0 mA") == 0,
        "1000000 nA crosses into milliamps and is 1.0 mA");

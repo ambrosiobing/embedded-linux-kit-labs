@@ -120,9 +120,53 @@ milliamps from nanoamps. Same arithmetic, carry included, so it moved rather
 than being copied, and P15's suite keeps testing it, including the carry case
 P15 found on its own first run.
 
+## The first build, and a defect the suite could not have found
+
+Built in WSL on win11 skyhorizon on **Sunday 18 October 2026**. No
+diagnostics, 73 checks with none failed, and the stricter pass clean on its
+first attempt, which is the second lab running to do that and for the same
+reason: there is no floating point in it.
+
+Then the demo printed this, three times:
+
+> median 45.0 uA, p95 50.0 uA, both good to 0.0 uA
+
+**That bucket is three nanoamps.** The formatter had two ranges, microamps
+and milliamps, and anything under about fifty nanoamps fell off the bottom of
+the first one and printed as zero.
+
+It is the one output this program could make that is a lie. Every figure here
+is printed with its resolution beside it, deliberately, because a quantile out
+of a histogram is only good to a bucket. A resolution printed as `0.0 uA`
+claims the figure beside it is exact, which is the opposite of what the whole
+arrangement exists to say.
+
+**The suite had eight checks on that formatter and could not have caught it.**
+Every value I had thought to hand it was a current: forty five microamps,
+nineteen point nine milliamps, a hundred and ten milliamps, the awkward
+boundary at 999999. A bucket width is the one quantity in this program that
+is routinely smaller than a microamp, and it was the only kind of value never
+tested. The checks were not weak, they were pointed at the wrong half of the
+domain, and a hundred more currents would not have found it.
+
+What found it was running the thing and reading the output. The group now has
+four more checks, at 3 nA, 977 nA, 999 nA and 1000 nA, which is the boundary
+from both sides, and `0` now prints as `0 nA` rather than as a rounded zero.
+
+Worth keeping beside the entry about the check that disagreed with its own
+constant. That one was an assertion whose expected value had not been worked
+out. This one is a whole class of input nobody thought to assert about. They
+fail differently: the first showed up on the first run of the suite, and the
+second could only show up in the output of a program doing its actual job.
+
 ## What stays a claim, as of Sunday 18 October 2026
 
-**None of this has been compiled.** No PPK2 has been connected, no ESP32
-flashed and no capture taken. Every trace this program has seen is one its
-own `scene` wrote. `STATUS.md` leaves P10 at **written** and says in the same
-row that the program is in the tree and has never been built.
+**It builds and both passes are clean, and no instrument has been near it.**
+No PPK2 has been connected, no ESP32 flashed and no capture taken. Every
+trace this program has reduced is one its own `scene` wrote.
+
+`STATUS.md` leaves P10 at **written** for one more round. The green run of 73
+checks was a run of the version that printed a resolution of zero, so it is
+not the evidence it looks like, and the four checks that cover the defect
+have never executed. The row moves to **checked** when 77 come back clean,
+and not on the strength of a pass that predates the fix.
