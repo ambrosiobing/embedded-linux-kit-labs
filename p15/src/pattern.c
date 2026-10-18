@@ -8,6 +8,10 @@
  */
 #include "p15.h"
 
+/* The fixed-point formatting moved to lib/thousandths.h when P10 turned out
+ * to reduce a capture's quantiles with the same arithmetic. */
+#include "../../lib/thousandths.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -116,19 +120,11 @@ uint32_t p15_peak_channel_ua(uint8_t lit)
     return peak;
 }
 
+/* lib/thousandths.h now, with P10. It stays as a function here so that this
+ * lab's header still names the units it works in, and so that the suite's
+ * carry check keeps testing the lifted arithmetic from the lab that found
+ * the case. */
 bool p15_format_ma(char *buf, size_t n, uint32_t ua)
 {
-    if (buf == NULL || n == 0)
-        return false;
-
-    uint32_t whole = ua / 1000u;
-    uint32_t tenth = (ua % 1000u + 50u) / 100u;
-    if (tenth >= 10u) {          /* the carry, which is why this is a function */
-        whole += 1u;
-        tenth = 0u;
-    }
-
-    int w = snprintf(buf, n, "%lu.%lu mA",
-                     (unsigned long)whole, (unsigned long)tenth);
-    return w > 0 && (size_t)w < n;
+    return thousandths_format(buf, n, ua, "mA");
 }

@@ -218,7 +218,7 @@ because a reader who has just read chapter 4 should not have to go looking.
 | [`p19/tests/`](p19/tests/) | the suite, four groups, no framework and no panel |
 | [`p15/`](p15/) | the semaphore, in C, three output lines and a plan |
 | [`p15/tests/`](p15/tests/) | the suite, six groups, no framework and no chip |
-| [`lib/`](lib/) | what more than one of them needed: the AT engine, the framebuffer, the sensor, the bus, sequence accounting and the line reader |
+| [`lib/`](lib/) | what more than one of them needed: the AT engine, the framebuffer, the sensor, the bus, the fixed-point formatter, sequence accounting and the line reader |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
     make -C p04 demo      the lab's own demonstration, on synthetic data
