@@ -706,6 +706,53 @@ jobs:
             || { echo "the refusal did not send the reader to the cable"; exit 1; }
           echo "a distinct run passes, and three that overlay are refused by name"
 
+      - name: P20 builds, with the warnings as errors
+        run: make -C p20 all
+
+      - name: P20's suite, which reaches no host
+        run: |
+          set -e
+          make -C p20 check | tee p20-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p20-suite.txt || {
+            echo "p20: no suite summary in that output, so nothing ran"
+            exit 1
+          }
+
+      - name: P20's stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p20 strict
+
+      - name: P20 refuses five sweeps, each for its own reason
+        # One good fleet file is an acceptance artifact. Five are each wrong
+        # in exactly one way and each has to be refused by name, because a
+        # judge that said only "refused" would send a reader to the wrong
+        # end of the bench.
+        run: |
+          set -e
+          cd p20
+          ./p20 scene --kind good       --out good.txt
+          ./p20 judge --source good.txt | tee good.out
+          grep -q "This file is an acceptance artifact" good.out \
+            || { echo "a good sweep was not accepted"; exit 1; }
+          grep -q "1 absence is honest" good.out \
+            || { echo "the NanoPi's missing temperature was not counted as honest"; exit 1; }
+          for pair in "blank-hat:reported no HAT at all" \
+                      "fifth:is not in the fleet" \
+                      "two-hats:names more than one 40-pin HAT" \
+                      "undated:carries no timestamp" \
+                      "pi-no-temp:a command that failed, not"; do
+            k=${pair%%:*}
+            want=${pair#*:}
+            ./p20 scene --kind "$k" --out "$k.out.txt"
+            if ./p20 judge --source "$k.out.txt" > "$k.judged"; then
+              echo "$k was accepted, and it is wrong in exactly one way"
+              exit 1
+            fi
+            grep -q "$want" "$k.judged" \
+              || { echo "$k was refused without naming its own reason"; exit 1; }
+          done
+          echo "one sweep accepted, five refused, each by name"
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e

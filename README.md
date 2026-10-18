@@ -183,7 +183,7 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and eleven have been, in ten directories: P01 and P09 share one program,
+and twelve have been, in eleven directories: P01 and P09 share one program,
 because their chapters say the difference between the two publishers is a bus
 number. They live in this repository beside the chapters they belong to,
 because a reader who has just read chapter 4 should not have to go looking.
@@ -220,6 +220,8 @@ because a reader who has just read chapter 4 should not have to go looking.
 | [`p15/tests/`](p15/tests/) | the suite, six groups, no framework and no chip |
 | [`p10/`](p10/) | the energy bench, in C, two numbers a state and one comparison |
 | [`p10/tests/`](p10/tests/) | the suite, six groups, no framework and no instrument |
+| [`p20/`](p20/) | the fleet sweep's judge, in C, which is not the sweep |
+| [`p20/tests/`](p20/tests/) | the suite, five groups, no framework and no host |
 | [`lib/`](lib/) | what more than one of them needed: the AT engine, the framebuffer, the sensor, the bus, the fixed-point formatter, sequence accounting and the line reader |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
@@ -244,6 +246,8 @@ because a reader who has just read chapter 4 should not have to go looking.
     make -C p15 demo      the blink plan and the draw, with no chip to drive
     make -C p10 check     the same, for the energy bench
     make -C p10 demo      a run that passes, and the run the lab exists to refuse
+    make -C p20 check     the same, for the fleet judge
+    make -C p20 demo      one sweep that is an artifact, and five that are not
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code

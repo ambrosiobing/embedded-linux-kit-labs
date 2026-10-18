@@ -143,11 +143,13 @@ The redirects are load bearing. `vcgencmd` does not exist on the NanoPi, and the
 **Step 3.** **Detect the HAT EEPROM** at the ID bus, and report `none` when the header is empty.
 
 ```bash
-ssh pi3bp 'test -d /proc/device-tree/hat && \
-  cat /proc/device-tree/hat/product 2>/dev/null || echo none'
+ssh pi3bp 'echo "hat: $(test -d /proc/device-tree/hat && \
+  cat /proc/device-tree/hat/product 2>/dev/null || echo none)"'
 ```
 
 The honest report is the point. A header with nothing on it should produce `none` in the file, not a blank line that could mean anything.
+
+**The label is part of that, and it was added on Sunday 18 October 2026.** An unlabelled product string has the same problem one step further on: in a file of `uptime`, `free` and `lsusb` output, a bare board name is indistinguishable from any other line. `hat: none` and `hat: MCC 118` are both reports and a missing line is not, which is a distinction a reader can make by eye and a program can make at all.
 
 **Step 4.** **Write the output to the log** and put the sweep on a timer. That file is the acceptance artifact.
 
@@ -162,6 +164,20 @@ sudo chown "$USER" /var/log/lab-fleet.txt
 ```bash
 tail -n 60 /var/log/lab-fleet.txt
 ```
+
+## Reading the artifact afterwards
+
+The sweep stays shell, because a loop over four SSH sessions is what shell is for and forty lines of it is the right length. What is worth a program is the other end: deciding whether the file it wrote is the artifact this chapter says it is. That is `p20/`, in C, and it opens no session, asks no host anything and cannot repair anything.
+
+```text
+pi4 $ ./p20 judge --source /var/log/lab-fleet.txt
+```
+
+It refuses four of the pitfalls below from the file alone: a HAT line that never appeared, a fifth name in the loop, two named HATs on one host, and a sweep with no timestamp.
+
+**Its one piece of judgement is which absences are honest.** The NanoPi has no `vcgencmd` and its header bus is 0 rather than 1, so its block is legitimately shorter, and in the file that looks exactly like a command that failed on a Pi. The two are counted separately rather than summed, because an honest absence needs nothing done about it and a gap does.
+
+What it does not decide is whether the file matches the bench. Four names and a reported HAT each is what a program can see; whether the board it names is the board on the table is the question below, and it is asked of a person.
 
 ## Acceptance test
 

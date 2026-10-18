@@ -76,6 +76,8 @@ p15/p15
 p15/p15-test
 p10/p10
 p10/p10-test
+p20/p20
+p20/p20-test
 # every lab compiles the shared sources into its own directory
 lib_*.o
 lib_*.d
@@ -113,6 +115,10 @@ p10-suite.txt
 p10/*.txt
 p10/*.csv
 p10/*.p10book
+p20-suite.txt
+p20/*.txt
+p20/*.out
+p20/*.judged
 
 # Journals and correspondence never reach a published repository, private
 # shares included. They live in the catalogue, which is local only. A published
