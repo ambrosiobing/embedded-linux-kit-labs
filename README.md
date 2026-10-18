@@ -4,7 +4,7 @@ Twenty bench labs on one parts bin and four Linux hosts, with every pairing
 checked against headers, voltages and silicon before it was written down. One
 40-pin HAT per host. One instrument per lab. An acceptance test you can fail.
 
-**158 pages, 81 figures, 20 labs.** Each lab stands on its own: what it alone
+**81 figures, 20 labs.** Each lab stands on its own: what it alone
 owns, what the earlier draft of this material got wrong, the kit it takes from
 the bin, a system architecture figure, a schematic with a wiring table, a bench
 layout, a UML view, a data-flow sketch, numbered steps with real commands, an
@@ -29,9 +29,12 @@ this volume turned out to be false and all four had looked exactly like the ones
 that were right, so the route matters as much as the conclusion.
 
 **Or search it.** [`PITFALLS.md`](PITFALLS.md) is every pitfall in the volume,
-193 of them, generated from the labs and sorted across them rather than within
-them. It is for the other direction of reading: a bench is misbehaving, and the
-lab that discussed the symptom is not the lab being built. Putting 5 V on an
+generated from the labs and sorted across them rather than within them. It
+carries its own count, and this page deliberately does not repeat it: a
+number written into a sentence here is a number nothing updates when the
+labs move, and this one had drifted six behind before anybody noticed. It is
+for the other direction of reading: a bench is misbehaving, and the lab that
+discussed the symptom is not the lab being built. Putting 5 V on an
 accelerometer is a pitfall in P01 and again in P19, and feeding 5 V into
 `SYS_3V3` is one in P09 and again in P17.
 
