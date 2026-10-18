@@ -95,9 +95,26 @@ noting because the suite would not have caught it: no scene writes `hat: none`
 twice, and adding one to catch it would have been adding a test for a case
 nobody had thought of yet.
 
+## The first build, and one line that read wrong
+
+Built in WSL on win11 skyhorizon on **Sunday 18 October 2026**: no
+diagnostics, 51 checks with none failed, and the stricter pass clean on its
+first attempt, which is now three labs running.
+
+The demo found one thing, and it is a report rather than a defect. The
+two-HAT sweep printed `HAT SIM7600E-H, and 2 HATs named`, and SIM7600E-H is
+simply the second of the two, because only the last name is kept. Printing
+one of two as though it were the one that is seated is the wrong half of a
+true statement. It now says `2 HATs named, the last of them SIM7600E-H`,
+which is what the program actually knows.
+
+Worth noting what did not happen: the refusal itself was right, named the
+host, and sent the reader to the rule. The line that was wrong was the part
+that merely describes, which is the part nothing asserts against.
+
 ## What stays a claim, as of Sunday 18 October 2026
 
-**None of this has been compiled.** No host has been swept, no SSH key
-copied, and every fleet file this program has read is one its own `scene`
-wrote. `STATUS.md` leaves P20 at **written** and says in the same row that
-the program is in the tree and has never been built.
+**It builds, both passes are clean, and no host has been swept.** No SSH key
+has been copied and every fleet file this program has read is one its own
+`scene` wrote. `STATUS.md` moves P20 to **checked**, which is what a
+compiled program with a green suite and no hardware earns here.

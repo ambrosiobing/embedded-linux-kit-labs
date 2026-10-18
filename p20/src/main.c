@@ -52,12 +52,15 @@ static int cmd_judge(const char *path)
         }
         if (!b->hat_reported)
             printf("HAT not reported");
+        else if (b->hats_named > 1u)
+            /* Only the last name is kept, so say that rather than printing
+             * one of two as though it were the one that is seated. */
+            printf("%u HATs named, the last of them %s", b->hats_named,
+                   b->hat);
         else if (b->hat_named)
             printf("HAT %s", b->hat);
         else
             printf("header empty, reported");
-        if (b->hats_named > 1u)
-            printf(", and %u HATs named", b->hats_named);
         putchar('\n');
     }
 
