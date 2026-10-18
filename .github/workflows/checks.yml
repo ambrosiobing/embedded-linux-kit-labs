@@ -595,6 +595,15 @@ jobs:
         run: make -C p15 all
 
       - name: P15's suite, with no chip and no board
+        # Two assertions on one output, deliberately in one step. lines.c has
+        # a second half for anything that is not Linux, and a suite that
+        # quietly compiled that half would pass while testing nothing about
+        # the character device, so the device group prints which half it is
+        # talking to and this reads it back. It was a step of its own until
+        # Sunday 18 October 2026, which made it a step that greps a file an
+        # earlier step writes: correct on the runner, and unrunnable on a
+        # laptop where the build step is skipped. A check belongs in the step
+        # that produces what it reads.
         run: |
           set -e
           make -C p15 check | tee p15-suite.txt
@@ -602,14 +611,6 @@ jobs:
             echo "p15: no suite summary in that output, so nothing ran"
             exit 1
           }
-
-      - name: P15's suite exercised the real uAPI and not the fallback
-        # lines.c has a second half for anything that is not Linux, and a
-        # suite that quietly compiled that half would pass while testing
-        # nothing about the character device. The device group prints which
-        # half it is talking to, so this reads it back.
-        run: |
-          set -e
           grep -q "this build answers: the chip would not open" p15-suite.txt || {
             echo "p15: the suite did not reach the Linux GPIO path, so its"
             echo "device group proved nothing about the character device."
