@@ -165,8 +165,13 @@ second could only show up in the output of a program doing its actual job.
 No PPK2 has been connected, no ESP32 flashed and no capture taken. Every
 trace this program has reduced is one its own `scene` wrote.
 
-`STATUS.md` leaves P10 at **written** for one more round. The green run of 73
-checks was a run of the version that printed a resolution of zero, so it is
-not the evidence it looks like, and the four checks that cover the defect
-have never executed. The row moves to **checked** when 77 come back clean,
-and not on the strength of a pass that predates the fix.
+The rerun came back on the same day: **77 checks, none failed**, the stricter
+pass clean, and the demo printing `both good to 3 nA` where it had printed
+`0.0 uA`. `STATUS.md` moves P10 to **checked** on that run rather than on the
+73-check one, which was a pass of the version with the defect in it and is
+recorded in the row as discarded.
+
+No PPK2 has been connected, no ESP32 flashed and no capture taken. Every
+trace this program has reduced is one its own `scene` wrote. What the lab
+needs next is the instrument in the ESP32's rail with the DUT's own USB cable
+out of the bench, which the chapter says plainly is the whole experiment.
