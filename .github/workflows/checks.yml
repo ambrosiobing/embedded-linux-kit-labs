@@ -753,6 +753,69 @@ jobs:
           done
           echo "one sweep accepted, five refused, each by name"
 
+      - name: P07 and P08 build, with the warnings as errors
+        run: make -C p07 all
+
+      - name: Their suite, with no shield anywhere
+        run: |
+          set -e
+          make -C p07 check | tee p07-suite.txt
+          grep -qE "[0-9]+ checks, 0 failed" p07-suite.txt || {
+            echo "p07: no suite summary in that output, so nothing ran"
+            exit 1
+          }
+
+      - name: Their stricter conversion pass, reported but not gating
+        continue-on-error: true
+        run: make -C p07 strict
+
+      - name: The two streams stay two, end to end
+        # P08's rule, which is the reason these two labs share a program:
+        # two streams, two keys, two log files. Three captures that are what
+        # their chapters say they are, four that are not, and the pair check
+        # that is P08's item about P07.
+        run: |
+          set -e
+          cd p07
+          for k in iks4a1 lowg highg drift collapsed hubbed noscale; do
+            ./p07 scene --kind "$k" --records 40 --out "$k.jsonl"
+          done
+          ./p07 verify --source iks4a1.jsonl --profile iks4a1 | tee good.out
+          grep -q "This log is what its chapter says it is" good.out \
+            || { echo "P07's own capture did not pass"; exit 1; }
+          ./p07 verify --source lowg.jsonl  --profile lowg  > /dev/null
+          ./p07 verify --source highg.jsonl --profile highg > /dev/null
+
+          for pair in "drift:iks4a1:the keys changed at line" \
+                      "hubbed:iks4a1:which this shield is" \
+                      "collapsed:lowg:a key called acc" \
+                      "noscale:lowg:a pressure with no range beside it"; do
+            k=$(printf '%s' "$pair" | cut -d: -f1)
+            prof=$(printf '%s' "$pair" | cut -d: -f2)
+            want=$(printf '%s' "$pair" | cut -d: -f3)
+            if ./p07 verify --source "$k.jsonl" --profile "$prof" > "$k.out"; then
+              echo "$k was accepted, and it is not what its chapter says"
+              exit 1
+            fi
+            grep -q "$want" "$k.out" \
+              || { echo "$k was refused without naming its own reason"; exit 1; }
+          done
+
+          # The drift and the hub failure must not be the same failure. The
+          # hubbed capture is short from its first line, so its schema never
+          # drifts, and a stability check alone would pass it.
+          grep -q "the keys changed at line" hubbed.out \
+            && { echo "the hubbed capture was refused as a drift"; exit 1; }
+
+          ./p07 pair --a lowg.jsonl --b highg.jsonl | tee pair.out
+          grep -q "two files, two schemas" pair.out \
+            || { echo "two different streams were not accepted as two"; exit 1; }
+          if ./p07 pair --a lowg.jsonl --b lowg.jsonl > same.out; then
+            echo "one file given twice was accepted as two logs"
+            exit 1
+          fi
+          echo "two streams stayed two, and the four captures that are not were each refused by name"
+
       - name: No assembled volume and no PDF is published
         run: |
           set -e

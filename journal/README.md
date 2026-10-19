@@ -29,6 +29,7 @@ to twenty.
 | [p13.md](p13.md) | A lab predicted wrongly, and a clock that is an argument |
 | [p10-program.md](p10-program.md) | The first lab where the no-threshold rule decided the design, not just the numbers |
 | [p20-program.md](p20-program.md) | The lab whose program is deliberately not its deliverable, and two kinds of absence |
+| [p07-p08-program.md](p07-p08-program.md) | One program for two labs, because an acceptance item in one is about the other |
 | [p15.md](p15.md) | The two sittings where something was actually measured |
 | [p15-program.md](p15-program.md) | What a program does that three commands do not, and a current quoted for the wrong three modules |
 | [p18.md](p18.md) | A chapter that had drifted from the repository, and a latent defect found while moving code |

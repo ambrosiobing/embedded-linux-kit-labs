@@ -186,10 +186,13 @@ known sitting.
 ## The labs' software
 
 A lab's host side can be written and tested long before its hardware is wired,
-and twelve have been, in eleven directories: P01 and P09 share one program,
-because their chapters say the difference between the two publishers is a bus
-number. They live in this repository beside the chapters they belong to,
-because a reader who has just read chapter 4 should not have to go looking.
+and fourteen have been, in twelve directories. Two pairs share a program.
+P01 and P09 share one because their chapters say the difference between the
+two publishers is a bus number. P07 and P08 share one because P08's third
+acceptance item is an item about P07: the numbers live in a different log
+file, and a check that spans two labs has to be written once. They live in
+this repository beside the chapters they belong to, because a reader who has
+just read chapter 4 should not have to go looking.
 
 | Path | What it is |
 | --- | --- |
@@ -225,6 +228,8 @@ because a reader who has just read chapter 4 should not have to go looking.
 | [`p10/tests/`](p10/tests/) | the suite, six groups, no framework and no instrument |
 | [`p20/`](p20/) | the fleet sweep's judge, in C, which is not the sweep |
 | [`p20/tests/`](p20/tests/) | the suite, five groups, no framework and no host |
+| [`p07/`](p07/) | the log checker for P07 and P08, in C, and the rule that two streams stay two |
+| [`p07/tests/`](p07/tests/) | the suite, five groups, no framework and no shield |
 | [`lib/`](lib/) | what more than one of them needed: the AT engine, the framebuffer, the sensor, the bus, the fixed-point formatter, sequence accounting and the line reader |
 
     make -C p04 check     the suite: no hardware, no serial port, no network
@@ -251,6 +256,8 @@ because a reader who has just read chapter 4 should not have to go looking.
     make -C p10 demo      a run that passes, and the run the lab exists to refuse
     make -C p20 check     the same, for the fleet judge
     make -C p20 demo      one sweep that is an artifact, and five that are not
+    make -C p07 check     the same, for P07 and P08's log checker
+    make -C p07 demo      three captures that pass, four that do not, and the pair
 
 **It is C because the lab is embedded Linux.** The deliverable of a lab is the
 program, not a description of one. No allocation on the data path, library code
