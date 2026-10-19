@@ -152,13 +152,31 @@ string. A guard that cries wolf is worse than none, since the next real
 finding reads as the tenth false one. The corrected one reads 91 files clean
 and was then proved on a planted decoy of the exact damage shape.
 
+## The rerun, and what the fixed output says
+
+Rerun the same day: **61 checks, none failed**, the stricter pass clean
+again, and the demo reading the way it should.
+
+The collapsed capture now says the cause is in the same file, that `acc` is
+there instead and the key was renamed by a merge, so the writer is where to
+look and not the firmware's mode. The hubbed capture still gets the
+sensor-hub paragraph, which is the point: that explanation was never wrong,
+it was being given to both and is true of only one. And P08's two profiles
+now close on the drop, the two channels in their own keys and the
+quiet-room noise in pascals, while P07's keeps the SHT40 and the STTS22H.
+
+The check count did not move, which is what a fix to what a program says
+rather than to what it decides should look like.
+
 ## What stays a claim, as of Sunday 19 October 2026
 
-**It builds and its suite passes, and the two report fixes have not been
-rebuilt.** No shield has been stacked, no Nucleo flashed, and every capture
-this program has read is one its own `scene` wrote.
+**It builds, both passes are clean, and no shield has been stacked.** No
+Nucleo has been flashed, and every capture this program has read is one its
+own `scene` wrote. `STATUS.md` moves both labs to
+**checked** on the rerun rather than on the first pass, which was of the
+version that sent a reader to the wrong cause.
 
-`STATUS.md` leaves both labs at **written** for one more round rather than
-taking the 61-check run as the evidence it looks like, because that run was
-of the version that sent a reader to the wrong cause. Both rows move to
-**checked** when 61 come back clean on the fixed code.
+What neither lab can reach from here is its own first two acceptance items.
+Breathing on a humidity part and dropping a shield twenty millimetres onto a
+book are things a person does, and the program now says so in the words of
+whichever shield it was pointed at.
