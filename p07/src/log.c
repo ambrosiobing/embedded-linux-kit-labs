@@ -28,13 +28,26 @@ static const char *const LOWG_FORBIDDEN[] = { "acc", "highg_peak" };
 static const char *const HIGHG_REQUIRED[] = { "highg_peak" };
 static const char *const HIGHG_FORBIDDEN[] = { "acc", "lowg" };
 
+/* The acceptance items a person checks with the shield in front of them.
+ * They belong to the profile and not to the report: P07's are about
+ * breathing on a humidity part, and P08's shield has no humidity part at
+ * all, which its chapter states as one of the differences. */
+static const char BY_HAND_P07[] =
+    "Breathing on the SHT40 moves relative humidity, and a palm over the\n"
+    "STTS22H moves it by about half a degree.";
+static const char BY_HAND_P08[] =
+    "On the drop, the high-g peak fires and the low-g channel saturates,\n"
+    "both in their own keys, and a quiet room puts the ILPS22QS noise at a\n"
+    "few pascals. This shield has no humidity part at all, which is one of\n"
+    "the differences from P07.";
+
 static const p07_profile PROFILES[] = {
     { "iks4a1", "X-NUCLEO-IKS4A1", "p07.jsonl",
-      IKS4A1_REQUIRED, 6u, IKS4A1_FORBIDDEN, 3u, false },
+      IKS4A1_REQUIRED, 6u, IKS4A1_FORBIDDEN, 3u, false, BY_HAND_P07 },
     { "lowg", "X-NUCLEO-IKS5A1, low-g channel", "p08_lowg.jsonl",
-      LOWG_REQUIRED, 1u, LOWG_FORBIDDEN, 2u, true },
+      LOWG_REQUIRED, 1u, LOWG_FORBIDDEN, 2u, true, BY_HAND_P08 },
     { "highg", "X-NUCLEO-IKS5A1, high-g peak-hold", "p08_highg.jsonl",
-      HIGHG_REQUIRED, 1u, HIGHG_FORBIDDEN, 2u, true }
+      HIGHG_REQUIRED, 1u, HIGHG_FORBIDDEN, 2u, true, BY_HAND_P08 }
 };
 
 #define P07_PROFILES (sizeof PROFILES / sizeof PROFILES[0])

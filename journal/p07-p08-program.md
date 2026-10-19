@@ -109,9 +109,56 @@ carrying the same names in a different order carry the same schema. Comparing
 order would be a stricter test of the firmware and a weaker test of the rule,
 and the rule is what the acceptance item is about.
 
+## The first build, and two refusals that pointed at the wrong thing
+
+Built in WSL on win11 skyhorizon on **Sunday 19 October 2026**: no
+diagnostics, 61 checks with none failed, and the stricter pass clean on its
+first attempt, which is now four labs running.
+
+The demo found two things and neither is a wrong verdict. Both are the part
+of the output that merely explains, which is the part nothing asserts
+against, and it is the second day running that is where the defects were.
+
+**The collapsed capture was sent to the wrong end of the bench.** Its
+refusal for the missing `lowg` carried the sensor-hub explanation: that an
+ISPU mode routes parts through the LSM6, so the scan finds fewer addresses
+and the record loses keys. True of a hubbed capture and false here, where the
+cause is printed in the very next line: the key was renamed into `acc`. A
+reader following that paragraph would go and read firmware modes while the
+answer sat on screen. Which cause to name now depends on whether anything
+forbidden was found in the same file.
+
+**And the closing paragraph talked about humidity to a shield that has
+none.** It named breathing on the SHT40 and a palm over the STTS22H under all
+three profiles, and P08's chapter states plainly that its shield has no
+humidity part. That text belongs to the profile rather than to the report,
+and it now sits there, with P08's own items in it: the drop, the two channels
+in their own keys, and the quiet-room noise in pascals.
+
+## The heredoc, for the third time
+
+Writing the second fix through a shell heredoc turned the escaped newlines
+inside two C string constants into real ones, leaving `log.c` with
+unterminated literals. That is the trap this catalogue already has a note
+about, and the note says to use the editor instead.
+
+It cost nothing this time because the damage is a compile error. What it did
+produce is a small checker worth keeping: a sweep for a string that opens on
+a line and does not close on it, which is exactly the shape that damage
+takes, and which can run on the laptop that is not allowed to compile. Its
+first version reported nine lines in files that were fine, because it did not
+understand a character literal holding a quote or a quote escaped inside a
+string. A guard that cries wolf is worse than none, since the next real
+finding reads as the tenth false one. The corrected one reads 91 files clean
+and was then proved on a planted decoy of the exact damage shape.
+
 ## What stays a claim, as of Sunday 19 October 2026
 
-**None of this has been compiled.** No shield has been stacked, no Nucleo
-flashed, and every capture this program has read is one its own `scene`
-wrote. `STATUS.md` leaves both labs at **written** and says in both rows that
-the program is in the tree and has never been built.
+**It builds and its suite passes, and the two report fixes have not been
+rebuilt.** No shield has been stacked, no Nucleo flashed, and every capture
+this program has read is one its own `scene` wrote.
+
+`STATUS.md` leaves both labs at **written** for one more round rather than
+taking the 61-check run as the evidence it looks like, because that run was
+of the version that sent a reader to the wrong cause. Both rows move to
+**checked** when 61 come back clean on the fixed code.

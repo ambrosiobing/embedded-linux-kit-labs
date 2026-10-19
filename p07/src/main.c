@@ -100,14 +100,26 @@ static int cmd_verify(const char *source, const char *profile_name)
                "reads end to end. Restart the capture rather than patching\n"
                "the file.\n", (unsigned long)l.drift_line);
 
-    if (!v.required_present)
+    if (!v.required_present) {
         printf("REFUSED: %lu record%s missing %s, which this shield is\n"
-               "supposed to report. A capture that is short from its first\n"
-               "line is usually a sensor-hub or ISPU mode: those route parts\n"
-               "through the LSM6, so the firmware scan finds fewer addresses\n"
-               "than the shield carries and the record silently loses keys.\n",
-               (unsigned long)l.missing_required,
+               "supposed to report.\n", (unsigned long)l.missing_required,
                (l.missing_required == 1u) ? " is" : "s are", v.missing);
+
+        /* Which cause to name depends on what else is in the file. A
+         * collapsed capture is also missing a key, and sending its reader to
+         * the firmware's mode would send them away from the answer, which is
+         * sitting in the next refusal. */
+        if (!v.nothing_forbidden)
+            printf("The cause is in this same file: %s is here instead. The\n"
+                   "key was not lost, it was renamed by a merge, so the\n"
+                   "writer is where to look and not the firmware's mode.\n",
+                   v.present);
+        else
+            printf("A capture that is short from its first line is usually a\n"
+                   "sensor-hub or ISPU mode: those route parts through the\n"
+                   "LSM6, so the firmware scan finds fewer addresses than the\n"
+                   "shield carries and the record silently loses keys.\n");
+    }
 
     if (!v.nothing_forbidden)
         printf("REFUSED: %lu record%s a key called %s.\n",
@@ -134,10 +146,9 @@ static int cmd_verify(const char *source, const char *profile_name)
                "not.\n");
 
     putchar('\n');
-    printf("Not decided here: whether the numbers are right. Breathing on\n"
-           "the humidity part and a palm over the temperature part are the\n"
-           "items a person checks, and no amount of reading the file settles\n"
-           "either.\n");
+    printf("Not decided here: whether the numbers are right. This shield's\n"
+           "own items are checked with it in front of you, and no amount of\n"
+           "reading the file settles any of them:\n\n%s\n", p->by_hand);
 
     if (!p07_verdict_passed(&v))
         return EXIT_REFUSED;

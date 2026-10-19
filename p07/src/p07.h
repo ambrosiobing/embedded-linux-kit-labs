@@ -71,6 +71,12 @@ typedef struct {
     const char *const *forbidden;  /* keys whose presence is the defect */
     unsigned forbidden_n;
     bool pressure_needs_scale;     /* the ILPS22QS rule, P08 only */
+
+    /* The acceptance items of this lab that a person checks with the shield
+     * in front of them. It belongs to the profile rather than to the report,
+     * because P07's are about breathing on a humidity part and P08's shield
+     * has no humidity part at all. */
+    const char *by_hand;
 } p07_profile;
 
 const p07_profile *p07_profile_of(const char *name);  /* NULL if unknown */
