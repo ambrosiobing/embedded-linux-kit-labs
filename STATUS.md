@@ -151,11 +151,14 @@ together. The question this page asked for two weeks was which tool to buy,
 and the answer was never a tool.
 
 **It should be settled at the bench before it is bought**, because the claim
-above is about consumer prepaid SIMs in general and not about this one. All
-three modem HATs are here and the test is one sitting: put the Elisa SIM in
-the SIM7600E-H and confirm an LTE attach, then in the SIM7020E and the
-SIM7070G and read what the network grants. A refusal there is a finding
-rather than a fault.
+above is about consumer prepaid SIMs in general and not about this one, and
+**one HAT settles it**. The SIM7070G is dual-mode silicon that carries Cat-M
+and NB-IoT both, so it can be asked each question in turn: `AT+CNMP=38` then
+`AT+CMNB=1` with `AT+CPSI?` as the evidence, then the same two for NB-IoT.
+The SIM7020E does NB-IoT only and the SIM7600E-H is a conventional LTE modem
+that should not be assumed to do either, so neither is needed for the
+question. A refusal is a finding rather than a fault, and it goes in the lab
+book with the date either way.
 
 **One gap in two acceptance tests, found by answering this.** P02's fifth item
 and P03's fifth both say that without a SIM the lab stops at AT bring-up and
