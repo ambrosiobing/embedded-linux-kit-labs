@@ -160,7 +160,13 @@ and NB-IoT both, so it can be asked each question in turn: `AT+CNMP=38` then
 The SIM7020E does NB-IoT only and the SIM7600E-H is a conventional LTE modem
 that should not be assumed to do either, so neither is needed for the
 question. A refusal is a finding rather than a fault, and it goes in the lab
-book with the date either way.
+book with the date either way. **The SIM7070G's own USB socket is broken**,
+by Joseph's report on Monday 20 October 2026: the kernel saw it attach and
+drop three times in sixteen seconds, identifying as `1e0e:9206`,
+`SimTech SIM7080`, six `ttyUSB` ports. The route left to it is the hardware
+UART on GPIO14 and GPIO15 that its chapter documents, freed on `eplepi` the
+same day by `raspi-config` and not yet tried, so the bearer sitting is still
+one board and now one cable fewer.
 
 **One gap in two acceptance tests, found by answering this.** P02's fifth item
 and P03's fifth both say that without a SIM the lab stops at AT bring-up and
