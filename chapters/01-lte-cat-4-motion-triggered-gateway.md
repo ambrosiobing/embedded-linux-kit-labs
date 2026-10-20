@@ -150,6 +150,12 @@ sudo i2cdetect -y 1          # must show 53
 sudo systemctl stop ModemManager    # only if it is installed; see the WAN step
 ```
 
+**115200 is not a guess and not a default to try.** This module's UART rate is pinned: `AT+IPR?` answered `+IPR: 115200` on `eplepi` on Monday 20 October 2026, and a pinned module answers at that rate and is silent at every other. Ask it rather than hunting, on whichever interface already works.
+
+```bash
+# in the AT session: AT+IPR?   -> +IPR: 115200 means pinned, +IPR: 0 means autobaud
+```
+
 ```text
 sudo minicom -D /dev/ttyUSB2 -b 115200
 AT
@@ -247,6 +253,7 @@ User plane on USB, AT on a ttyUSB. Token-bucket the publisher, which is what the
 - **Picking the wrong AT device.** Several `ttyUSB` nodes appear. The wrong one is silent rather than an error, so try USB2, then USB3, then USB1.
 - **A daemon installed after its device enumerated.** ModemManager, and anything else that claims devices through udev rules, sees only what an add event has tagged. Installing it later leaves the device untagged and the daemon reporting that the hardware cannot do the thing. Trigger every subsystem the rules name, here `tty`, `usbmisc` and `net`, or reboot.
 - **Two owners of one AT port.** Once ModemManager runs it holds `ttyUSB2` from boot. Typing AT commands by hand wants it stopped first, and leaving it stopped breaks the WAN step.
+- **Sweeping baud rates at a module whose rate is pinned.** A module reporting `+IPR: 115200` is deaf at 9600, 19200, 38400 and 57600, so a five-rate sweep has exactly one rate that can answer and four that prove nothing. Worse, the four silences look like evidence. Read `AT+IPR?` on an interface that already works before sweeping anything; the vendor's *autobauding 9600 to 115200* describes the capability, not this module's current setting.
 - **Reading `AT+CGDCONT?` to check a QMI bearer.** It answers a different question. With `wwan0` carrying traffic on APN `internet`, the context table on this bench still read `CMNET` in context 1 and the operator's IMS context in 2, and `internet` appeared nowhere: QMI sets the APN through its own service and does not write the AT-visible table. Check the bearer with `mmcli` or with `ip addr`, not with `AT+CGDCONT?`.
 - **Publishing every sample.** Without the cool-off, one impact produces a burst and the dead-band logic buys nothing.
 - **5 V on the accelerometer.** The SEN0032 goes to pin 1, never pin 2.

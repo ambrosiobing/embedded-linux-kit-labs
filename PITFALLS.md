@@ -10,7 +10,7 @@ chapters already give. The use of this page is the other direction, when
 a bench is misbehaving and the lab that discussed the symptom is not the
 lab being built.
 
-**206 pitfalls across 20 labs.**
+**207 pitfalls across 20 labs.**
 
 | Pitfall | Lab |
 |---|---|
@@ -178,6 +178,7 @@ lab being built.
 | Stacking both shields | [P07](chapters/07-consumer-9-dof-plus-climate-iks4a1.md) |
 | Starting the broker without enabling it | [P12](chapters/12-official-dsi-operator-glass-and-mqtt-broker.md) |
 | Sunlight or a bright window in the field of view | [P06](chapters/06-8x8-tof-occupancy-kiosk.md) |
+| Sweeping baud rates at a module whose rate is pinned | [P01](chapters/01-lte-cat-4-motion-triggered-gateway.md) |
 | Taking the AT port away from the HAT | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
 | The DUT USB cable still connected | [P10](chapters/10-ppk2-energy-characterisation-bench.md) |
 | The ESP8266-PROG USB cable still plugged in | [P17](chapters/17-esp8266-at-modem-on-the-nanopi.md) |
