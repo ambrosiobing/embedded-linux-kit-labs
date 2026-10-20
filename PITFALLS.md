@@ -10,7 +10,7 @@ chapters already give. The use of this page is the other direction, when
 a bench is misbehaving and the lab that discussed the symptom is not the
 lab being built.
 
-**203 pitfalls across 20 labs.**
+**206 pitfalls across 20 labs.**
 
 | Pitfall | Lab |
 |---|---|
@@ -36,6 +36,7 @@ lab being built.
 | A line already held | [P15](chapters/15-pow-bb-mixed-voltage-discipline.md) |
 | A long or unsecured USB cable | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |
 | A loose screw terminal | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
+| A minimal image with no USB serial drivers | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
 | A payload that grew | [P16](chapters/16-esp32-wi-fi-ble-sidecar.md) |
 | A Pi GPIO used as an analog source | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
 | A rail measured at the splitter but read at the terminal | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
@@ -64,6 +65,7 @@ lab being built.
 | Assuming the panel needs an overlay | [P12](chapters/12-official-dsi-operator-glass-and-mqtt-broker.md) |
 | Assuming the polarity instead of testing it | [P15](chapters/15-pow-bb-mixed-voltage-discipline.md) |
 | Being surprised when 0x68 leaves the `i2cdetect` table | [P11](chapters/11-explorer700-field-console.md) |
+| Blaming a silent module before proving the host's serial port | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
 | Blocking on a cold start | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
 | Bluetooth still owns the PL011 | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
 | Both scripts publishing from the same host | [P13](chapters/13-dual-radio-signalling-failover.md) |
@@ -148,6 +150,7 @@ lab being built.
 | Reading a fix status of zero as a coordinate | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
 | Reading a rate out of a capture file | [P18](chapters/18-nucleo-usb-cdc-recorder.md) |
 | Reading the block as one channel | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
+| Reading the HAT's own LEDs as proof that it is seated | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
 | Reading the LED as a link light | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
 | Reading the microphone RMS as vibration | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |
 | Reading three lit LEDs as three correct channels | [P15](chapters/15-pow-bb-mixed-voltage-discipline.md) |

@@ -70,7 +70,7 @@ The seating rules are the same as P01: one 40-pin HAT, jumpers set before power,
 | PWRKEY | 7 | GPIO4 | The HAT's own. Never drive it from anything else |
 | Pin 15 |  | GPIO22 | The draft's choice. Free on this HAT, see the note |
 | VCCIO jumper |  |  | 3V3 |
-| PWR jumper |  |  | Auto-on, as in P01 |
+| PWR jumper |  |  | Selects the `PWRKEY` source: GPIO4, or the supply. See the note |
 | LTE antenna |  |  | Main port on the HAT |
 | GNSS antenna |  |  | Separate port, needs sky view |
 | HAT USB cable |  |  | To a Pi USB-A port: AT and NMEA |
@@ -88,7 +88,7 @@ The seating rules are the same as P01: one 40-pin HAT, jumpers set before power,
 >
 > | HAT connection | Header pin | BCM GPIO | Note |
 > | --- | --- | --- | --- |
-> | PWRKEY | 7 | GPIO4 | Default. The PWR jumper's other position takes it to the supply instead |
+> | PWRKEY | 7 | GPIO4 | One position of the PWR jumper. The other takes it to the supply |
 > | DTR | 37 | GPIO26 | **Only** with the DTR jumper in position A. The default is disconnected |
 > | IO level select | none | none | Default 3.3 V. The other position makes the HAT's logic 5 V |
 >
@@ -97,6 +97,8 @@ The seating rules are the same as P01: one 40-pin HAT, jumpers set before power,
 > **So GPIO22 is free on this board and the draft's pin would have worked.** It stays moved anyway, for a reason worth stating: one indicator assignment that is safe on all four cellular labs is easier to hold in the head than four, and BCM16 is free on every HAT checked so far. What is not free is GPIO26, which an intermediate version of this correction had used and which is exactly what the DTR jumper connects when it is in position A. That pin was abandoned for an unrelated reason, the MCC 118 claiming it in P05, and the right answer arrived by luck rather than by reading. The reading is what settles it now.
 >
 > **One pin, three spellings, one vendor.** The product page says PWRKEY goes to "P4". The wiki says it goes to "P7 (wiringPi number)". Those are the same conductor: wiringPi 7 is BCM GPIO4 is physical header pin 7. Neither page says which scheme it is using, and a reader who assumes physical numbering on the first page wires the power key to 5 V. Every pin in this book is given as header pin and BCM number together for exactly this reason.
+>
+> **Which PWR jumper position is the default is not settled by this volume.** The vendor's own instruction is to *hold the `PWRKEY` button for about one second to power the module on*, which is the behaviour of the GPIO4 position and not of the supply position. Earlier editions of this table called the jumper auto-on, which contradicted the row above it; neither claim was measured. Read your own board and record what it does, because the two positions differ in whether the module comes up with the Pi or waits for a press, and a module that is not running answers nothing on any interface.
 >
 > **Never move the IO level jumper.** It defaults to 3.3 V and its other position makes the HAT's logic 5 V, on a header whose every pin is a 3.3 V input. That is the single connection P15 exists to prevent, available on this board as a jumper.
 
@@ -249,6 +251,9 @@ Cache the last good fix. Do not block MQTT on a cold GNSS start. The same HAT ca
 ## Pitfalls
 
 - **This command pair belongs to the SIM7070 family and to no other module in the bin.** A SIM7600E-H on the same bench answered `ERROR` to `AT+CMNB=?` on Monday 20 October 2026, because that module has no bearer selector at all, while the value 38 does appear in its own `AT+CNMP=?` list. The same number in two modules’ mode tables is not the same mode. Read the AT manual of the module in front of you, which for this lab is the SIM7070 series one cited below, and never carry a mode number across chapters.
+- **Reading the HAT's own LEDs as proof that it is seated.** The micro-USB socket on the HAT also carries 5 V, so `PWR` and `NET` will light and blink with the 40-pin header making no contact at all. `PWR` is worse than that: on the schematic it hangs off the HAT's VBAT rail, so it reports the board's regulator and never the module. Unplug the micro-USB before reading either LED as evidence of anything.
+- **Blaming a silent module before proving the host's serial port.** A port can be muxed, named, free of a login shell and still carry nothing. Prove it with a jumper between physical pins 8 and 10 and type into it: the characters come back or they do not, and it takes a minute. Do this before any conclusion about the modem, because a dead host port and a dead module produce the same silence. On `raspberrypi3-64` on Monday 20 October 2026 the port had in fact never worked, and the loopback is what proved the repair rather than the pinmux listing.
+- **A minimal image with no USB serial drivers.** A Yocto rootfs can carry `CONFIG_USB_SERIAL=m` and `CONFIG_USB_NET_QMI_WWAN=m` in its kernel configuration and ship none of the modules: on this bench's image twelve modules are installed, under `i2c`, `iio` and `net` only, and `option.ko` appears nowhere. No `ttyUSB` will ever appear, however good the cable. Check `modules.dep` before suspecting the hardware.
 - **A silent fall to GPRS.** The module attaches, the publish succeeds and nothing looks wrong. The symptom is in `AT+CPSI?`, which stops mentioning CAT-M. Check it on every cycle, not once at bring-up.
 - **GNSS still powered during transmission.** The source's rule exists because the two subsystems share the module. Power the receiver down first, every time, and put the command in the script rather than in the operator's memory.
 - **Blocking on a cold start.** A first fix can take minutes and may never arrive indoors. A publisher that waits for it sends nothing at all, which is worse than publishing a cached fix marked as cached.
