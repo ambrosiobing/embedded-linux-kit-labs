@@ -144,7 +144,11 @@ sudo apt-get install -y minicom i2c-tools mosquitto-clients python3-smbus python
 sudo i2cdetect -y 1          # must show 53
 ```
 
-**Step 4.** **Open the AT port.** It is commonly `/dev/ttyUSB2` on the SIM7600. If minicom shows nothing, try USB3 then USB1.
+**Step 4.** **Open the AT port.** It is `/dev/ttyUSB2` on the SIM7600E-H, confirmed on `eplepi` on Monday 20 October 2026, where ModemManager's own probe flagged `ttyUSB2` primary and `ttyUSB3` secondary. If minicom shows nothing, try USB3 then USB1. **If you have already done the WAN step below, stop ModemManager first**: it holds the AT port from boot once installed, and minicom then opens a port that answers nothing.
+
+```bash
+sudo systemctl stop ModemManager    # only if it is installed; see the WAN step
+```
 
 ```text
 sudo minicom -D /dev/ttyUSB2 -b 115200
@@ -170,13 +174,32 @@ mmcli -L
 # Do not run PPP in parallel with QMI or RNDIS.
 ```
 
-**Step 6.** **Confirm and lock the default route**, so the modem wins over wlan0.
+`mmcli -L` answering *No modems were found* after a fresh install is the expected state, not a fault. ModemManager claims only ports that udev has tagged, and the rules that do the tagging were installed after this modem enumerated, so no add event ever ran on it. Trigger the three subsystems its rules name, or reboot, which does the same thing.
 
 ```bash
-ip route | grep default
-# optional: give wlan0 a higher metric so LTE wins
-sudo ip route del default dev wlan0
+for s in tty usbmisc net; do sudo udevadm trigger --action=add --subsystem-match=$s; done
+sudo udevadm settle && sudo mmcli -S && sleep 8 && mmcli -L
+mmcli -m any | grep -Ei 'state|lock|apn|operator|signal'
 ```
+
+**`net` is the one to get right.** With `tty` and `usbmisc` tagged, every port probes cleanly and the modem is still refused, because the data port lives in `net`. The message is *Failed to find a net port in the QMI modem*, which reads as a missing capability and is a missing tag. Then bring the bearer up. The APN is the operator's published one, not the one the modem reports: `initial bearer apn` read `CMNET` on this bench, which is SIMCom's factory default.
+
+```bash
+sudo nmcli connection add type gsm ifname '*' con-name lte apn internet
+sudo nmcli connection up lte
+ip -4 addr show wwan0        # a carrier-NAT address, e.g. 10.83.3.195/29
+ping -I wwan0 -c 4 8.8.8.8
+```
+
+**Step 6.** **Confirm and lock the default route**, so the modem wins over wlan0. Set the modem's own metric rather than deleting the other route: a deletion is undone by the next lease and takes the board's own network with it meanwhile, and NetworkManager gives a gsm connection metric 700, which loses to wifi's 600.
+
+```bash
+sudo nmcli connection modify lte ipv4.route-metric 50
+sudo nmcli connection up lte
+ip route | grep default      # the wwan0 line first, at metric 50
+```
+
+An SSH session on wlan0 survives this, because the LAN it arrives on is a connected route and not the default. When the measurement is finished, `sudo nmcli connection down lte` stops a metered SIM carrying the board's background traffic; the connection stays defined.
 
 **Step 7.** **Run the event publisher.** It is the `p01` directory of this repository, in C, and it builds with a compiler and nothing else. P09 runs the same program with one argument changed, which is why it is one program.
 
@@ -222,6 +245,8 @@ User plane on USB, AT on a ttyUSB. Token-bucket the publisher, which is what the
 - **A 2.5 A supply.** The Pi 4 alone is close to that budget. A Cat-4 transmit burst on top of it produces undervoltage warnings in `dmesg` and random resets that look like software faults.
 - **Running the point-to-point protocol next to QMI.** Two user planes, one radio. The symptom is a route that appears and then carries nothing.
 - **Picking the wrong AT device.** Several `ttyUSB` nodes appear. The wrong one is silent rather than an error, so try USB2, then USB3, then USB1.
+- **A daemon installed after its device enumerated.** ModemManager, and anything else that claims devices through udev rules, sees only what an add event has tagged. Installing it later leaves the device untagged and the daemon reporting that the hardware cannot do the thing. Trigger every subsystem the rules name, here `tty`, `usbmisc` and `net`, or reboot.
+- **Two owners of one AT port.** Once ModemManager runs it holds `ttyUSB2` from boot. Typing AT commands by hand wants it stopped first, and leaving it stopped breaks the WAN step.
 - **Publishing every sample.** Without the cool-off, one impact produces a burst and the dead-band logic buys nothing.
 - **5 V on the accelerometer.** The SEN0032 goes to pin 1, never pin 2.
 

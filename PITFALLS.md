@@ -10,7 +10,7 @@ chapters already give. The use of this page is the other direction, when
 a bench is misbehaving and the lab that discussed the symptom is not the
 lab being built.
 
-**199 pitfalls across 20 labs.**
+**201 pitfalls across 20 labs.**
 
 | Pitfall | Lab |
 |---|---|
@@ -29,6 +29,7 @@ lab being built.
 | A busy channel during the measurement | [P16](chapters/16-esp32-wi-fi-ble-sidecar.md) |
 | A capture started before the probe settled | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |
 | A cold module and an impatient timeout | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
+| A daemon installed after its device enumerated | [P01](chapters/01-lte-cat-4-motion-triggered-gateway.md) |
 | A depleted coin cell in the DS3231 holder | [P11](chapters/11-explorer700-field-console.md) |
 | A graceful shutdown instead of a power pull | [P11](chapters/11-explorer700-field-console.md) |
 | A hub between the probe and the host | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |
@@ -202,6 +203,7 @@ lab being built.
 | Two boards with one client identifier | [P16](chapters/16-esp32-wi-fi-ble-sidecar.md) |
 | Two ground references | [P10](chapters/10-ppk2-energy-characterisation-bench.md) |
 | Two HATs in one sitting | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
+| Two owners of one AT port | [P01](chapters/01-lte-cat-4-motion-triggered-gateway.md) |
 | Two red jumpers from the same strip | [P15](chapters/15-pow-bb-mixed-voltage-discipline.md) |
 | Two UART paths at once | [P14](chapters/14-usb-ttl-provisioning-jig.md) |
 | Undressing P01 or P02 first | [P13](chapters/13-dual-radio-signalling-failover.md) |
