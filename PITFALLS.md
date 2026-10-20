@@ -10,7 +10,7 @@ chapters already give. The use of this page is the other direction, when
 a bench is misbehaving and the lab that discussed the symptom is not the
 lab being built.
 
-**201 pitfalls across 20 labs.**
+**203 pitfalls across 20 labs.**
 
 | Pitfall | Lab |
 |---|---|
@@ -144,6 +144,7 @@ lab being built.
 | Reaching for a 40-pin HAT on this host | [P17](chapters/17-esp8266-at-modem-on-the-nanopi.md) |
 | Reaching for the v1 command | [P15](chapters/15-pow-bb-mixed-voltage-discipline.md) |
 | Reading 0x68 by hand and calling it done | [P11](chapters/11-explorer700-field-console.md) |
+| Reading `AT+CGDCONT?` to check a QMI bearer | [P01](chapters/01-lte-cat-4-motion-triggered-gateway.md) |
 | Reading a fix status of zero as a coordinate | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
 | Reading a rate out of a capture file | [P18](chapters/18-nucleo-usb-cdc-recorder.md) |
 | Reading the block as one channel | [P05](chapters/05-mcc-118-100-ks-s-voltage-recorder.md) |
@@ -186,6 +187,7 @@ lab being built.
 | The serial login shell is still enabled | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
 | The wrong ACM node | [P06](chapters/06-8x8-tof-occupancy-kiosk.md) |
 | The wrong APN | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
+| This command pair belongs to the SIM7070 family and to no other module in the bin | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
 | Transmit wired to transmit | [P14](chapters/14-usb-ttl-provisioning-jig.md) |
 | Transmit wired to transmit | [P17](chapters/17-esp8266-at-modem-on-the-nanopi.md) |
 | Treating a LiPo run as the same experiment | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |

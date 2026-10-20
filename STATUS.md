@@ -158,9 +158,13 @@ above is about consumer prepaid SIMs in general and not about this one, and
 **one HAT settles it**. The SIM7070G is dual-mode silicon that carries Cat-M
 and NB-IoT both, so it can be asked each question in turn: `AT+CNMP=38` then
 `AT+CMNB=1` with `AT+CPSI?` as the evidence, then the same two for NB-IoT.
-The SIM7020E does NB-IoT only and the SIM7600E-H is a conventional LTE modem
-that should not be assumed to do either, so neither is needed for the
-question. A refusal is a finding rather than a fault, and it goes in the lab
+The SIM7020E does NB-IoT only, and **the SIM7600E-H refused the selector when
+asked**: `AT+CMNB=?` answered `ERROR` twice on Monday 20 October 2026, so that
+module has no Cat-M or NB-IoT bearer command at all and the assumption about it
+is now a result. Neither is needed for the question. **A trap that follows:** the
+value 38 is in the SIM7600E-H's own `AT+CNMP=?` list as well, and that module has
+no `CMNB`, so the pair above is specific to the SIM7070 family and the two
+chapters' command tables must not be read across modules. A refusal is a finding rather than a fault, and it goes in the lab
 book with the date either way. **The SIM7070G's own USB socket is broken**,
 by Joseph's report on Monday 20 October 2026: the kernel saw it attach and
 drop three times in sixteen seconds, identifying as `1e0e:9206`,

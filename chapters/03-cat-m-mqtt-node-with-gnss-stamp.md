@@ -248,6 +248,7 @@ Cache the last good fix. Do not block MQTT on a cold GNSS start. The same HAT ca
 
 ## Pitfalls
 
+- **This command pair belongs to the SIM7070 family and to no other module in the bin.** A SIM7600E-H on the same bench answered `ERROR` to `AT+CMNB=?` on Monday 20 October 2026, because that module has no bearer selector at all, while the value 38 does appear in its own `AT+CNMP=?` list. The same number in two modules’ mode tables is not the same mode. Read the AT manual of the module in front of you, which for this lab is the SIM7070 series one cited below, and never carry a mode number across chapters.
 - **A silent fall to GPRS.** The module attaches, the publish succeeds and nothing looks wrong. The symptom is in `AT+CPSI?`, which stops mentioning CAT-M. Check it on every cycle, not once at bring-up.
 - **GNSS still powered during transmission.** The source's rule exists because the two subsystems share the module. Power the receiver down first, every time, and put the command in the script rather than in the operator's memory.
 - **Blocking on a cold start.** A first fix can take minutes and may never arrive indoors. A publisher that waits for it sends nothing at all, which is worse than publishing a cached fix marked as cached.

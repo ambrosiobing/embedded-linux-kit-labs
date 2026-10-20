@@ -247,6 +247,7 @@ User plane on USB, AT on a ttyUSB. Token-bucket the publisher, which is what the
 - **Picking the wrong AT device.** Several `ttyUSB` nodes appear. The wrong one is silent rather than an error, so try USB2, then USB3, then USB1.
 - **A daemon installed after its device enumerated.** ModemManager, and anything else that claims devices through udev rules, sees only what an add event has tagged. Installing it later leaves the device untagged and the daemon reporting that the hardware cannot do the thing. Trigger every subsystem the rules name, here `tty`, `usbmisc` and `net`, or reboot.
 - **Two owners of one AT port.** Once ModemManager runs it holds `ttyUSB2` from boot. Typing AT commands by hand wants it stopped first, and leaving it stopped breaks the WAN step.
+- **Reading `AT+CGDCONT?` to check a QMI bearer.** It answers a different question. With `wwan0` carrying traffic on APN `internet`, the context table on this bench still read `CMNET` in context 1 and the operator's IMS context in 2, and `internet` appeared nowhere: QMI sets the APN through its own service and does not write the AT-visible table. Check the bearer with `mmcli` or with `ip addr`, not with `AT+CGDCONT?`.
 - **Publishing every sample.** Without the cool-off, one impact produces a burst and the dead-band logic buys nothing.
 - **5 V on the accelerometer.** The SEN0032 goes to pin 1, never pin 2.
 
