@@ -20,7 +20,7 @@ be half held is a state that means nothing.
 
 | Lab | State | Evidence | What the next state needs |
 | --- | --- | --- | --- |
-| P01 | **checked** | built with warnings as errors and its 55 checks run on generated captures, Saturday 17 October 2026, gcc under `-Wall -Wextra -Werror` and again under the stricter conversion pass, which was clean. Among those checks: a sensor lying on its side produces nothing at all and free fall produces events, which is the lab's rule about magnitudes rather than axes; and upside down reads minus one gravity whose magnitude is still one, which is the sign extension. The live i2c-dev read is compiled by the same checks and has never had a bus to answer it | the SIM7600E-H seated on the Pi 4, and a SIM |
+| P01 | **run** | the SIM7600E-H seated on the Raspberry Pi 4 Model B Rev 1.4, hostname `eplepi`, kernel `6.18.50+rpt-rpi-v8`, Monday 20 October 2026: enumerated stably as `1e0e:9001` with `ttyUSB0` to `ttyUSB4` and `wwan0`, AT bring-up on `ttyUSB2` with the chapter's own commands, the Elisa prepaid unlocked from `SIM PIN`, and **`+CEREG: 0,5`, registered roaming on Magenta Austria, LTE, Band 3, signal 26 of 31**. Before that, built with warnings as errors and its 55 checks run on generated captures, Saturday 17 October 2026, gcc under `-Wall -Wextra -Werror` and again under the stricter conversion pass, which was clean. Among those checks: a sensor lying on its side produces nothing at all and free fall produces events, which is the lab's rule about magnitudes rather than axes; and upside down reads minus one gravity whose magnitude is still one, which is the sign extension. The live i2c-dev read is compiled by the same checks and has never had a bus to answer it | the data path: `wwan0` through QMI on this board rather than the `usb0` the chapter leads with, then `ping` and the default route, which are items 2 and 3; the ADXL345 on a soldered header for item 1; sky for item 4; and the lab book |
 | P02 | **checked** | built with warnings as errors and its 100 checks run on recorded conversations, Saturday 17 October 2026, gcc under `-Wall -Wextra -Werror` and again under the stricter conversion pass, which was clean. Among those checks: the chapter's own two bitmaps decode to three hours and ten seconds, the same eight characters read with the other timer's table give fifty minutes, and a send period inside the active window is refused rather than reported. The suite and three command-line checks run on every push | the SIM7020E seated on the Pi 3, and an NB-IoT SIM. Whether an operator grants power saving at all is the question this lab exists to ask, and no host code can answer it |
 | P03 | **checked** | built with warnings as errors and its 75 checks run on recorded conversations, Saturday 17 October 2026, gcc under `-Wall -Wextra -Werror` and again under the stricter conversion pass, which was clean. The lab's claim is checked twice over: a transmit attempted with the receiver powered sends nothing, shown by the recording not having moved, and a recording in which the receiver was never powered down is refused by the audit. A bearer that is not Cat-M stops the session, and a cycle with no fix publishes nothing rather than a host clock | the SIM7070G seated on the Pi 3B+, and a Cat-M SIM, plus a sky view for the first real fix |
 | P04 | **checked** | compiled with warnings as errors and run end to end on synthetic data by this repository's own checks, on every push | the STWIN.box on the Pi 4's USB, and a real capture through the same path |
@@ -133,9 +133,11 @@ put together.
 
 **That question was opened and answered on Saturday 17 October 2026, and the
 answer splits the sixteen in two.** There is a SIM here: an Elisa Finnish
-prepaid. Finland and Austria are both in the EU, so ordinary LTE data roams,
-and **P01's two items are the ones that opens**, because a Cat-4 gateway wants
-nothing more exotic than an LTE bearer.
+prepaid, and **on Monday 20 October 2026 it registered**, roaming on Magenta
+Austria, LTE, Band 3, through the SIM7600E-H on `eplepi`. So the half of the
+question that HAT can answer is no longer a prediction: a Cat-4 gateway wants
+nothing more exotic than an LTE bearer and this SIM carries one here. P01's
+second and third items are open.
 
 **The other fourteen are blocked by the kind of SIM rather than by its
 absence.** A consumer prepaid is not provisioned for NB-IoT or LTE-M; those
