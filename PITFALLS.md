@@ -10,7 +10,7 @@ chapters already give. The use of this page is the other direction, when
 a bench is misbehaving and the lab that discussed the symptom is not the
 lab being built.
 
-**207 pitfalls across 20 labs.**
+**209 pitfalls across 20 labs.**
 
 | Pitfall | Lab |
 |---|---|
@@ -103,6 +103,7 @@ lab being built.
 | Installing the ST Linux ToF stack | [P06](chapters/06-8x8-tof-occupancy-kiosk.md) |
 | Interpolating over a gap | [P18](chapters/18-nucleo-usb-cdc-recorder.md) |
 | Inventing a frame format | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |
+| Leaving `CS` or `SDO` open on this breakout | [P01](chapters/01-lte-cat-4-motion-triggered-gateway.md) |
 | Leaving a subscriber running from an earlier lab | [P19](chapters/19-spi-lcd-tilt-meter.md) |
 | Leaving minicom open while the script runs | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
 | Leaving minicom open while the script runs | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |
@@ -178,6 +179,7 @@ lab being built.
 | Stacking both shields | [P07](chapters/07-consumer-9-dof-plus-climate-iks4a1.md) |
 | Starting the broker without enabling it | [P12](chapters/12-official-dsi-operator-glass-and-mqtt-broker.md) |
 | Sunlight or a bright window in the field of view | [P06](chapters/06-8x8-tof-occupancy-kiosk.md) |
+| Supply and return on the same breadboard rail | [P01](chapters/01-lte-cat-4-motion-triggered-gateway.md) |
 | Sweeping baud rates at a module whose rate is pinned | [P01](chapters/01-lte-cat-4-motion-triggered-gateway.md) |
 | Taking the AT port away from the HAT | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
 | The DUT USB cable still connected | [P10](chapters/10-ppk2-energy-characterisation-bench.md) |

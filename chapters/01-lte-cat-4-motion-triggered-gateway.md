@@ -38,7 +38,7 @@ The event path is independent of the network path. A Python loop reads six regis
 
 ![Figure 1.2. The accelerometer on the HAT pass-through header and the three status LEDs.](../figures/p01_schematic.svg)
 
-*Figure 1.2. The accelerometer on the HAT pass-through header and the three status LEDs. SDO left floating selects address 0x53.*
+*Figure 1.2. The accelerometer on the HAT pass-through header and the three status LEDs. This breakout carries no straps, so `CS` is tied to 3V3 for I2C mode and `SDO` to GND for address 0x53; neither may be left open.*
 
 | Signal | Pi header pin | BCM GPIO | Note |
 | --- | --- | --- | --- |
@@ -46,7 +46,8 @@ The event path is independent of the network path. A Python loop reads six regis
 | ADXL345 SDA | 3 | GPIO2 | I2C1 data |
 | ADXL345 SCL | 5 | GPIO3 | I2C1 clock |
 | ADXL345 GND | 6 | GND |  |
-| ADXL345 SDO |  |  | Left floating, selects 0x53 |
+| ADXL345 CS | 1 | 3V3 | **Required.** Open leaves the part in SPI mode and it never answers I2C |
+| ADXL345 SDO | 6 | GND | **Required.** Selects 0x53. Open drifts between 0x53 and 0x1d |
 | ADXL345 INT1 | 11 | GPIO17 | Optional, not needed for the magnitude poll |
 | Green module, S1 | 36 | GPIO16 | CEREG registered. Lit when driven high |
 | Yellow module, S1 | 38 | GPIO20 | Default route on usb0 or wwan0 |
@@ -257,6 +258,8 @@ User plane on USB, AT on a ttyUSB. Token-bucket the publisher, which is what the
 - **Reading `AT+CGDCONT?` to check a QMI bearer.** It answers a different question. With `wwan0` carrying traffic on APN `internet`, the context table on this bench still read `CMNET` in context 1 and the operator's IMS context in 2, and `internet` appeared nowhere: QMI sets the APN through its own service and does not write the AT-visible table. Check the bearer with `mmcli` or with `ip addr`, not with `AT+CGDCONT?`.
 - **Publishing every sample.** Without the cool-off, one impact produces a burst and the dead-band logic buys nothing.
 - **5 V on the accelerometer.** The SEN0032 goes to pin 1, never pin 2.
+- **Leaving `CS` or `SDO` open on this breakout.** The DFRobot SEN0032 has **no on-board straps**, unlike most ADXL345 boards whose datasheet-style pull-ups are fitted. `CS` open leaves the part in SPI mode, so `i2cdetect` shows nothing at all and the bus looks dead. `SDO` open lets the address drift between 0x53 and 0x1d, so a scan that worked once fails the next time. Tie `CS` to 3V3 and `SDO` to GND before suspecting anything else; extttDEVID then reads `0xe5`.
+- **Supply and return on the same breadboard rail.** A module whose `VCC` and `GND` both land on the board's `+V` rail has no supply at all, and every symptom is an absence: an empty scan, a probe failing with `-121`, a SPI read of `DEVID` returning `0x00`. On this bench that arrangement cost five days before the rails were measured at the module's own rows rather than traced by eye. Measure the supply and the return where the part sits, and prove the bus separately with a part known to answer on the same four pins.
 
 ## Sources
 
