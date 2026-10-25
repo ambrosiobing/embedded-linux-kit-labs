@@ -10,7 +10,7 @@ chapters already give. The use of this page is the other direction, when
 a bench is misbehaving and the lab that discussed the symptom is not the
 lab being built.
 
-**209 pitfalls across 20 labs.**
+**211 pitfalls across 20 labs.**
 
 | Pitfall | Lab |
 |---|---|
@@ -104,6 +104,8 @@ lab being built.
 | Interpolating over a gap | [P18](chapters/18-nucleo-usb-cdc-recorder.md) |
 | Inventing a frame format | [P04](chapters/04-stwin-box-vibration-and-ultrasound-usb-gateway.md) |
 | Leaving `CS` or `SDO` open on this breakout | [P01](chapters/01-lte-cat-4-motion-triggered-gateway.md) |
+| Leaving `CS` or `SDO` open on this breakout | [P09](chapters/09-nanopi-neo-air-headless-hub-and-honest-emmc.md) |
+| Leaving `CS` or `SDO` open on this breakout | [P19](chapters/19-spi-lcd-tilt-meter.md) |
 | Leaving a subscriber running from an earlier lab | [P19](chapters/19-spi-lcd-tilt-meter.md) |
 | Leaving minicom open while the script runs | [P02](chapters/02-nb-iot-psm-edrx-coap-field-node.md) |
 | Leaving minicom open while the script runs | [P03](chapters/03-cat-m-mqtt-node-with-gnss-stamp.md) |

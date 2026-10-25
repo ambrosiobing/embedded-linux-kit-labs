@@ -43,7 +43,7 @@ Nothing else is present. There is no broker, no radio, no USB gadget and no seco
 
 ![Figure 19.2. The panel covers the pins the sensor needs, and the two ways past that.](../figures/p19_schematic.svg)
 
-*Figure 19.2. The panel covers the pins the sensor needs, and the two ways past that. SDO left floating selects 0x53, the same address the sensor uses in P01 and P09.*
+*Figure 19.2. The panel covers the pins the sensor needs, and the two ways past that. `CS` tied to 3V3 for I2C mode and `SDO` to GND for 0x53, the same address and the same strapping the sensor needs in P01 and P09.*
 
 | Signal | Pi header pin | BCM GPIO | Note |
 | --- | --- | --- | --- |
@@ -51,7 +51,8 @@ Nothing else is present. There is no broker, no radio, no USB gadget and no seco
 | ADXL345 SDA | 3 | GPIO2 | I2C1 data |
 | ADXL345 SCL | 5 | GPIO3 | I2C1 clock |
 | ADXL345 GND | 6 | GND |  |
-| ADXL345 SDO |  |  | Left floating, selects 0x53 |
+| ADXL345 CS | 1 | 3V3 | **Required.** Open leaves the part in SPI mode and it never answers I2C |
+| ADXL345 SDO | 6 | GND | **Required.** Selects 0x53. Open drifts between 0x53 and 0x1d |
 | LCD panel | 40-pin header |  | The HAT owns the header for the sitting |
 
 *Table 19.1. Wiring as the source gives it, which this panel cannot be wired to. The four rows above assume a pass-through, and the Waveshare 3.5 inch (A) has none. Read the note before touching a jumper.*
@@ -79,7 +80,8 @@ VCC ------------------- pin 1  3V3      NEVER 5V
 GND ------------------- pin 6  GND
 SDA ------------------- pin 3  GPIO2
 SCL ------------------- pin 5  GPIO3
-SDO floating => 0x53
+CS -------------------- pin 1  3V3   (required: I2C mode)
+SDO ------------------- pin 6  GND   (required: address 0x53)
 
 Waveshare 3.5" LCD (A) seated on the Pi 3 40-pin header: this lab's HAT.
 Use the current Bookworm vendor overlay, not the 2016 flexfb recipe.
@@ -203,6 +205,7 @@ The sensor is the same SEN0032 used in P01 and P09, and it is the same address a
 
 ## Pitfalls
 
+- **Leaving `CS` or `SDO` open on this breakout.** The DFRobot SEN0032 carries **no on-board straps**. `CS` open leaves the part in SPI mode, so a bus scan shows nothing at all and the bus looks dead; `SDO` open lets the address drift between 0x53 and 0x1d, so a scan that worked once fails the next time. Tie `CS` to 3V3 and `SDO` to GND before suspecting the bus, the host or the cable. `DEVID` then reads `0xe5`.
 - **Following a 2016 flexfb recipe.** On Bookworm the Waveshare 3.5 inch (A) uses the current vendor overlay. The old recipe produces a panel that stays dark and a stack of changes to undo.
 - **Writing drawing code before checking for a framebuffer.** Confirm `/dev/fb0` or a DRM card first, exactly as P06 does.
 - **Long jumpers to the sensor.** The assembly gets rotated during its own test. A sensor swinging on loose leads measures its own swing.

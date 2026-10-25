@@ -30,7 +30,7 @@ Three modules, three command sets. The full transcripts live in the labs that ow
 
 The ESP8266 AT set used in P17 is a fourth list and a much shorter one: `AT`, `AT+CWMODE=1`, `AT+CWJAP`, `AT+CIFSR`.
 
-The 7-bit I2C addresses for every sensor in the bin are in the default I2C map in the front matter. Two of them are worth repeating here because they decide a lab: the ADXL345 answers at 0x53 with SDO floating, and on the IKS5A1 the ISM6HG256X is at 0x6A while the ISM330IS is at 0x6B.
+The 7-bit I2C addresses for every sensor in the bin are in the default I2C map in the front matter. Two of them are worth repeating here because they decide a lab: the ADXL345 answers at 0x53 only with `CS` tied to 3V3 and `SDO` to GND, since this breakout carries no straps of its own, and on the IKS5A1 the ISM6HG256X is at 0x6A while the ISM330IS is at 0x6B.
 
 ## Raspberry Pi 40-pin header reference
 

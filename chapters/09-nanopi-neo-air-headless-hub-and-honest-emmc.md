@@ -71,7 +71,8 @@ The console deserves its own line in the architecture, because it is the only in
 | ADXL345 SDA | 24-pin | 3 I2C0\_SDA | Bus 0, not bus 1 |
 | ADXL345 SCL | 24-pin | 5 I2C0\_SCL | Bus 0, not bus 1 |
 | ADXL345 GND | 24-pin | 6 GND |  |
-| ADXL345 SDO |  |  | Left floating, selects 0x53 |
+| ADXL345 CS | 24-pin | 1 SYS\_3V3 | **Required.** Open leaves the part in SPI mode |
+| ADXL345 SDO | 24-pin | 6 GND | **Required.** Selects 0x53. Open drifts to 0x1d |
 | Board 5 V supply | 24-pin | 2 VDD\_5V | Or the micro-USB socket, 5 V at 2 A |
 | Console GND | 4-pin debug | GND | Common with the cable |
 | Console 5 V | 4-pin debug | 5 V | Cable side only, confirm on the silkscreen |
@@ -215,6 +216,7 @@ P17 reuses this board with the onboard radio switched off and an ESP8266 speakin
 
 ## Pitfalls
 
+- **Leaving `CS` or `SDO` open on this breakout.** The DFRobot SEN0032 carries **no on-board straps**. `CS` open leaves the part in SPI mode, so a bus scan shows nothing at all and the bus looks dead; `SDO` open lets the address drift between 0x53 and 0x1d, so a scan that worked once fails the next time. Tie `CS` to 3V3 and `SDO` to GND before suspecting the bus, the host or the cable. `DEVID` then reads `0xe5`.
 - **Reaching for a 40-pin HAT.** The header is 24 pins. The SIM7020, SIM7070, SIM7600, MCC 118, Explorer700 and the 3.5 inch LCD do not seat on this board, and no adapter in the bin makes them seat.
 - **Using bus 1.** The symptom is an empty `i2cdetect` table or a missing device node. The header bus on this board is I2C0.
 - **5 V onto SYS\_3V3.** Pin 1 is a 3.3 V rail. The 5 V pin on the debug header belongs to the cable side, and the 5 V pin on the 24-pin header is pin 2.
