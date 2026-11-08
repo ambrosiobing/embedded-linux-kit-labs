@@ -23,6 +23,7 @@ failure this volume actually had: CONTENTS.md was generated at the root for
 weeks with nothing checking it. Everything after that reads what regeneration
 produced.
 """
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -85,6 +86,42 @@ def labs_complete():
     return not problems
 
 
+def readmes_resolve():
+    """Every link in every README points at something that exists, every chapter
+    is reachable from the front page, and every lab directory with a Makefile has
+    a README. A renamed chapter breaks all three at once and no other check here
+    can see it: on Sunday 8 November 2026 the front page still pointed at
+    chapters/09-nanopi-neo-air-headless-hub.md, so P09's chapter was published
+    and linked from nowhere."""
+    link = re.compile(r"\[([^\]]*)\]\(([^)\s]+)\)")
+    pages = [ROOT / "README.md", ROOT / "journal" / "README.md"]
+    pages += sorted(ROOT.glob("p[0-9][0-9]/README.md"))
+    problems = []
+    for page in pages:
+        if not page.exists():
+            problems.append("missing " + page.relative_to(ROOT).as_posix())
+            continue
+        for _, target in link.findall(page.read_text(encoding="utf-8")):
+            if target.startswith(("http://", "https://", "#", "mailto:")):
+                continue
+            head = target.split("#", 1)[0]
+            if head and not (page.parent / head).exists():
+                problems.append(
+                    page.relative_to(ROOT).as_posix() + ": dead link " + target)
+    front = ""
+    if (ROOT / "README.md").exists():
+        front = (ROOT / "README.md").read_text(encoding="utf-8")
+    for chapter in sorted((ROOT / "chapters").glob("*.md")):
+        if chapter.name not in front:
+            problems.append("chapters/" + chapter.name + ": linked from no page")
+    for lab in sorted(ROOT.glob("p[0-9][0-9]")):
+        if (lab / "Makefile").exists() and not (lab / "README.md").exists():
+            problems.append(lab.name + "/: has a Makefile and no README.md")
+    for problem in problems:
+        print("  " + problem)
+    return not problems
+
+
 def main():
     if not sources_present():
         return 2
@@ -95,6 +132,8 @@ def main():
     ok &= regenerated_cleanly()
     print("\n=== Every lab has its four figures and a lab line")
     ok &= labs_complete()
+    print("\n=== Every README resolves, and no chapter is orphaned")
+    ok &= readmes_resolve()
     ok &= run("House rules over every lab, and the bill of materials",
               [sys.executable, "lint.py"])
     ok &= run("Every command the labs print is parsed",

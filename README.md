@@ -162,7 +162,7 @@ be invention, and [`STATUS.md`](STATUS.md) says how few sittings there have been
 | P06 | [8x8 ToF occupancy kiosk](chapters/06-8x8-tof-occupancy-kiosk.md) | Pi 3, LCD, Nucleo, 53L8A1 | multi-zone ranging |
 | P07 | [Consumer 9-DoF plus climate](chapters/07-consumer-9-dof-plus-climate-iks4a1.md) | Nucleo, IKS4A1 | consumer MEMS and humidity |
 | P08 | [Industrial high-g and dual-scale baro](chapters/08-industrial-high-g-and-dual-scale-baro-iks5a1.md) | Nucleo, IKS5A1 | simultaneous low-g and high-g |
-| P09 | [NanoPi NEO Air headless hub](chapters/09-nanopi-neo-air-headless-hub.md) | NanoPi NEO Air, ADXL345 | the only non-Raspberry host |
+| P09 | [NanoPi NEO Air headless hub and honest eMMC logging](chapters/09-nanopi-neo-air-headless-hub-and-honest-emmc.md) | NanoPi NEO Air, ADXL345 | the only non-Raspberry host |
 | P10 | [PPK2 energy characterisation bench](chapters/10-ppk2-energy-characterisation-bench.md) | Pi 4, PPK2, ESP32 | microamp figures |
 | P11 | [Explorer700 field console](chapters/11-explorer700-field-console.md) | Pi 3B+, Explorer700 | the real-time clock and the overlay |
 | P12 | [Official DSI operator glass and broker](chapters/12-official-dsi-operator-glass-and-mqtt-broker.md) | Pi 4, display, keyboard | the panel and the broker |
